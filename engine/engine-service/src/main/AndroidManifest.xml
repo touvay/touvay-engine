@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+          The engine runs in its own process so native crashes and memory pressure never
+          take down the host app — for an IME host that means typing survives anything
+          the engine does (ARCHITECTURE.md ADR-001).
+
+          exported=false: v1 access policy is same-app only (§16). The cross-app,
+          consent-gated phase changes this deliberately, never by default.
+        -->
+        <service
+            android:name="com.touvay.engine.service.TouvayEngineService"
+            android:process=":touvay"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.touvay.engine.action.BIND" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

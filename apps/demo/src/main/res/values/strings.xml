@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="input_hint">Text to echo</string>
+    <string name="input_default">Hello from the other process</string>
+    <string name="connecting">Connecting to engine…</string>
+    <string name="not_connected">Not connected to the engine.</string>
+    <string name="echo_button">Echo (unary)</string>
+    <string name="stream_button">Echo (streaming)</string>
+</resources>

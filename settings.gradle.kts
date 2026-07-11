@@ -1,0 +1,25 @@
+pluginManagement {
+    includeBuild("build-logic")
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "touvay-engine"
+
+include(":contract:touvay-contract")
+include(":sdk:touvay-sdk")
+include(":engine:engine-core")
+include(":engine:engine-service")
+include(":runtime:runtime-api")
+include(":apps:demo")

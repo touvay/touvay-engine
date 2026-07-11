@@ -1,0 +1,19 @@
+# Gradle
+.gradle/
+build/
+
+# IDE
+.idea/
+*.iml
+.kotlin/
+
+# Local environment (machine-specific SDK location)
+local.properties
+
+# Android build outputs
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.hprof

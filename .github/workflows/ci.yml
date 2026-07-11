@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # `build` runs assembly, all JVM/Robolectric unit tests, Android lint, and the
+      # ARCHITECTURE.md §8 dependency-rules check (wired into `check`).
+      - name: Build, test, verify dependency rules
+        run: ./gradlew build

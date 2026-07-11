@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package touvay.contract.v1;
+
+option java_package = "com.touvay.contract.proto";
+option java_multiple_files = true;
+
+// Payload schemas for the "dev.echo" diagnostic capability, schema version 1.
+//
+// dev.echo is a permanent diagnostic surface (not a placeholder): it exercises the two
+// request shapes every real capability uses (unary and streaming) without loading a model,
+// so integration tests and health checks stay cheap. The engine echoes `text` back in
+// `chunk_count` streamed deltas, waiting `inter_chunk_delay_millis` between chunks — the
+// delay exists so cancellation behavior is deterministically testable.
+
+message EchoRequest {
+  string text = 1;
+  // Number of streamed deltas to split the text into. 0 or 1 means a single delta.
+  uint32 chunk_count = 2;
+  // Artificial delay between deltas. 0 means no delay.
+  uint32 inter_chunk_delay_millis = 3;
+}
+
+message EchoDelta {
+  string text = 1;
+}
+
+message EchoResponse {
+  string text = 1;
+}
