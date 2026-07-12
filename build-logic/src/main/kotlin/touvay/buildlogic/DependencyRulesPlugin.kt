@@ -31,6 +31,8 @@ class DependencyRulesPlugin : Plugin<Project> {
         ":runtime:runtime-api" to emptySet(),
         // §8 rule 3: engine-core is pure Kotlin and sees only abstractions.
         ":engine:engine-core" to setOf(":runtime:runtime-api"),
+        // ADR-015/016: offline model metadata and verification; no concrete runtime/network.
+        ":engine:engine-models" to setOf(":runtime:runtime-api"),
         // §8 rule 4: the composition root is the only module that wires concretes.
         ":engine:engine-service" to setOf(
             ":contract:touvay-contract",

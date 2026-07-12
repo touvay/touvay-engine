@@ -4,6 +4,9 @@
 Amended 2026-07-12: ADR-014 (schema ownership); Runtime v1 tokenization surface and
 spike-evidence refinements in §12/§14.3;
 normative runtime specs split out to `docs/runtime/` (runtime-spi.md, runtime-tck.md).
+Amended 2026-07-12: ADR-015 (Model Manager resolution and instance identity) and
+ADR-016 (model-pack manifest/signature envelope); normative Model Manager contract in
+`docs/model-manager/model-manager.md`.
 **Audience:** Engine maintainers, SDK consumers, contributors
 **Scope:** Architecture only. No production code until this document is approved.
 
@@ -312,8 +315,8 @@ Key structural facts:
   ┌─────▼─────┬─────────────▼──┬────────────────┬──────────────┐
   │capability-│ engine-models  │ engine-device  │ runtime-api  │
   │pipelines  │ (packs,store,  │ (tier,thermal, │ (SPI)        │
-  │(text,     │  integrity,    │  memory)       └──────┬───────┘
-  │ vision,   │  downloader)   │                       │
+  │(text,     │  integrity)    │  memory)       └──────┬───────┘
+  │ vision,   │                │                       │
   │ speech)   └────────────────┘        ┌──────────┬───┴─────┬──────────┐
   └───────────┘                         │runtime-  │runtime- │runtime-  │
                                         │llamacpp  │litert   │aicore ...│
@@ -327,7 +330,8 @@ Key structural facts:
 | `engine-service` | Android `Service`, binder implementation, caller authentication, per-client quotas, session registry, process lifecycle, **composition root** (the only place concrete implementations are wired) | everything below |
 | `engine-core` | Capability router, scheduler, budget manager, request state machine. Pure Kotlin; all effects behind ports | `runtime-api`, capability + model + device *interfaces* |
 | `capability-*` | One module per domain (text, vision, speech). Owns prompt templates, tokenizer-safe truncation policy, output parsing/validation, structured result assembly, per-capability quality eval definitions | `runtime-api`, `engine-models` interfaces |
-| `engine-models` | Pack registry, manifest parsing/validation, signature + digest verification, storage layout, install/uninstall, load/unload with refcounting, LRU/idle eviction, downloader (isolated) | device interfaces |
+| `engine-models` | Offline pack schema, bounded verification, and later pack/catalog/instance ownership. Task 3 Slice 1 implements only manifest/signature/compatibility verification | `runtime-api` when runtime resolution lands; no concrete runtime or network |
+| `engine-downloader` (future) | Consent-gated, resumable acquisition of signed artifacts by content hash; the only network-enabled engine module | narrow staged-pack source port |
 | `engine-device` | Device tier detection, memory pressure (`onTrimMemory`, `ActivityManager`), thermal (`PowerManager` thermal status/headroom), accelerator probing | Android SDK |
 | `runtime-api` | The Runtime SPI: mandatory core + typed feature interfaces + conformance-testable semantics | nothing |
 | `runtime-<impl>` | One adapter per runtime; owns its native libs (16 KB-page-aligned — a hard Play requirement for API 35+ targets since Nov 2025), JNI bridge, cancellation plumbing | `runtime-api` |
@@ -349,9 +353,9 @@ Enforced in CI (Gradle module graph check / Konsist):
    root). Same for concrete capability pipelines.
 5. `runtime-*` modules depend only on `runtime-api` (+ their own native code). They may not see
    the model registry, scheduler, or each other.
-6. Only `engine-models`' downloader component may declare network dependencies; inference-path
-   modules are checked (StrictMode `detectNetwork` in instrumentation, dependency lint) to be
-   socket-free.
+6. Only the future, separate `engine-downloader` module may declare network dependencies;
+   `engine-models` and inference-path modules are checked (StrictMode `detectNetwork` in
+   instrumentation, dependency lint) to be socket-free.
 7. Client apps depend only on `touvay-sdk` (+ `sdk-fakes` in tests).
 8. All cross-boundary types are owned by the lower layer (`runtime-api` owns SPI types;
    `touvay-contract` owns wire types); no leaking runtime types up through the router.
@@ -584,35 +588,32 @@ Notes:
 
 ### 13.1 Model packs (data only, signed)
 
-```jsonc
-// pack manifest (schema versioned)
-{
-  "id": "touvay.pack.compact-writer-q4",
-  "version": "1.2.0",
-  "engineMin": "1.0.0",
-  "runtime": { "id": "llamacpp", "minAdapter": "1.0" },
-  "capabilities": [
-    { "id": "text.rewrite",   "quality": 62, "template": "templates/rewrite.tpl" },
-    { "id": "text.summarize", "quality": 58, "template": "templates/summarize.tpl" }
-  ],
-  "resources": { "ramMb": 900, "ctxMax": 2048, "accel": ["cpu", "gpu-opencl"] },
-  "deviceConstraints": { "minTier": "T1", "abis": ["arm64-v8a"] },
-  "files": [ { "path": "weights.gguf", "bytes": 716800000, "sha256": "…" } ],
-  "license": { "spdx": "apache-2.0", "noticePath": "LICENSE" },
-  "signature": "ed25519:…"   // over canonicalized manifest incl. file digests
-}
+```text
+manifest.pb                  # protobuf-lite; exact bytes define manifest digest
+manifest.sig                 # detached Ed25519 envelope
+files/...                    # weights, tokenizer, templates, config, license, auxiliaries
 ```
+
+The durable envelope is frozen by ADR-016 and specified normatively in
+`docs/model-manager/model-manager.md` §6/§9. The detached signature covers a
+domain-separated prefix plus the exact `manifest.pb` bytes; the signed manifest contains
+the per-file paths, sizes, roles, and SHA-256 digests. The earlier JSONC form was
+illustrative, not a shipped compatibility format.
 
 - The **capability registry** is the join of installed manifests: capability → candidate plans with
   quality scores and resource costs. Routing = filter by device tier & constraints, rank by
   quality within budget, prefer already-loaded (affinity).
 - Templates/config in packs are **declarative data** interpreted by capability pipelines — never
   executable. A template language with logic is a code smell here; it stays substitution-only.
-- **Integrity:** manifest signature verified against keys pinned in the engine build at install
-  time; per-file SHA-256 verified on install and re-verified cheaply (size+mtime+spot hash) at
-  load. User-imported packs (a deliberate OSS-friendly feature) are marked untrusted: extra
-  warnings, and their files are treated as hostile input — model file parsers are fuzzed, since
-  GGUF/graph parsers have had real CVEs.
+- **Integrity:** manifest signature verified against an engine-pinned key, or an explicitly
+  user-approved key for an untrusted import, at install time; per-file SHA-256 verified on install
+  and re-verified cheaply (size+mtime+spot hash) at load. User-imported packs (a deliberate
+  OSS-friendly feature) are marked untrusted: extra warnings, and their files are treated as
+  hostile input — model file parsers are fuzzed, since GGUF/graph parsers have had real CVEs.
+- **Resolution:** the Model Manager depends on a Runtime Registry for compile-time adapter
+  resolution. It owns rich `ResolvedModelRevision` metadata internally and projects only the
+  existing narrow `ResolvedModelPack` into Runtime v1. Loaded instances are identified by exact
+  model revision plus execution profile (ADR-015).
 
 ### 13.2 Acquisition
 
@@ -792,7 +793,8 @@ touvay-engine/
 ├── engine/
 │   ├── engine-service/            (composition root)
 │   ├── engine-core/               (pure Kotlin)
-│   ├── engine-models/             (+ downloader, isolated)
+│   ├── engine-models/             (offline; no downloader/network)
+│   ├── engine-downloader/         (future; isolated network acquisition)
 │   └── engine-device/
 ├── capabilities/
 │   ├── capability-text/
@@ -817,7 +819,8 @@ touvay-engine/
 
 ## 20. Architecture Decision Records
 
-Each of these gets a full file under `docs/adr/`; summarized here.
+ADR-001 through ADR-014 predate the per-file archive and are summarized here. New
+task-scoped ADRs have full records under `docs/adr/` and summaries here.
 
 **ADR-001 — Process topology: out-of-process embedded engine, promotable to shared app.**
 Alternatives: in-process library; central app day one. Chosen for crash isolation (IME must
@@ -894,6 +897,19 @@ modules take a dependency on the contract layer for schema classes only (the §8
 that edge when those modules land); if depending on the full contract artifact ever tempts
 pipelines to touch transport types, the schemas split into a leaner `touvay-contract-schemas`
 artifact — an anticipated, non-breaking refactor.
+
+**ADR-015 — Model Manager runtime resolution and loaded-instance identity.** *(Accepted
+2026-07-12, Task 3 architecture refinement.)* The manager depends on a Runtime Registry rather
+than owning registrations; it keeps rich resolved-revision metadata internal and projects the
+narrow Runtime v1 `ResolvedModelPack` only at load. Instance identity is exact model revision plus
+execution profile. No speculative `PREPARING` state is added before a typed runtime feature and TCK
+exist. Full record: `docs/adr/ADR-015-model-manager-resolution-and-instance-identity.md`.
+
+**ADR-016 — Model-pack manifest and detached signature envelope.** *(Accepted 2026-07-12,
+Task 3 architecture refinement.)* Packs use exact protobuf-lite manifest bytes plus a detached,
+domain-separated Ed25519 signature; per-file hashes remain mandatory. This replaces the
+illustrative JSONC example before any durable format ships. Full record:
+`docs/adr/ADR-016-model-pack-manifest-and-signature-envelope.md`.
 
 ---
 

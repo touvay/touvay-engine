@@ -15,11 +15,12 @@ Touvay Engine is a privacy-first, **offline** AI runtime platform for Android
 request to a (model pack, runtime, execution plan). Apps never see models, runtimes,
 prompts, or hardware.
 
-**Status:** Architecture v1.0 approved (ADR-001..014). Tasks 0/1 are committed.
-Task 2.1 production hardening is implemented: Runtime SPI/TCK and the production
-llama.cpp adapter are build-green and 28/28 device-TCK green on the API 36 emulator.
-The adapter is **not engine-wired**. Pending: representative 4 GB arm64 measurement
-(`docs/spikes/llamacpp-feasibility.md` §6) and explicit approval before Task 3.
+**Status:** Architecture v1.0 plus ADR-015/016 approved. Runtime v1.0 is tagged
+`runtime-v1.0-foundation`, build-green, and 28/28 device-TCK green. Task 3 Slice 1
+implements the approved offline model-pack manifest/signature/compatibility verifier in
+`engine-models`. Slice 2 durable storage/transaction work is authorized but not yet
+implemented. Slice 3 and all model loading/runtime wiring are **not authorized**. The
+llama.cpp adapter remains unwired.
 
 ## Non-negotiable rules
 
@@ -50,7 +51,7 @@ The adapter is **not engine-wired**. Pending: representative 4 GB arm64 measurem
 | New capability | ARCHITECTURE.md §9 §11 + `engine-core` `CapabilityPipeline` + `EchoPipeline` as the reference impl | runtime sections |
 | Runtime / inference | **`docs/runtime/runtime-spi.md` (normative)** + `runtime-api`; TCK work → `docs/runtime/runtime-tck.md`; llama.cpp adapter → `docs/runtime/runtime-llamacpp-design.md` | full ARCHITECTURE.md |
 | SDK surface | ARCHITECTURE.md §9 + `sdk/touvay-sdk` + `.api` dumps | engine internals |
-| Model packs / downloads | ARCHITECTURE.md §13 ADR-011 + `models/README.md` | — |
+| Model packs / downloads | `docs/model-manager/model-manager.md` (normative) + ADR-011/015/016 + `engine/engine-models/README.md` | — |
 | Scheduling / memory / threading | ARCHITECTURE.md §14 | — |
 | Security/privacy question | ARCHITECTURE.md §16 + ADR-013 | — |
 | Process topology / IPC design | ARCHITECTURE.md §5 §6 ADR-001 ADR-002 | — |
@@ -62,6 +63,7 @@ The adapter is **not engine-wired**. Pending: representative 4 GB arm64 measurem
 | `contract/touvay-contract` | AIDL surface + `@Parcelize` envelope + proto payload schemas (owns ALL wire schemas, ADR-014). Most stable artifact | nothing |
 | `sdk/touvay-sdk` | Public client API: `Touvay.connect`, `TouvayClient`, Flow streaming, `TouvayException`, binder-death handling | contract |
 | `engine/engine-core` | Pure JVM (no Android): `CapabilityRegistry`, `RequestProcessor` (streaming, cancel, coalescing, exactly-one-terminal) | runtime-api |
+| `engine/engine-models` | Pure JVM, offline Task 3 boundary: protobuf pack schema, bounded parser, detached Ed25519 envelope, immutable trust store, signature/compatibility verification. No storage/catalog/lifecycle/install/runtime integration | runtime-api allowed (not yet declared) |
 | `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root (only place concretes are wired); `EchoPipeline` | contract, engine-core, runtime-api |
 | `runtime/runtime-api` | Runtime SPI (`InferenceRuntime`/`ModelInstance`/`InferenceSession`, `tokenize`, `CancelSignal`); normative spec `docs/runtime/runtime-spi.md` | nothing |
 | `runtime/runtime-tck` | Conformance kit (pure JVM): `AbstractRuntimeTck` + sabotage self-test; adapters conform via one androidTest subclass | runtime-api |
@@ -77,6 +79,7 @@ API) `apiValidation.ignoredProjects` in root `build.gradle.kts`.
 
 ```
 ./gradlew build                      # assemble + unit tests + lint + dep rules + apiCheck
+./gradlew :engine:engine-models:test # Task 3 Slice 1 verifier/security suite
 ./gradlew :apps:demo:connectedDebugAndroidTest      # cross-process tests (device/emulator)
 ./gradlew apiDump                    # ONLY as a reviewed API change
 scripts/fetch-llamacpp.ps1           # pinned b5199 -> production adapter third_party/ (gitignored)
@@ -124,9 +127,11 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 
 ## Open items / approval gates
 
-- Device measurement run for the spike (one 4 GB arm64 phone; instructions in
-  docs/spikes/llamacpp-feasibility.md §3/§6) → T1 go/no-go.
-- **Gate:** engine/router/model-manager wiring of `runtime-llamacpp` is Task 3 and
-  requires explicit user approval after representative device evidence.
+- Representative 4 GB arm64 calibration remains required before runtime/lifecycle wiring.
+- **Gate:** Task 3 Slice 2 is authorized for transactional storage only. Catalog rebuild,
+  model loading, reference counting, scheduler/runtime integration, and Slice 3 remain
+  unauthorized.
+- Measure Tink 1.23.0's shrunk APK contribution before engine-service wiring; Slice 1
+  uses one pure-Java verifier path across API 29+ and adds no Android composition edge.
 - Deferred (additive): `createSession` in AIDL; SDK per-request backpressure budget;
   convention-plugin guard for `ndkVersion`.

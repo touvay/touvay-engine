@@ -9,6 +9,9 @@ models, runtimes, prompts, or hardware details.
 SDK, Runtime SPI/TCK, and production llama.cpp adapter are green. The adapter remains
 deliberately unwired from the engine; routing/model-manager integration is the Task 3 gate.
 Release checkpoint: [Runtime v1.0 Foundation](docs/runtime/runtime-v1.0-release.md).
+Task 3 implementation contract: [Model Manager Architecture v1.0](docs/model-manager/model-manager.md)
+(architecture frozen). Slice 1—the bounded manifest/signature/compatibility verifier—is
+approved. Slice 2 durable storage work is authorized but not yet implemented.
 
 > **AI coding agents:** read [AGENTS.md](AGENTS.md) first — it replaces repo
 > exploration (module map, rules, commands, known gotchas). `CLAUDE.md` points there.
@@ -30,6 +33,7 @@ plug in.
 | `contract/touvay-contract` | AIDL + protobuf wire contract (most stable artifact) |
 | `sdk/touvay-sdk` | Public client API (Kotlin coroutines/Flow) |
 | `engine/engine-core` | Pure-JVM request routing/execution core |
+| `engine/engine-models` | Offline model-pack schema and bounded verifier (Task 3 Slice 1 only) |
 | `engine/engine-service` | Bound service hosting the engine in the `:touvay` process |
 | `runtime/runtime-api` | Runtime SPI |
 | `runtime/runtime-tck` | Runtime v1.0 executable conformance specification |

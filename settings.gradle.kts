@@ -20,6 +20,7 @@ rootProject.name = "touvay-engine"
 include(":contract:touvay-contract")
 include(":sdk:touvay-sdk")
 include(":engine:engine-core")
+include(":engine:engine-models")
 include(":engine:engine-service")
 include(":runtime:runtime-api")
 include(":runtime:runtime-tck")

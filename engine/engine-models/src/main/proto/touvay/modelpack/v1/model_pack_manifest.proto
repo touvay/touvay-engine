@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package touvay.modelpack.v1;
+
+option java_package = "com.touvay.engine.models.proto";
+option java_multiple_files = true;
+
+// Durable, signed metadata for one data-only model pack (ADR-016).
+message ModelPackManifest {
+  uint32 schema_version = 1;
+  string pack_id = 2;
+  string pack_version = 3;
+  string engine_min_version = 4;
+  optional string engine_max_version = 5;
+  uint64 created_at_epoch_seconds = 6;
+  string signing_key_id = 7;
+  RuntimeRequirement runtime = 8;
+  repeated CapabilityDescriptor capabilities = 9;
+  ResourceRequirements resources = 10;
+  DeviceConstraints device_constraints = 11;
+  repeated ModelFile files = 12;
+  LicenseMetadata license = 13;
+  repeated string required_manifest_features = 14;
+}
+
+message RuntimeRequirement {
+  string id = 1;
+  string min_adapter_version = 2;
+  repeated string required_features = 3;
+}
+
+message CapabilityDescriptor {
+  string id = 1;
+  uint32 schema_version = 2;
+  uint32 quality_score = 3;
+  optional string template_path = 4;
+  optional string config_path = 5;
+}
+
+message ResourceRequirements {
+  uint64 estimated_instance_ram_bytes = 1;
+  uint32 max_context_length = 2;
+  optional uint64 kv_bytes_per_token = 3;
+  repeated string accelerators = 4;
+}
+
+message DeviceConstraints {
+  DeviceTier min_tier = 1;
+  repeated string supported_abis = 2;
+  optional uint32 min_android_api = 3;
+}
+
+enum DeviceTier {
+  DEVICE_TIER_UNSPECIFIED = 0;
+  DEVICE_TIER_T0 = 1;
+  DEVICE_TIER_T1 = 2;
+  DEVICE_TIER_T2 = 3;
+  DEVICE_TIER_T3 = 4;
+}
+
+message ModelFile {
+  string logical_path = 1;
+  uint64 byte_size = 2;
+  bytes sha256 = 3;
+  FileRole role = 4;
+}
+
+enum FileRole {
+  FILE_ROLE_UNSPECIFIED = 0;
+  FILE_ROLE_WEIGHTS = 1;
+  FILE_ROLE_TOKENIZER = 2;
+  FILE_ROLE_TEMPLATE = 3;
+  FILE_ROLE_CONFIG = 4;
+  FILE_ROLE_LICENSE = 5;
+  FILE_ROLE_AUXILIARY = 6;
+}
+
+message LicenseMetadata {
+  string spdx_id = 1;
+  optional string notice_path = 2;
+}
