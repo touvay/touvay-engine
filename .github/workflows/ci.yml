@@ -18,7 +18,36 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # `build` runs assembly, all JVM/Robolectric unit tests, Android lint, and the
-      # ARCHITECTURE.md §8 dependency-rules check (wired into `check`).
-      - name: Build, test, verify dependency rules
+      # `build` runs assembly, all JVM/Robolectric unit tests, Android lint, the
+      # ARCHITECTURE.md §8 dependency-rules check, and binary API compatibility
+      # (apiCheck) — all wired into `check`.
+      - name: Build, test, verify dependency rules and API compatibility
         run: ./gradlew build
+
+  connected:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable KVM for hardware-accelerated emulation
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Cross-process binder tests (apps/demo androidTest): the one layer Robolectric
+      # cannot exercise.
+      - name: Run connected tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          disable-animations: true
+          script: ./gradlew :apps:demo:connectedDebugAndroidTest

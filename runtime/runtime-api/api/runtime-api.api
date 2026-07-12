@@ -1,0 +1,185 @@
+public final class com/touvay/runtime/api/AtomicCancelSignal : com/touvay/runtime/api/CancelSignal {
+	public fun <init> ()V
+	public final fun cancel ()V
+	public fun isCancelled ()Z
+}
+
+public abstract interface class com/touvay/runtime/api/CancelSignal {
+	public static final field Companion Lcom/touvay/runtime/api/CancelSignal$Companion;
+	public abstract fun isCancelled ()Z
+}
+
+public final class com/touvay/runtime/api/CancelSignal$Companion {
+	public final fun getNONE ()Lcom/touvay/runtime/api/CancelSignal;
+}
+
+public final class com/touvay/runtime/api/DecodeParams {
+	public fun <init> (IFF)V
+	public synthetic fun <init> (IFFILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()F
+	public final fun component3 ()F
+	public final fun copy (IFF)Lcom/touvay/runtime/api/DecodeParams;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/DecodeParams;IFFILjava/lang/Object;)Lcom/touvay/runtime/api/DecodeParams;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxTokens ()I
+	public final fun getTemperature ()F
+	public final fun getTopP ()F
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/runtime/api/DeviceProfile {
+	public fun <init> (JZLjava/util/List;)V
+	public final fun component1 ()J
+	public final fun component2 ()Z
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (JZLjava/util/List;)Lcom/touvay/runtime/api/DeviceProfile;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/DeviceProfile;JZLjava/util/List;ILjava/lang/Object;)Lcom/touvay/runtime/api/DeviceProfile;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSupportedAbis ()Ljava/util/List;
+	public final fun getTotalRamBytes ()J
+	public fun hashCode ()I
+	public final fun isLowRamDevice ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/touvay/runtime/api/InferenceRuntime {
+	public abstract fun getId-K4aN7Pw ()Ljava/lang/String;
+	public abstract fun loadModel (Lcom/touvay/runtime/api/ResolvedModelPack;Lcom/touvay/runtime/api/LoadConfig;)Lcom/touvay/runtime/api/ModelInstance;
+	public abstract fun probe (Lcom/touvay/runtime/api/DeviceProfile;)Lcom/touvay/runtime/api/RuntimeAvailability;
+}
+
+public abstract interface class com/touvay/runtime/api/InferenceSession : java/lang/AutoCloseable {
+	public abstract fun decode (Lcom/touvay/runtime/api/DecodeParams;Lcom/touvay/runtime/api/CancelSignal;Lcom/touvay/runtime/api/TokenSink;)V
+	public abstract fun prefill-bus-l2c ([ILcom/touvay/runtime/api/CancelSignal;)Lcom/touvay/runtime/api/PrefillResult;
+}
+
+public final class com/touvay/runtime/api/LoadConfig {
+	public fun <init> (IZ)V
+	public synthetic fun <init> (IZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Z
+	public final fun copy (IZ)Lcom/touvay/runtime/api/LoadConfig;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/LoadConfig;IZILjava/lang/Object;)Lcom/touvay/runtime/api/LoadConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getThreads ()I
+	public final fun getUseMmap ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/touvay/runtime/api/ModelInstance : java/lang/AutoCloseable {
+	public abstract fun createSession (Lcom/touvay/runtime/api/SessionConfig;)Lcom/touvay/runtime/api/InferenceSession;
+	public abstract fun getInfo ()Lcom/touvay/runtime/api/ModelInstanceInfo;
+}
+
+public final class com/touvay/runtime/api/ModelInstanceInfo {
+	public fun <init> (JI)V
+	public final fun component1 ()J
+	public final fun component2 ()I
+	public final fun copy (JI)Lcom/touvay/runtime/api/ModelInstanceInfo;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/ModelInstanceInfo;JIILjava/lang/Object;)Lcom/touvay/runtime/api/ModelInstanceInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEstimatedRamBytes ()J
+	public final fun getMaxContextLength ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/runtime/api/PrefillResult {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Lcom/touvay/runtime/api/PrefillResult;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/PrefillResult;IILjava/lang/Object;)Lcom/touvay/runtime/api/PrefillResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPromptTokenCount ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/runtime/api/ResolvedModelPack {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lcom/touvay/runtime/api/ResolvedModelPack;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/ResolvedModelPack;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/touvay/runtime/api/ResolvedModelPack;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFiles ()Ljava/util/Map;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/touvay/runtime/api/RuntimeAvailability {
+}
+
+public final class com/touvay/runtime/api/RuntimeAvailability$Available : com/touvay/runtime/api/RuntimeAvailability {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/Set;)Lcom/touvay/runtime/api/RuntimeAvailability$Available;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/RuntimeAvailability$Available;Ljava/util/Set;ILjava/lang/Object;)Lcom/touvay/runtime/api/RuntimeAvailability$Available;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAccelerators ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/runtime/api/RuntimeAvailability$Unavailable : com/touvay/runtime/api/RuntimeAvailability {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/touvay/runtime/api/RuntimeAvailability$Unavailable;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/RuntimeAvailability$Unavailable;Ljava/lang/String;ILjava/lang/Object;)Lcom/touvay/runtime/api/RuntimeAvailability$Unavailable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/runtime/api/RuntimeId {
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lcom/touvay/runtime/api/RuntimeId;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class com/touvay/runtime/api/SessionConfig {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Lcom/touvay/runtime/api/SessionConfig;
+	public static synthetic fun copy$default (Lcom/touvay/runtime/api/SessionConfig;IILjava/lang/Object;)Lcom/touvay/runtime/api/SessionConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContextLength ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/runtime/api/TokenSequence {
+	public static final synthetic fun box-impl ([I)Lcom/touvay/runtime/api/TokenSequence;
+	public static fun constructor-impl ([I)[I
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl ([ILjava/lang/Object;)Z
+	public static final fun equals-impl0 ([I[I)Z
+	public final fun getIds ()[I
+	public fun hashCode ()I
+	public static fun hashCode-impl ([I)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl ([I)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()[I
+}
+
+public abstract interface class com/touvay/runtime/api/TokenSink {
+	public abstract fun onToken (ILjava/lang/String;)V
+}
+

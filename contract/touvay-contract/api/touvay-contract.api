@@ -1,0 +1,399 @@
+public final class com/touvay/contract/CapabilityInfo : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (Ljava/lang/String;II)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (Ljava/lang/String;II)Lcom/touvay/contract/CapabilityInfo;
+	public static synthetic fun copy$default (Lcom/touvay/contract/CapabilityInfo;Ljava/lang/String;IIILjava/lang/Object;)Lcom/touvay/contract/CapabilityInfo;
+	public final fun describeContents ()I
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getSchemaVersion ()I
+	public final fun getStatusCode ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/CapabilityInfo$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/CapabilityInfo;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/CapabilityInfo;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
+public final class com/touvay/contract/CapabilityStatusCodes {
+	public static final field DEVICE_NOT_SUPPORTED I
+	public static final field DISABLED_BY_POLICY I
+	public static final field DOWNLOAD_REQUIRED I
+	public static final field INSTANCE Lcom/touvay/contract/CapabilityStatusCodes;
+	public static final field READY I
+}
+
+public final class com/touvay/contract/ClientHello : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (IILjava/lang/String;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (IILjava/lang/String;)Lcom/touvay/contract/ClientHello;
+	public static synthetic fun copy$default (Lcom/touvay/contract/ClientHello;IILjava/lang/String;ILjava/lang/Object;)Lcom/touvay/contract/ClientHello;
+	public final fun describeContents ()I
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContractVersion ()I
+	public final fun getMinContractVersion ()I
+	public final fun getSdkVersionName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/ClientHello$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/ClientHello;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/ClientHello;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
+public final class com/touvay/contract/EngineError : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (Ljava/lang/String;IZLjava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;IZLjava/lang/String;)Lcom/touvay/contract/EngineError;
+	public static synthetic fun copy$default (Lcom/touvay/contract/EngineError;Ljava/lang/String;IZLjava/lang/String;ILjava/lang/Object;)Lcom/touvay/contract/EngineError;
+	public final fun describeContents ()I
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()I
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getRequestId ()Ljava/lang/String;
+	public final fun getRetryable ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/EngineError$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/EngineError;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/EngineError;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
+public final class com/touvay/contract/EngineErrorCodes {
+	public static final field BUSY I
+	public static final field CANCELLED I
+	public static final field INPUT_TOO_LARGE I
+	public static final field INSTANCE Lcom/touvay/contract/EngineErrorCodes;
+	public static final field INTERNAL I
+	public static final field SCHEMA_VERSION_MISMATCH I
+	public static final field SUPERSEDED I
+	public static final field UNKNOWN_CAPABILITY I
+}
+
+public final class com/touvay/contract/EngineHello : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (IILjava/lang/String;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (IILjava/lang/String;)Lcom/touvay/contract/EngineHello;
+	public static synthetic fun copy$default (Lcom/touvay/contract/EngineHello;IILjava/lang/String;ILjava/lang/Object;)Lcom/touvay/contract/EngineHello;
+	public final fun describeContents ()I
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContractVersion ()I
+	public final fun getEngineVersionName ()Ljava/lang/String;
+	public final fun getMinContractVersion ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/EngineHello$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/EngineHello;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/EngineHello;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
+public abstract interface class com/touvay/contract/ITouvayEngine : android/os/IInterface {
+	public static final field DESCRIPTOR Ljava/lang/String;
+	public abstract fun cancel (Ljava/lang/String;)V
+	public abstract fun listCapabilities ()Ljava/util/List;
+	public abstract fun negotiate (Lcom/touvay/contract/ClientHello;)Lcom/touvay/contract/EngineHello;
+	public abstract fun submit (Lcom/touvay/contract/RequestEnvelope;Lcom/touvay/contract/ITouvayResponseCallback;)V
+}
+
+public class com/touvay/contract/ITouvayEngine$Default : com/touvay/contract/ITouvayEngine {
+	public fun <init> ()V
+	public fun asBinder ()Landroid/os/IBinder;
+	public fun cancel (Ljava/lang/String;)V
+	public fun listCapabilities ()Ljava/util/List;
+	public fun negotiate (Lcom/touvay/contract/ClientHello;)Lcom/touvay/contract/EngineHello;
+	public fun submit (Lcom/touvay/contract/RequestEnvelope;Lcom/touvay/contract/ITouvayResponseCallback;)V
+}
+
+public abstract class com/touvay/contract/ITouvayEngine$Stub : android/os/Binder, com/touvay/contract/ITouvayEngine {
+	public fun <init> ()V
+	public fun asBinder ()Landroid/os/IBinder;
+	public static fun asInterface (Landroid/os/IBinder;)Lcom/touvay/contract/ITouvayEngine;
+	public fun onTransact (ILandroid/os/Parcel;Landroid/os/Parcel;I)Z
+}
+
+public class com/touvay/contract/ITouvayEngine$_Parcel {
+	public fun <init> ()V
+}
+
+public abstract interface class com/touvay/contract/ITouvayResponseCallback : android/os/IInterface {
+	public static final field DESCRIPTOR Ljava/lang/String;
+	public abstract fun onAccepted (Ljava/lang/String;)V
+	public abstract fun onCompleted (Lcom/touvay/contract/ResponseFinal;)V
+	public abstract fun onDelta (Lcom/touvay/contract/ResponseDelta;)V
+	public abstract fun onFailed (Lcom/touvay/contract/EngineError;)V
+}
+
+public class com/touvay/contract/ITouvayResponseCallback$Default : com/touvay/contract/ITouvayResponseCallback {
+	public fun <init> ()V
+	public fun asBinder ()Landroid/os/IBinder;
+	public fun onAccepted (Ljava/lang/String;)V
+	public fun onCompleted (Lcom/touvay/contract/ResponseFinal;)V
+	public fun onDelta (Lcom/touvay/contract/ResponseDelta;)V
+	public fun onFailed (Lcom/touvay/contract/EngineError;)V
+}
+
+public abstract class com/touvay/contract/ITouvayResponseCallback$Stub : android/os/Binder, com/touvay/contract/ITouvayResponseCallback {
+	public fun <init> ()V
+	public fun asBinder ()Landroid/os/IBinder;
+	public static fun asInterface (Landroid/os/IBinder;)Lcom/touvay/contract/ITouvayResponseCallback;
+	public fun onTransact (ILandroid/os/Parcel;Landroid/os/Parcel;I)Z
+}
+
+public class com/touvay/contract/ITouvayResponseCallback$_Parcel {
+	public fun <init> ()V
+}
+
+public final class com/touvay/contract/RequestEnvelope : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;I[BILjava/lang/String;)V
+	public final fun describeContents ()I
+	public final fun getCapabilityId ()Ljava/lang/String;
+	public final fun getCoalesceKey ()Ljava/lang/String;
+	public final fun getPayload ()[B
+	public final fun getPriority ()I
+	public final fun getRequestId ()Ljava/lang/String;
+	public final fun getSchemaVersion ()I
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/RequestEnvelope$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/RequestEnvelope;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/RequestEnvelope;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
+public final class com/touvay/contract/RequestPriorities {
+	public static final field BACKGROUND I
+	public static final field INSTANCE Lcom/touvay/contract/RequestPriorities;
+	public static final field INTERACTIVE I
+}
+
+public final class com/touvay/contract/RequestStats : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (JJI)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()I
+	public final fun copy (JJI)Lcom/touvay/contract/RequestStats;
+	public static synthetic fun copy$default (Lcom/touvay/contract/RequestStats;JJIILjava/lang/Object;)Lcom/touvay/contract/RequestStats;
+	public final fun describeContents ()I
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeltaCount ()I
+	public final fun getTotalMillis ()J
+	public final fun getTtftMillis ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/RequestStats$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/RequestStats;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/RequestStats;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
+public final class com/touvay/contract/ResponseDelta : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (Ljava/lang/String;I[B)V
+	public final fun describeContents ()I
+	public final fun getPayload ()[B
+	public final fun getRequestId ()Ljava/lang/String;
+	public final fun getSequence ()I
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/ResponseDelta$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/ResponseDelta;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/ResponseDelta;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
+public final class com/touvay/contract/ResponseFinal : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (Ljava/lang/String;[BLcom/touvay/contract/RequestStats;)V
+	public final fun describeContents ()I
+	public final fun getPayload ()[B
+	public final fun getRequestId ()Ljava/lang/String;
+	public final fun getStats ()Lcom/touvay/contract/RequestStats;
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/ResponseFinal$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/ResponseFinal;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/ResponseFinal;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
+public final class com/touvay/contract/TouvayContract {
+	public static final field ACTION_BIND_ENGINE Ljava/lang/String;
+	public static final field CAPABILITY_DIAGNOSTICS_ECHO Ljava/lang/String;
+	public static final field CONTRACT_VERSION I
+	public static final field INSTANCE Lcom/touvay/contract/TouvayContract;
+	public static final field MIN_SUPPORTED_CONTRACT_VERSION I
+}
+
+public final class com/touvay/contract/proto/Diagnostics {
+	public static fun registerAllExtensions (Lcom/google/protobuf/ExtensionRegistryLite;)V
+}
+
+public final class com/touvay/contract/proto/EchoDelta : com/google/protobuf/GeneratedMessageLite, com/touvay/contract/proto/EchoDeltaOrBuilder {
+	public static final field TEXT_FIELD_NUMBER I
+	public static fun getDefaultInstance ()Lcom/touvay/contract/proto/EchoDelta;
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public static fun newBuilder ()Lcom/touvay/contract/proto/EchoDelta$Builder;
+	public static fun newBuilder (Lcom/touvay/contract/proto/EchoDelta;)Lcom/touvay/contract/proto/EchoDelta$Builder;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom (Ljava/io/InputStream;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom ([B)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parseFrom ([BLcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoDelta;
+	public static fun parser ()Lcom/google/protobuf/Parser;
+}
+
+public final class com/touvay/contract/proto/EchoDelta$Builder : com/google/protobuf/GeneratedMessageLite$Builder, com/touvay/contract/proto/EchoDeltaOrBuilder {
+	public fun clearText ()Lcom/touvay/contract/proto/EchoDelta$Builder;
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public fun setText (Ljava/lang/String;)Lcom/touvay/contract/proto/EchoDelta$Builder;
+	public fun setTextBytes (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/proto/EchoDelta$Builder;
+}
+
+public abstract interface class com/touvay/contract/proto/EchoDeltaOrBuilder : com/google/protobuf/MessageLiteOrBuilder {
+	public abstract fun getText ()Ljava/lang/String;
+	public abstract fun getTextBytes ()Lcom/google/protobuf/ByteString;
+}
+
+public final class com/touvay/contract/proto/EchoRequest : com/google/protobuf/GeneratedMessageLite, com/touvay/contract/proto/EchoRequestOrBuilder {
+	public static final field CHUNK_COUNT_FIELD_NUMBER I
+	public static final field INTER_CHUNK_DELAY_MILLIS_FIELD_NUMBER I
+	public static final field TEXT_FIELD_NUMBER I
+	public fun getChunkCount ()I
+	public static fun getDefaultInstance ()Lcom/touvay/contract/proto/EchoRequest;
+	public fun getInterChunkDelayMillis ()I
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public static fun newBuilder ()Lcom/touvay/contract/proto/EchoRequest$Builder;
+	public static fun newBuilder (Lcom/touvay/contract/proto/EchoRequest;)Lcom/touvay/contract/proto/EchoRequest$Builder;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom (Ljava/io/InputStream;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom ([B)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parseFrom ([BLcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoRequest;
+	public static fun parser ()Lcom/google/protobuf/Parser;
+}
+
+public final class com/touvay/contract/proto/EchoRequest$Builder : com/google/protobuf/GeneratedMessageLite$Builder, com/touvay/contract/proto/EchoRequestOrBuilder {
+	public fun clearChunkCount ()Lcom/touvay/contract/proto/EchoRequest$Builder;
+	public fun clearInterChunkDelayMillis ()Lcom/touvay/contract/proto/EchoRequest$Builder;
+	public fun clearText ()Lcom/touvay/contract/proto/EchoRequest$Builder;
+	public fun getChunkCount ()I
+	public fun getInterChunkDelayMillis ()I
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public fun setChunkCount (I)Lcom/touvay/contract/proto/EchoRequest$Builder;
+	public fun setInterChunkDelayMillis (I)Lcom/touvay/contract/proto/EchoRequest$Builder;
+	public fun setText (Ljava/lang/String;)Lcom/touvay/contract/proto/EchoRequest$Builder;
+	public fun setTextBytes (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/proto/EchoRequest$Builder;
+}
+
+public abstract interface class com/touvay/contract/proto/EchoRequestOrBuilder : com/google/protobuf/MessageLiteOrBuilder {
+	public abstract fun getChunkCount ()I
+	public abstract fun getInterChunkDelayMillis ()I
+	public abstract fun getText ()Ljava/lang/String;
+	public abstract fun getTextBytes ()Lcom/google/protobuf/ByteString;
+}
+
+public final class com/touvay/contract/proto/EchoResponse : com/google/protobuf/GeneratedMessageLite, com/touvay/contract/proto/EchoResponseOrBuilder {
+	public static final field TEXT_FIELD_NUMBER I
+	public static fun getDefaultInstance ()Lcom/touvay/contract/proto/EchoResponse;
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public static fun newBuilder ()Lcom/touvay/contract/proto/EchoResponse$Builder;
+	public static fun newBuilder (Lcom/touvay/contract/proto/EchoResponse;)Lcom/touvay/contract/proto/EchoResponse$Builder;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom (Ljava/io/InputStream;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom ([B)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parseFrom ([BLcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/proto/EchoResponse;
+	public static fun parser ()Lcom/google/protobuf/Parser;
+}
+
+public final class com/touvay/contract/proto/EchoResponse$Builder : com/google/protobuf/GeneratedMessageLite$Builder, com/touvay/contract/proto/EchoResponseOrBuilder {
+	public fun clearText ()Lcom/touvay/contract/proto/EchoResponse$Builder;
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public fun setText (Ljava/lang/String;)Lcom/touvay/contract/proto/EchoResponse$Builder;
+	public fun setTextBytes (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/proto/EchoResponse$Builder;
+}
+
+public abstract interface class com/touvay/contract/proto/EchoResponseOrBuilder : com/google/protobuf/MessageLiteOrBuilder {
+	public abstract fun getText ()Ljava/lang/String;
+	public abstract fun getTextBytes ()Lcom/google/protobuf/ByteString;
+}
+

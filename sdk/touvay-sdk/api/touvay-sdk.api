@@ -1,0 +1,127 @@
+public final class com/touvay/sdk/CapabilityId {
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lcom/touvay/sdk/CapabilityId;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public abstract interface class com/touvay/sdk/CapabilityStatus {
+}
+
+public final class com/touvay/sdk/CapabilityStatus$DeviceNotSupported : com/touvay/sdk/CapabilityStatus {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/touvay/sdk/CapabilityStatus$DeviceNotSupported;
+	public static synthetic fun copy$default (Lcom/touvay/sdk/CapabilityStatus$DeviceNotSupported;Ljava/lang/String;ILjava/lang/Object;)Lcom/touvay/sdk/CapabilityStatus$DeviceNotSupported;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/CapabilityStatus$DisabledByPolicy : com/touvay/sdk/CapabilityStatus {
+	public static final field INSTANCE Lcom/touvay/sdk/CapabilityStatus$DisabledByPolicy;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/CapabilityStatus$DownloadRequired : com/touvay/sdk/CapabilityStatus {
+	public fun <init> (Ljava/lang/Long;)V
+	public final fun component1 ()Ljava/lang/Long;
+	public final fun copy (Ljava/lang/Long;)Lcom/touvay/sdk/CapabilityStatus$DownloadRequired;
+	public static synthetic fun copy$default (Lcom/touvay/sdk/CapabilityStatus$DownloadRequired;Ljava/lang/Long;ILjava/lang/Object;)Lcom/touvay/sdk/CapabilityStatus$DownloadRequired;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getApproxBytes ()Ljava/lang/Long;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/CapabilityStatus$Ready : com/touvay/sdk/CapabilityStatus {
+	public static final field INSTANCE Lcom/touvay/sdk/CapabilityStatus$Ready;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/CapabilityStatus$Unknown : com/touvay/sdk/CapabilityStatus {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Lcom/touvay/sdk/CapabilityStatus$Unknown;
+	public static synthetic fun copy$default (Lcom/touvay/sdk/CapabilityStatus$Unknown;IILjava/lang/Object;)Lcom/touvay/sdk/CapabilityStatus$Unknown;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getStatusCode ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/Touvay {
+	public static final field INSTANCE Lcom/touvay/sdk/Touvay;
+	public final fun connect (Landroid/content/Context;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class com/touvay/sdk/TouvayClient : java/lang/AutoCloseable {
+	public abstract fun capabilities (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun close ()V
+	public abstract fun diagnostics ()Lcom/touvay/sdk/TouvayDiagnostics;
+}
+
+public abstract interface class com/touvay/sdk/TouvayDiagnostics {
+	public abstract fun echo (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun echoStream (Ljava/lang/String;IJ)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/touvay/sdk/TouvayDiagnostics$DefaultImpls {
+	public static synthetic fun echoStream$default (Lcom/touvay/sdk/TouvayDiagnostics;Ljava/lang/String;IJILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract class com/touvay/sdk/TouvayException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/touvay/sdk/TouvayException$CapabilityUnavailable : com/touvay/sdk/TouvayException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getCapabilityId ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/TouvayException$ClientClosed : com/touvay/sdk/TouvayException {
+	public fun <init> ()V
+}
+
+public final class com/touvay/sdk/TouvayException$EngineDisconnected : com/touvay/sdk/TouvayException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/touvay/sdk/TouvayException$EngineFailure : com/touvay/sdk/TouvayException {
+	public fun <init> (IZLjava/lang/String;)V
+	public final fun getCode ()I
+	public final fun getRetryable ()Z
+}
+
+public final class com/touvay/sdk/TouvayException$EngineIncompatible : com/touvay/sdk/TouvayException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class com/touvay/sdk/TouvayException$EngineUnavailable : com/touvay/sdk/TouvayException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/touvay/sdk/TouvayException$RequestCancelled : com/touvay/sdk/TouvayException {
+	public fun <init> ()V
+}
+
+public final class com/touvay/sdk/TouvayException$RequestSuperseded : com/touvay/sdk/TouvayException {
+	public fun <init> ()V
+}
+

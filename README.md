@@ -27,7 +27,9 @@ plug in.
 | `engine/engine-core` | Pure-JVM request routing/execution core |
 | `engine/engine-service` | Bound service hosting the engine in the `:touvay` process |
 | `runtime/runtime-api` | Runtime SPI |
-| `apps/demo` | Demo client + cross-process instrumented test |
+| `runtime/runtime-llamacpp-spike` | **Spike (isolated)**: llama.cpp behind the SPI; see [docs/spikes/llamacpp-feasibility.md](docs/spikes/llamacpp-feasibility.md) |
+| `apps/demo` | Demo client + cross-process instrumented tests |
+| `apps/benchmark` | Spike benchmark host (`:spike` process, JSON results) |
 
 Module dependency rules (ARCHITECTURE.md §8) are enforced by `./gradlew checkDependencyRules`,
 which runs as part of `check`/`build`.

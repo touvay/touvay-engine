@@ -17,3 +17,9 @@ captures/
 *.apk
 *.aab
 *.hprof
+
+# Vendored native sources (fetched by scripts/fetch-llamacpp; pinned in the script)
+third_party/
+
+# Model weights (fetched by scripts/fetch-model; documented in models/README.md)
+models/*.gguf

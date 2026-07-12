@@ -871,6 +871,19 @@ debugging depends on user-initiated reports — accepted, because it makes "no t
 network" a hard, auditable guarantee: the downloader remains the only networked module, with no
 exceptions.
 
+**ADR-014 — Capability wire schemas are owned by the contract layer, not by capability
+implementation modules.** *(Accepted 2026-07-11, Task 1.)* Context: capability pipelines parse
+payload protos and the SDK builds them, but §7/§8 never assigned schema ownership. Alternatives:
+(a) schemas live in each `capability-*` module — rejected: the SDK would need dependencies on
+implementation modules, inverting the dependency rules, and wire schemas would evolve at
+implementation cadence without contract review; (b) schemas live in the contract layer — chosen:
+wire schemas *are* contract, they evolve additively under the same review discipline as the AIDL
+surface, and both sides of the wire reach them without new edges. Consequence: `capability-*`
+modules take a dependency on the contract layer for schema classes only (the §8 allowlist gains
+that edge when those modules land); if depending on the full contract artifact ever tempts
+pipelines to touch transport types, the schemas split into a leaner `touvay-contract-schemas`
+artifact — an anticipated, non-breaking refactor.
+
 ---
 
 ## 21. Risks and Future Evolution

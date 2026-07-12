@@ -42,6 +42,12 @@ class DependencyRulesPlugin : Plugin<Project> {
             ":sdk:touvay-sdk",
             ":engine:engine-service",
         ),
+        // Task 1 spike (isolated by design): may see the SPI, never the SDK or engine.
+        ":runtime:runtime-llamacpp-spike" to setOf(":runtime:runtime-api"),
+        ":apps:benchmark" to setOf(
+            ":runtime:runtime-api",
+            ":runtime:runtime-llamacpp-spike",
+        ),
     )
 
     private val checkedConfigurations = setOf(

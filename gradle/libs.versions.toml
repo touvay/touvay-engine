@@ -32,3 +32,4 @@ kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", v
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version = "0.17.0" }

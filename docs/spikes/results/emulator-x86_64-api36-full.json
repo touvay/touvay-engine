@@ -1,0 +1,379 @@
+{
+  "schema": 1,
+  "quick": false,
+  "timestamp": 1783780146242,
+  "device": {
+    "model": "Google sdk_gphone64_x86_64",
+    "sdk": 36,
+    "abis": [
+      "x86_64",
+      "arm64-v8a"
+    ],
+    "cores": 6,
+    "totalRamMb": 1965,
+    "isLowRamDevice": false
+  },
+  "modelFile": {
+    "path": "\/storage\/emulated\/0\/Android\/data\/com.touvay.benchmark\/files\/model.gguf",
+    "bytes": 491400032
+  },
+  "memBaseline": {
+    "vmRssKb": 103572,
+    "vmHwmKb": 103572,
+    "nativeHeapAllocatedKb": 5356
+  },
+  "libLoadMs": 27.2109,
+  "modelLoad": {
+    "coldMs": 3589.5796,
+    "threadsDefault": 5,
+    "maxCtxTrain": 32768,
+    "mem": {
+      "vmRssKb": 597464,
+      "vmHwmKb": 607432,
+      "nativeHeapAllocatedKb": 41657
+    }
+  },
+  "shortPrompt": {
+    "promptTokens": 29,
+    "prefillMs": 2287.1119,
+    "prefillTokPerS": 12.67974688951599,
+    "decodedTokens": 14,
+    "firstTokenMs": 10.7018,
+    "ttftTotalMs": 2297.8136999999997,
+    "decodeMs": 3013.4496,
+    "decodeTokPerS": 4.645838443755622,
+    "thermal": {
+      "batteryTempC": 25,
+      "thermalStatus": 0,
+      "thermalHeadroom10s": 0.90333337
+    }
+  },
+  "shortPromptWarm": {
+    "promptTokens": 29,
+    "prefillMs": 1584.4243,
+    "prefillTokPerS": 18.303178006042952,
+    "decodedTokens": 14,
+    "firstTokenMs": 0.97,
+    "ttftTotalMs": 1585.3943,
+    "decodeMs": 995.9898,
+    "decodeTokPerS": 14.05636885036373,
+    "thermal": {
+      "batteryTempC": 25,
+      "thermalStatus": 0,
+      "thermalHeadroom10s": 0.90333337
+    }
+  },
+  "cancellation": {
+    "runs": [
+      {
+        "tokensBeforeCancel": 12,
+        "cancelToReturnMs": 1356.4226
+      },
+      {
+        "tokensBeforeCancel": 12,
+        "cancelToReturnMs": 64.613
+      },
+      {
+        "tokensBeforeCancel": 12,
+        "cancelToReturnMs": 973.453
+      }
+    ],
+    "maxCancelToReturnMs": 1356.4226
+  },
+  "mediumPrompt": {
+    "promptTokens": 171,
+    "prefillMs": 11383.3658,
+    "prefillTokPerS": 15.021919088289335,
+    "decodedTokens": 57,
+    "firstTokenMs": 1700.2516,
+    "ttftTotalMs": 13083.6174,
+    "decodeMs": 17032.2834,
+    "decodeTokPerS": 3.3465859310443364,
+    "thermal": {
+      "batteryTempC": 25,
+      "thermalStatus": 0,
+      "thermalHeadroom10s": 0.90333337
+    }
+  },
+  "burst": {
+    "iterations": [
+      {
+        "i": 0,
+        "stats": {
+          "promptTokens": 29,
+          "prefillMs": 1680.3519,
+          "prefillTokPerS": 17.25828976656616,
+          "decodedTokens": 14,
+          "firstTokenMs": 2.2751,
+          "ttftTotalMs": 1682.627,
+          "decodeMs": 2231.1396,
+          "decodeTokPerS": 6.27482027570126,
+          "thermal": {
+            "batteryTempC": 25,
+            "thermalStatus": 0,
+            "thermalHeadroom10s": 0.90333337
+          }
+        }
+      },
+      {
+        "i": 1,
+        "stats": {
+          "promptTokens": 29,
+          "prefillMs": 1182.0074,
+          "prefillTokPerS": 24.53453337094167,
+          "decodedTokens": 14,
+          "firstTokenMs": 0.4829,
+          "ttftTotalMs": 1182.4903,
+          "decodeMs": 1061.6005,
+          "decodeTokPerS": 13.187635084949566,
+          "thermal": {
+            "batteryTempC": 25,
+            "thermalStatus": 0,
+            "thermalHeadroom10s": 0.90333337
+          }
+        }
+      },
+      {
+        "i": 2,
+        "stats": {
+          "promptTokens": 29,
+          "prefillMs": 1470.4568,
+          "prefillTokPerS": 19.721762652258807,
+          "decodedTokens": 14,
+          "firstTokenMs": 2.5776,
+          "ttftTotalMs": 1473.0344,
+          "decodeMs": 3823.0946,
+          "decodeTokPerS": 3.661954899049581,
+          "thermal": {
+            "batteryTempC": 25,
+            "thermalStatus": 0,
+            "thermalHeadroom10s": 0.90333337
+          }
+        }
+      },
+      {
+        "i": 3,
+        "stats": {
+          "promptTokens": 29,
+          "prefillMs": 1483.7747,
+          "prefillTokPerS": 19.544746247526664,
+          "decodedTokens": 14,
+          "firstTokenMs": 1.5854,
+          "ttftTotalMs": 1485.3600999999999,
+          "decodeMs": 899.9315,
+          "decodeTokPerS": 15.556739596291495,
+          "thermal": {
+            "batteryTempC": 25,
+            "thermalStatus": 0,
+            "thermalHeadroom10s": 0.90333337
+          }
+        }
+      },
+      {
+        "i": 4,
+        "stats": {
+          "promptTokens": 29,
+          "prefillMs": 1166.4388,
+          "prefillTokPerS": 24.86199876067223,
+          "decodedTokens": 14,
+          "firstTokenMs": 0.9428,
+          "ttftTotalMs": 1167.3816,
+          "decodeMs": 964.8648,
+          "decodeTokPerS": 14.509804897017696,
+          "thermal": {
+            "batteryTempC": 25,
+            "thermalStatus": 0,
+            "thermalHeadroom10s": 0.90333337
+          }
+        }
+      },
+      {
+        "i": 5,
+        "stats": {
+          "promptTokens": 29,
+          "prefillMs": 1374.1041,
+          "prefillTokPerS": 21.104660120001096,
+          "decodedTokens": 14,
+          "firstTokenMs": 1.2374,
+          "ttftTotalMs": 1375.3415,
+          "decodeMs": 1007.9873,
+          "decodeTokPerS": 13.889063880070712,
+          "thermal": {
+            "batteryTempC": 25,
+            "thermalStatus": 0,
+            "thermalHeadroom10s": 0.90333337
+          }
+        }
+      },
+      {
+        "i": 6,
+        "stats": {
+          "promptTokens": 29,
+          "prefillMs": 882.2519,
+          "prefillTokPerS": 32.87043076926216,
+          "decodedTokens": 14,
+          "firstTokenMs": 0.4888,
+          "ttftTotalMs": 882.7407,
+          "decodeMs": 714.6335,
+          "decodeTokPerS": 19.590461404342225,
+          "thermal": {
+            "batteryTempC": 25,
+            "thermalStatus": 0,
+            "thermalHeadroom10s": 0.90333337
+          }
+        }
+      },
+      {
+        "i": 7,
+        "stats": {
+          "promptTokens": 29,
+          "prefillMs": 894.2134,
+          "prefillTokPerS": 32.430737450367,
+          "decodedTokens": 14,
+          "firstTokenMs": 0.5314,
+          "ttftTotalMs": 894.7447999999999,
+          "decodeMs": 739.819,
+          "decodeTokPerS": 18.923547516351974,
+          "thermal": {
+            "batteryTempC": 25,
+            "thermalStatus": 0,
+            "thermalHeadroom10s": 0.90333337
+          }
+        }
+      }
+    ]
+  },
+  "threadSweep": [
+    {
+      "threads": 2,
+      "stats": {
+        "promptTokens": 29,
+        "prefillMs": 1769.8434,
+        "prefillTokPerS": 16.38563050267611,
+        "decodedTokens": 14,
+        "firstTokenMs": 0.4187,
+        "ttftTotalMs": 1770.2621,
+        "decodeMs": 1089.4512,
+        "decodeTokPerS": 12.850506750554773,
+        "thermal": {
+          "batteryTempC": 25,
+          "thermalStatus": 0,
+          "thermalHeadroom10s": 0.90333337
+        }
+      }
+    },
+    {
+      "threads": 4,
+      "stats": {
+        "promptTokens": 29,
+        "prefillMs": 976.7715,
+        "prefillTokPerS": 29.68964594073435,
+        "decodedTokens": 14,
+        "firstTokenMs": 0.5086,
+        "ttftTotalMs": 977.2801,
+        "decodeMs": 720.9323,
+        "decodeTokPerS": 19.41929914917115,
+        "thermal": {
+          "batteryTempC": 25,
+          "thermalStatus": 0,
+          "thermalHeadroom10s": 0.90333337
+        }
+      }
+    },
+    {
+      "threads": 6,
+      "stats": {
+        "promptTokens": 29,
+        "prefillMs": 787.4141,
+        "prefillTokPerS": 36.829414154509045,
+        "decodedTokens": 14,
+        "firstTokenMs": 0.4356,
+        "ttftTotalMs": 787.8497,
+        "decodeMs": 875.4378,
+        "decodeTokPerS": 15.991998517770194,
+        "thermal": {
+          "batteryTempC": 25,
+          "thermalStatus": 0,
+          "thermalHeadroom10s": 0.90333337
+        }
+      }
+    }
+  ],
+  "contextProbe": [
+    {
+      "nCtx": 512,
+      "memBefore": {
+        "vmRssKb": 435572,
+        "vmHwmKb": 639756,
+        "nativeHeapAllocatedKb": 41787
+      },
+      "ok": true,
+      "memWithContext": {
+        "vmRssKb": 468176,
+        "vmHwmKb": 639756,
+        "nativeHeapAllocatedKb": 835197
+      }
+    },
+    {
+      "nCtx": 1024,
+      "memBefore": {
+        "vmRssKb": 436392,
+        "vmHwmKb": 639756,
+        "nativeHeapAllocatedKb": 41809
+      },
+      "ok": true,
+      "memWithContext": {
+        "vmRssKb": 474280,
+        "vmHwmKb": 639756,
+        "nativeHeapAllocatedKb": 841404
+      }
+    },
+    {
+      "nCtx": 2048,
+      "memBefore": {
+        "vmRssKb": 436460,
+        "vmHwmKb": 639756,
+        "nativeHeapAllocatedKb": 41831
+      },
+      "ok": true,
+      "memWithContext": {
+        "vmRssKb": 486764,
+        "vmHwmKb": 639756,
+        "nativeHeapAllocatedKb": 853738
+      }
+    },
+    {
+      "nCtx": 4096,
+      "memBefore": {
+        "vmRssKb": 436604,
+        "vmHwmKb": 639756,
+        "nativeHeapAllocatedKb": 41852
+      },
+      "ok": true,
+      "memWithContext": {
+        "vmRssKb": 514272,
+        "vmHwmKb": 639756,
+        "nativeHeapAllocatedKb": 880019
+      }
+    }
+  ],
+  "unload": {
+    "memBefore": {
+      "vmRssKb": 439508,
+      "vmHwmKb": 639756,
+      "nativeHeapAllocatedKb": 41689
+    },
+    "memAfter": {
+      "vmRssKb": 81036,
+      "vmHwmKb": 639756,
+      "nativeHeapAllocatedKb": 5548
+    },
+    "memAfterWarmReloadFree": {
+      "vmRssKb": 88680,
+      "vmHwmKb": 639756,
+      "nativeHeapAllocatedKb": 5559
+    },
+    "warmReloadMs": 758.6226
+  },
+  "aborted": false
+}
