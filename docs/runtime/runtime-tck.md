@@ -133,9 +133,11 @@ round-trips CJK, a supplementary emoji, and embedded NUL through tokenization.
 | ME-03 resident growth during a full-context generation ≤ declared KV estimate × 1.5 (measures **resident**, not reservations) | SPI-ME-2/3 |
 | ME-04 load/close ×5: no monotonic native-heap growth (leak detector) | SPI-ME-4 |
 
-ME-03 executes inside ME-02 after warming fixed compute buffers; incremental resident
-growth at near-full context must remain within the documented KV bytes/token ×1.5 plus
-a 4 MiB `/proc` measurement allowance.
+ME-03 executes inside ME-02 after warming fixed compute buffers with one documented
+prefill chunk; incremental resident growth at near-full context must remain within the
+documented KV bytes/token ×1.5 plus a 4 MiB `/proc` measurement allowance. A full chunk
+is required because a single-token prefill may not fault in every native batch-buffer
+page and would incorrectly count lazy fixed-buffer commitment as KV growth.
 
 ### TCK-ER — Errors
 | Test | Verifies |

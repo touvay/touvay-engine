@@ -594,14 +594,16 @@ public class TckChecks(private val subject: RuntimeTckSubject) {
             val tokenCount = minOf(allTokens.size, subject.sessionConfig.contextLength - 2)
             assumeTrue("context fixture produced too few tokens", tokenCount > 16)
 
-            // Warm fixed compute buffers before measuring incremental KV residency.
-            session.prefill(TokenSequence(intArrayOf(allTokens[0])), CancelSignal.NONE)
+            // A single-token prefill does not fault in every page used by a full native batch.
+            // Warm one documented chunk so the delta measures KV residency, not lazy buffer commitment.
+            val warmTokenCount = minOf(subject.documentedPrefillChunkTokens, tokenCount / 2)
+            session.prefill(TokenSequence(allTokens.copyOfRange(0, warmTokenCount)), CancelSignal.NONE)
             val warmed = requireProbe(subject.probe.residentBytes(), "RSS")
-            session.prefill(TokenSequence(allTokens.copyOfRange(1, tokenCount)), CancelSignal.NONE)
+            session.prefill(TokenSequence(allTokens.copyOfRange(warmTokenCount, tokenCount)), CancelSignal.NONE)
             session.decode(DecodeParams(1), CancelSignal.NONE) { _, _ -> }
             val full = requireProbe(subject.probe.residentBytes(), "RSS")
             val residentGrowth = (full - warmed).coerceAtLeast(0)
-            val declared = subject.declaredKvBytesPerToken * (tokenCount - 1)
+            val declared = subject.declaredKvBytesPerToken * (tokenCount - warmTokenCount)
             val bound = (declared * 3 / 2) + 4L * 1024 * 1024
             assertTrue(
                 "full-context resident growth ${residentGrowth / (1024 * 1024)} MB " +

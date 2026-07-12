@@ -19,7 +19,8 @@ A pin bump requires review of upstream API/behavior changes, a green full build,
   interrupts within a graph step, but a tighter wall-clock bound awaits physical-device
   calibration.
 - Qwen2.5-0.5B KV cost: 12,288 bytes/token (24 layers × 2 KV heads × 64 head dimension
-  × key/value × fp16). The TCK measures resident growth after warming fixed buffers.
+  × key/value × fp16). The TCK measures resident growth after warming fixed buffers
+  with one documented prefill chunk so lazy batch-buffer commitment is excluded.
 - CPU-only v1; `LoadConfig.threads` owns the bounded compute thread count.
 - `use_mmap` follows `LoadConfig`; `mlock` and GPU layers are disabled.
 
