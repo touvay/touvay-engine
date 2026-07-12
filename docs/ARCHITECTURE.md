@@ -1,6 +1,8 @@
 # Touvay Engine — Architecture Design Document
 
-**Status:** Approved — v1.0 (2026-07-11), amended at review: ADR-013 (local-only diagnostics)
+**Status:** Approved — v1.0 (2026-07-11), amended at review: ADR-013 (local-only diagnostics).
+Amended 2026-07-12: ADR-014 (schema ownership); spike-evidence refinements in §12/§14.3;
+normative runtime specs split out to `docs/runtime/` (runtime-spi.md, runtime-tck.md).
 **Audience:** Engine maintainers, SDK consumers, contributors
 **Scope:** Architecture only. No production code until this document is approved.
 
@@ -561,7 +563,11 @@ Notes:
   shoehorned.
 - **Threading contract:** all SPI calls arrive on the engine's inference executor, never the main
   thread; an instance is single-owner (one session executing at a time unless the instance
-  declares concurrency); `cancel` must be honored within one token.
+  declares concurrency). Cancellation is **step-bounded**, not wall-clock: honored within one
+  decode step (poll per token) and one batch chunk during prefill; adapters SHOULD hook backend
+  abort callbacks to interrupt inside a step. *(Refined per measured spike evidence — cancel
+  latency equals one in-flight step, 65 ms–1.36 s under emulator jitter; see
+  docs/spikes/llamacpp-feasibility.md.)* Normative detail: docs/runtime/runtime-spi.md §6.
 - **Hardware acceleration lives inside adapters** (llama.cpp OpenCL/Vulkan, LiteRT GPU delegate,
   ExecuTorch QNN/MediaTek backends). NNAPI is deprecated and is not a target; vendor acceleration
   arrives via each runtime's own delegates, which is exactly why runtimes stay pluggable.
@@ -675,7 +681,10 @@ the only plan for an installed client's used capability without policy consent.
   the kernel can evict under pressure without killing the process — the single most effective
   4 GB-device survival mechanism.
 - **KV cache is the managed dynamic cost:** per-tier ctx caps, per-request budget accounting in the
-  budget manager, session KV freed on idle.
+  budget manager, session KV freed on idle. Budgeting is done on **resident** memory under
+  full-context load — never on allocator-reported reservations or creation-time RSS: backends
+  reserve compute/KV buffers virtually and Linux commits pages lazily. *(Measured: ~815 MB
+  reported "allocated" vs 32–76 MB resident at context creation; docs/spikes/llamacpp-feasibility.md.)*
 - `onTrimMemory` staged response: BACKGROUND → drop idle instances; CRITICAL → unload all, cancel
   BACKGROUND. Engine process death remains survivable by design regardless.
 

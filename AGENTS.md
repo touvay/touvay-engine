@@ -48,7 +48,7 @@ explicit user approval**.
 | Any code change | this file only, then the touched module | full ARCHITECTURE.md |
 | Wire format / AIDL / protos | `contract/` sources + ARCHITECTURE.md ADR-003, ADR-009, ADR-014 | rest of doc |
 | New capability | ARCHITECTURE.md §9 §11 + `engine-core` `CapabilityPipeline` + `EchoPipeline` as the reference impl | runtime sections |
-| Runtime / inference | ARCHITECTURE.md §12 §14 + `runtime-api` + spike (`runtime-llamacpp-spike`, `docs/spikes/llamacpp-feasibility.md`) | SDK sections |
+| Runtime / inference | **`docs/runtime/runtime-spi.md` (normative)** + `runtime-api`; TCK work → `docs/runtime/runtime-tck.md`; llama.cpp adapter → `docs/runtime/runtime-llamacpp-design.md` | full ARCHITECTURE.md |
 | SDK surface | ARCHITECTURE.md §9 + `sdk/touvay-sdk` + `.api` dumps | engine internals |
 | Model packs / downloads | ARCHITECTURE.md §13 ADR-011 + `models/README.md` | — |
 | Scheduling / memory / threading | ARCHITECTURE.md §14 | — |
