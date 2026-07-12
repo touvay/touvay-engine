@@ -8,6 +8,9 @@ models, runtimes, prompts, or hardware details.
 **Status:** walking skeleton — the SDK ↔ engine contract works end to end over Binder
 (diagnostic `dev.echo` capability); no inference runtimes are wired yet.
 
+> **AI coding agents:** read [AGENTS.md](AGENTS.md) first — it replaces repo
+> exploration (module map, rules, commands, known gotchas). `CLAUDE.md` points there.
+
 ## Architecture
 
 The approved architecture lives in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and is the
