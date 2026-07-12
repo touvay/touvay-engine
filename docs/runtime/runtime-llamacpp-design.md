@@ -1,8 +1,8 @@
 # Production llama.cpp Adapter — Design
 
-**Status:** Proposed — awaiting approval; **no implementation until Task 2 is approved.**
+**Status:** Implemented and production-hardened — Runtime v1.0 (Task 2.1, 2026-07-12).
 **Conforms to:** `runtime-spi.md` (all SPI-* requirements) and `runtime-tck.md`.
-**Evidence base:** the Task 1 spike (`runtime/runtime-llamacpp-spike`,
+**Evidence base:** the historical Task 1 spike (removed after productionization;
 `docs/spikes/llamacpp-feasibility.md`). The spike validated the shape; this design
 carries over what was proven and fixes what the spike deliberately simplified.
 
@@ -19,7 +19,7 @@ runtime/runtime-llamacpp/
 │   ├── LlamaCppModelInstance.kt   # ModelInstance (owns tokenizer access)
 │   ├── LlamaCppSession.kt         # InferenceSession
 │   ├── Utf8StreamDecoder.kt       # promoted from the spike (proven)
-│   └── internal/NativeHandles.kt  # handle wrappers + Cleaner backstops (SPI-OW-2)
+│   └── NativeGuard.kt             # phantom-reference handle backstops (SPI-OW-2)
 ├── src/androidTest/…/LlamaCppTck.kt   # the conformance claim (one class)
 └── README.md                      # pin policy, documented constants (chunk size,
                                    # cancel bound, KV bytes/token per supported family)
@@ -45,9 +45,9 @@ previous pin (±20% guardrail on decode/TTFT), changelog review for API/behavior
 - Handles are `private val` longs inside their Kotlin owner; they never escape the
   module (SPI-OW table).
 - `@Volatile closed` + idempotent close (proven in spike), **plus** a
-  `java.lang.ref.Cleaner` backstop per handle that frees and logs `wtf`-level if the
-  engine leaks an object (SPI-OW-2). Cleaner never runs on the reference queue for
-  correctly closed objects (close deregisters).
+  `PhantomReference` backstop per handle that frees and logs `wtf`-level if the engine
+  leaks an object (SPI-OW-2). Guards retain only primitive handles and non-capturing
+  free functions; correctly closed objects deregister before the queue can process them.
 - The tokenizer is **not** a separate object: `llama_vocab` is owned by `llama_model`;
   `ModelInstance.tokenize` (new SPI method) calls through under the instance's
   liveness check. It is lock-free and safe concurrently with a running session
@@ -68,8 +68,11 @@ Carried over from the spike (validated end-to-end), with three deltas:
 | 7 | `nativeDecode(ctx, maxTokens, callback) → jint` | callback stays `(I[B)Z` raw-bytes (proven necessary: BPE pieces split UTF-8; `NewStringUTF` aborts under CheckJNI) |
 | 8 | `nativeCancel(ctx)` | unchanged (atomic store) |
 | 9 | `nativeFreeContext(ctx)` / `nativeFreeModel(model)` | unchanged |
+| 10 | `nativeDetokenize(model, ids) → byte[]` | TCK-only exact stream-parity oracle; raw UTF-8 bytes |
 
-Bridge rules (unchanged from spike, now normative): no inference logic in C++; no
+Task 2.1 hardening converts Java UTF-16 to standard UTF-8 explicitly (JNI modified
+UTF-8 is never used for prompt/path bytes), retries dynamically sized token pieces,
+and preserves embedded NUL and supplementary characters. Bridge rules: no inference logic in C++; no
 allocations retained across calls except the handle structs; every JNI array pinned
 region released on all paths; `env->ExceptionCheck` after every callback invocation.
 
@@ -88,8 +91,10 @@ region released on all paths; `env->ExceptionCheck` after every callback invocat
 
 ## 5. Threading
 
-- No adapter-owned persistent threads in v1: ggml spins its compute workers per call,
+- No persistent compute threads in v1: ggml spins its workers per call,
   bounded by `n_threads` from `LoadConfig` (SPI-TH-4 satisfied trivially).
+  A single process-wide daemon waits on the native leak-guard reference queue; it owns
+  no model/session state and performs no inference work.
   ggml's persistent-threadpool API is a *measured future option* if per-call spin-up
   shows up in device TTFT profiles — not before.
 - All entry points tolerate arbitrary caller threads (SPI-TH-2): the native structs
@@ -127,22 +132,19 @@ The adapter is deliberately passive (ARCHITECTURE.md §14 owns policy):
 
 ## 8. Streaming
 
-Identical to the proven spike path: raw UTF-8 piece bytes per token across JNI →
-`Utf8StreamDecoder` (incomplete-tail carry, malformed-replace) → `TokenSink.onToken`
-on the decode thread. Final flush on natural EOG emits any pending replacement char.
-EOG tokens filtered natively (SPI-ST-4).
+Raw UTF-8 piece bytes cross JNI → `Utf8StreamDecoder` (incomplete-tail carry,
+malformed-replace) → `TokenSink.onToken` on the decode thread. Kotlin delays one
+callback so final flush can be appended to the last token without inventing an extra
+callback. Exact concatenation is checked against backend detokenization (SPI-ST-3).
+EOG tokens are filtered natively (SPI-ST-4).
 
 ## 9. Benchmark hooks
 
-- The adapter records per-call timings internally when `LlamaCppDiagnostics.enabled`
-  (a module-internal flag settable only by test/bench code — zero overhead otherwise):
-  prefill ms, per-step decode times (histogram), abort-observed latency. This is
-  local-only measurement (ADR-013 applies: never leaves the device except by explicit
-  pull).
-- The TCK's CX-01 and PF category read the step histogram; `apps/benchmark` swaps its
-  dependency to this module and reuses the whole scenario suite unchanged (it talks to
-  the SPI, not to spike types — the one spike-only seam, `createSession(config,
-  threads)`, is replaced by constructing per-sweep `LoadConfig`s).
+- TCK-CX derives its one-step bound from the same run's callback intervals, without a
+  production diagnostics switch. TCK-PF writes a local JSON report through Gradle's
+  additional-test-output directory.
+- `apps/benchmark` targets this module and reuses the scenario suite through the SPI;
+  thread sweeps construct a separate `LoadConfig`/instance per thread count.
 
 ## 10. Sequence diagrams
 
@@ -197,14 +199,14 @@ Model manager            LlamaCppRuntime            kernel page cache
 
 ---
 
-## 11. Proposed Task 2 (requires approval before any code)
+## 11. Task 2 / 2.1 implementation record
 
-**Scope**
+**Implemented scope**
 1. `runtime-tck` module: `AbstractRuntimeTck` + fixtures + tier profiles + the
    sabotage self-test suite (FakeRuntime + 4 sabotaged fakes) running in JVM CI.
 2. Additive `runtime-api` change: `ModelInstance.tokenize` (BCV additive diff only).
 3. `runtime/runtime-llamacpp` per this design, including the abort-callback
-   cancellation path and the Cleaner backstops.
+   cancellation path and phantom-reference backstops.
 4. `LlamaCppTck` green in emulator device-mode (functional categories); PF recorded
    informative. Benchmark app retargeted; spike module deleted.
 5. Docs: adapter README (pin policy, documented constants); AGENTS.md refresh.
@@ -219,16 +221,16 @@ Model manager            LlamaCppRuntime            kernel page cache
 - Still no physical device → Task 2 completes functionally regardless (its acceptance
   criteria avoid device-only items); the T1 go/no-go stays a separate gate.
 
-**Acceptance criteria**
+**Acceptance results (Task 2.1)**
 - `gradlew build` green including TCK self-test (sabotaged fakes fail as designed).
-- `LlamaCppTck` all mandatory categories green on emulator; JSON report archived
-  under `docs/spikes/results/`.
+- `LlamaCppTck` 28/28 mandatory tests green with zero skips/failures on the API 36
+  emulator; evidence archived under `docs/runtime/results/`.
 - BCV: only the additive `tokenize` entry changes in `.api` files.
-- Benchmark parity: production adapter within ±20% of spike numbers on the same
-  emulator (guards against regression during productionization).
+- Benchmark parity: no production regression observed; stable warm short-prompt and
+  thread-sweep decode metrics remained within the ±20% guardrail. Emulator cold/cache
+  outliers improved materially and remain informative only.
 - Zero references from engine/SDK modules to the adapter (dependency rules unchanged).
 - Spike module removed; `docs/` updated.
 
-**Estimated effort:** 3–4 focused engineering days
-(TCK + self-test ≈ 1.5 d; adapter ≈ 1–1.5 d — the JNI is largely proven; SPI change,
-retarget, docs ≈ 0.5–1 d).
+Task 3 engine/router/model-manager wiring remains explicitly out of scope and requires
+separate approval after representative arm64 device evidence.

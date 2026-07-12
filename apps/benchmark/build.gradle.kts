@@ -1,4 +1,4 @@
-// Task 1 Part B benchmark host. Isolated: sees only the runtime SPI and the spike;
+// Production-adapter benchmark host. Isolated: sees only the runtime SPI and adapter;
 // never the SDK, contract, or engine (enforced by checkDependencyRules).
 plugins {
     id("touvay.android.application")
@@ -22,7 +22,7 @@ android {
 
 dependencies {
     implementation(project(":runtime:runtime-api"))
-    implementation(project(":runtime:runtime-llamacpp-spike"))
+    implementation(project(":runtime:runtime-llamacpp"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity)
     implementation(libs.kotlinx.coroutines.android)

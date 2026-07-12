@@ -13,11 +13,10 @@ import com.touvay.runtime.api.DecodeParams
 import com.touvay.runtime.api.LoadConfig
 import com.touvay.runtime.api.ResolvedModelPack
 import com.touvay.runtime.api.SessionConfig
-import com.touvay.runtime.api.TokenSequence
 import com.touvay.runtime.api.TokenSink
-import com.touvay.runtime.llamacpp.spike.LlamaSpikeModelInstance
-import com.touvay.runtime.llamacpp.spike.LlamaSpikeRuntime
-import com.touvay.runtime.llamacpp.spike.LlamaSpikeSession
+import com.touvay.runtime.llamacpp.LlamaCppModelInstance
+import com.touvay.runtime.llamacpp.LlamaCppRuntime
+import com.touvay.runtime.llamacpp.LlamaCppSession
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -29,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
 /**
- * Task 1 Part B measurement scenarios. Runs inside the :spike process; produces one
+ * Production-adapter measurement scenarios. Runs inside the legacy-named :spike process; produces one
  * JSON document per run. Baseline-first by design: greedy decoding, mmap on, default
  * batch — configuration sweeps are limited to thread count and context size, the two
  * knobs the architecture's budget manager will own (ARCHITECTURE.md §14).
@@ -39,10 +38,10 @@ class BenchmarkSuite(
     private val modelPath: String,
     private val progress: (String) -> Unit,
 ) {
-    private val runtime = LlamaSpikeRuntime()
+    private val runtime = LlamaCppRuntime()
 
     @Volatile
-    private var activeSession: LlamaSpikeSession? = null
+    private var activeSession: LlamaCppSession? = null
 
     @Volatile
     private var aborted = false
@@ -66,19 +65,19 @@ class BenchmarkSuite(
         result.put("memBaseline", memSnapshot())
 
         step("native library load")
-        result.put("libLoadMs", LlamaSpikeRuntime.libraryLoadNanos() / 1e6)
+        result.put("libLoadMs", LlamaCppRuntime.libraryLoadNanos() / 1e6)
 
         step("cold model load")
         val threads = defaultThreads()
         val pack = ResolvedModelPack(
-            id = "spike.qwen2.5-0.5b-instruct-q4km",
+            id = "bench.qwen2.5-0.5b-instruct-q4km",
             version = "1",
-            files = mapOf(LlamaSpikeRuntime.WEIGHTS_FILE to Paths.get(modelPath)),
+            files = mapOf(LlamaCppRuntime.WEIGHTS_FILE to Paths.get(modelPath)),
         )
-        var model: LlamaSpikeModelInstance? = null
+        var model: LlamaCppModelInstance? = null
         val coldLoadMs = measureMs {
             model = runtime.loadModel(pack, LoadConfig(threads = threads, useMmap = true))
-                as LlamaSpikeModelInstance
+                as LlamaCppModelInstance
         }
         val loaded = requireNotNull(model)
         result.put("modelLoad", JSONObject().apply {
@@ -93,7 +92,7 @@ class BenchmarkSuite(
             loaded.createSession(SessionConfig(CTX_DEFAULT)).use { session ->
                 activeSession = session
                 result.put("shortPrompt", generation(loaded, session, SHORT_PROMPT, 48))
-                // Warm same-session second run: KV reuse is out of spike scope, so use a
+                // KV reuse is outside Runtime v1, so use a
                 // fresh session for warmth-of-caches comparison instead.
             }
             step("short prompt (warm process)")
@@ -116,7 +115,7 @@ class BenchmarkSuite(
                 result.put("burst", burstScenario(loaded))
 
                 step("thread sweep")
-                result.put("threadSweep", threadSweep(loaded))
+                result.put("threadSweep", threadSweep(pack))
 
                 step("context probe")
                 result.put("contextProbe", contextProbe(loaded))
@@ -130,10 +129,10 @@ class BenchmarkSuite(
         loaded.close()
         val memAfterUnload = memSnapshot()
         step("warm reload")
-        var reload: LlamaSpikeModelInstance? = null
+        var reload: LlamaCppModelInstance? = null
         val warmLoadMs = measureMs {
             reload = runtime.loadModel(pack, LoadConfig(threads = threads, useMmap = true))
-                as LlamaSpikeModelInstance
+                as LlamaCppModelInstance
         }
         reload?.close()
         result.put("unload", JSONObject().apply {
@@ -150,14 +149,14 @@ class BenchmarkSuite(
     // -- scenarios -------------------------------------------------------------------
 
     private fun generation(
-        model: LlamaSpikeModelInstance,
-        session: LlamaSpikeSession,
+        model: LlamaCppModelInstance,
+        session: LlamaCppSession,
         userPrompt: String,
         maxTokens: Int,
     ): JSONObject {
         val tokens = model.tokenize(chatWrap(userPrompt))
         val prefillStart = now()
-        session.prefill(TokenSequence(tokens), CancelSignal.NONE)
+        session.prefill(tokens, CancelSignal.NONE)
         val prefillEnd = now()
 
         val firstTokenAt = AtomicLong(-1)
@@ -176,9 +175,9 @@ class BenchmarkSuite(
         val firstMs = if (firstTokenAt.get() > 0) ms(prefillEnd, firstTokenAt.get()) else -1.0
         val decodeMs = ms(prefillEnd, decodeEnd)
         return JSONObject().apply {
-            put("promptTokens", tokens.size)
+            put("promptTokens", tokens.ids.size)
             put("prefillMs", prefillMs)
-            put("prefillTokPerS", rate(tokens.size, prefillMs))
+            put("prefillTokPerS", rate(tokens.ids.size, prefillMs))
             put("decodedTokens", decoded)
             put("firstTokenMs", firstMs)
             put("ttftTotalMs", prefillMs + firstMs)
@@ -188,7 +187,7 @@ class BenchmarkSuite(
         }
     }
 
-    private fun cancellationScenario(model: LlamaSpikeModelInstance): JSONObject {
+    private fun cancellationScenario(model: LlamaCppModelInstance): JSONObject {
         val runs = JSONArray()
         var maxLatency = -1.0
         repeat(3) { attempt ->
@@ -196,13 +195,13 @@ class BenchmarkSuite(
             model.createSession(SessionConfig(CTX_DEFAULT)).use { session ->
                 activeSession = session
                 val tokens = model.tokenize(chatWrap(MEDIUM_PROMPT))
-                session.prefill(TokenSequence(tokens), CancelSignal.NONE)
+                session.prefill(tokens, CancelSignal.NONE)
 
                 val seen = AtomicInteger(0)
                 val cancelRequestedAt = AtomicLong(0)
                 val decodeReturnedAt = AtomicLong(0)
                 val done = CountDownLatch(1)
-                val decoder = thread(name = "spike-cancel-$attempt") {
+                val decoder = thread(name = "benchmark-cancel-$attempt") {
                     session.decode(
                         DecodeParams(maxTokens = 256),
                         CancelSignal.NONE,
@@ -231,7 +230,7 @@ class BenchmarkSuite(
         return JSONObject().put("runs", runs).put("maxCancelToReturnMs", maxLatency)
     }
 
-    private fun burstScenario(model: LlamaSpikeModelInstance): JSONObject {
+    private fun burstScenario(model: LlamaCppModelInstance): JSONObject {
         val iterations = JSONArray()
         repeat(8) { i ->
             if (aborted) return@repeat
@@ -246,23 +245,33 @@ class BenchmarkSuite(
         return JSONObject().put("iterations", iterations)
     }
 
-    private fun threadSweep(model: LlamaSpikeModelInstance): JSONArray {
+    /**
+     * Threads are per-instance in the production adapter (LoadConfig), so the sweep
+     * reloads the model per thread count — cheap while the page cache is warm.
+     */
+    private fun threadSweep(pack: ResolvedModelPack): JSONArray {
         val cores = Runtime.getRuntime().availableProcessors()
         val counts = sortedSetOf(2, 4, cores.coerceAtLeast(1))
         val sweep = JSONArray()
         counts.forEach { threadCount ->
             if (aborted) return@forEach
-            model.createSession(SessionConfig(CTX_DEFAULT), threads = threadCount).use { session ->
-                activeSession = session
-                val stats = generation(model, session, SHORT_PROMPT, 32)
-                sweep.put(JSONObject().put("threads", threadCount).put("stats", stats))
+            val model = runtime.loadModel(pack, LoadConfig(threads = threadCount, useMmap = true))
+                as LlamaCppModelInstance
+            try {
+                model.createSession(SessionConfig(CTX_DEFAULT)).use { session ->
+                    activeSession = session
+                    val stats = generation(model, session, SHORT_PROMPT, 32)
+                    sweep.put(JSONObject().put("threads", threadCount).put("stats", stats))
+                }
+            } finally {
+                model.close()
             }
         }
         activeSession = null
         return sweep
     }
 
-    private fun contextProbe(model: LlamaSpikeModelInstance): JSONArray {
+    private fun contextProbe(model: LlamaCppModelInstance): JSONArray {
         val probe = JSONArray()
         intArrayOf(512, 1024, 2048, 4096).forEach { ctx ->
             if (aborted) return@forEach
@@ -323,7 +332,7 @@ class BenchmarkSuite(
     }
 
     /**
-     * Spike heuristic: leave one core for the OS, cap at 6. The production engine derives
+     * Benchmark heuristic: leave one core for the OS, cap at 6. The production engine derives
      * this from big-core topology (§14.2); the thread sweep measures whether that matters.
      */
     private fun defaultThreads(): Int =

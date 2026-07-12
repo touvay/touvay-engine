@@ -19,7 +19,8 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 /**
- * Automated quick-suite run against the :spike process. Skips (does not fail) when the
+ * Automated quick-suite run against the production adapter in the legacy-named :spike
+ * process. Skips (does not fail) when the
  * model hasn't been pushed, so CI without model assets stays green:
  *
  *   adb push models/qwen2.5-0.5b-instruct-q4_k_m.gguf \
@@ -33,10 +34,10 @@ class BenchmarkSmokeTest {
     fun quickSuite_producesSaneMeasurements() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val model = File(context.getExternalFilesDir(null), "model.gguf")
-        assumeTrue("model.gguf not pushed; skipping spike smoke test", model.exists())
-        // -Pandroid.testInstrumentationRunnerArguments.quick=false runs the full suite.
+        assumeTrue("model.gguf not pushed; skipping benchmark smoke test", model.exists())
+        // Full by default for parity evidence; manual instrumentation may pass quick=true.
         val quick = InstrumentationRegistry.getArguments()
-            .getString("quick", "true").toBoolean()
+            .getString("quick", "false").toBoolean()
 
         val connected = CountDownLatch(1)
         var runner: ISpikeRunner? = null
@@ -78,7 +79,13 @@ class BenchmarkSmokeTest {
             if (error != null) fail("suite failed: $error")
 
             val result = JSONObject(assertNotNull(resultJson))
-            val outFile = File(context.getExternalFilesDir(null), "spike-smoke-result.json")
+            val additionalOutput = InstrumentationRegistry.getArguments()
+                .getString("additionalTestOutputDir")
+            val outFile = File(
+                additionalOutput ?: context.getExternalFilesDir(null)?.absolutePath
+                    ?: context.cacheDir.absolutePath,
+                "production-benchmark-result.json",
+            )
             outFile.writeText(result.toString(2))
 
             assertTrue(result.getDouble("libLoadMs") >= 0)

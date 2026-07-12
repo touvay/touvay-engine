@@ -7,7 +7,8 @@ import android.os.Process
 import java.util.concurrent.Executors
 
 /**
- * Hosts the benchmark in the `:spike` process, mirroring the production topology
+ * Hosts the production-adapter benchmark in the legacy-named `:spike` process,
+ * mirroring the production topology
  * (inference never runs in the client's process). Killed on purpose by the recovery
  * scenario; holds no state that death could lose.
  */

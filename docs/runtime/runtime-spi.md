@@ -1,6 +1,6 @@
 # Runtime SPI Specification (v1)
 
-**Status:** Proposed — awaiting approval (Task 1 follow-up, 2026-07-12)
+**Status:** Approved and implemented — Runtime v1.0 (Task 2.1, 2026-07-12)
 **Normative for:** `runtime/runtime-api` and every runtime adapter.
 **Executable form:** `docs/runtime/runtime-tck.md` (each requirement here maps to TCK tests).
 **Evidence base:** llama.cpp spike, `docs/spikes/llamacpp-feasibility.md` (cited as *[spike]*).
@@ -30,7 +30,7 @@ the adapter's duty (SPI-ER-5).
 The v1 surface is the existing `runtime-api` plus one **additive** change motivated by
 the spike:
 
-> **SPI change (proposed): `ModelInstance.tokenize(text: String): TokenSequence`.**
+> **SPI change: `ModelInstance.tokenize(text: String): TokenSequence`.**
 > Rationale [spike]: capability pipelines produce text; `InferenceSession.prefill`
 > consumes tokens; tokenization is model-owned (vocab lives in the model), so the spike
 > had to add it on the concrete class. Every token-level runtime needs it; promoting it
@@ -97,7 +97,10 @@ READY ───────────► PRIMED ──────────
   decode stopped due to the signal), the only operation the engine may invoke is
   `close()`. Rationale: partial KV state has no defined semantics in v1; request
   coalescing discards the session anyway. Adapters MUST NOT be required to support
-  post-cancel reuse.
+  post-cancel reuse. *Caller corollary (found by TCK-CX-04 against the real adapter):
+  once a session's signal is set, the caller cannot know whether an in-flight call
+  observed it — so after any call returns with the signal set, the caller MUST issue
+  only `close()`. A pre-set signal on a READY session remains a legal no-op (SPI-CX-6).*
 - **SPI-LC-10** `close()` on a session: idempotent, non-throwing, frees the KV cache.
 
 ## 4. Threading model
@@ -217,7 +220,28 @@ buffers virtually and Linux commits pages lazily.
   fuzz-tested (§16, TCK-ER).
 - **SPI-ER-6** Adapters MUST NOT call `abort()`/`exit()` or install signal handlers.
 
-## 9. Resource cleanup summary (normative checklist)
+## 9. Design rationale (review items resolved, 2026-07-12)
+
+**Tokenization lives in the SPI, not the pipeline.** The tokenizer is part of the model
+artifact (vocab/merges/special tokens ship inside GGUF/bundles) and must match the
+consuming runtime bit-exactly; a pipeline-owned tokenizer would mean reimplementing
+SentencePiece/BPE variants per model family and maintaining eternal parity with each
+runtime's quirks — silent-quality-bug risk with no benefit. Pipeline needs are met
+without ownership: exact truncation = tokenize-then-truncate the `TokenSequence`
+(model is loaded before prefill anyway; tokenize is microseconds); pre-load size
+rejection uses a conservative character heuristic where precision is irrelevant.
+Delegated runtimes never see tokens and are unaffected.
+
+**Post-cancel-only-close stands (SPI-LC-9).** No supported runtime offers safe
+post-cancel reuse cheaply: llama.cpp's abort can fire mid-graph leaving in-flight-batch
+KV writes in an undocumented partial state (rollback would need per-batch bookkeeping
+against semantics upstream doesn't guarantee across versions); LiteRT-LM session
+internals are opaque; AICore has no sessions. The only benefit of reuse — keeping a KV
+prefix to skip re-prefill — is delivered properly by the planned `SupportsPrefixCache`
+feature interface (explicit, validated prefix handles created outside the cancel path).
+Reuse would also roughly double the determinism test surface. Complexity unjustified.
+
+## 10. Resource cleanup summary (normative checklist)
 
 On `session.close()`: KV cache and per-session buffers freed.
 On `instance.close()`: remaining sessions defensively freed → weights unmapped →

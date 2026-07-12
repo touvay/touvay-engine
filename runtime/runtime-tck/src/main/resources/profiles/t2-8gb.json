@@ -1,0 +1,7 @@
+{
+  "id": "t2-8gb",
+  "calibrated": false,
+  "ttftShortWarmMaxMs": 800,
+  "decodeTokensPerSecondMin": 15,
+  "sustainedBurstDegradationMaxPercent": 30
+}

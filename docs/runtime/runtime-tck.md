@@ -1,10 +1,15 @@
 # Runtime TCK — Technology Compatibility Kit Design
 
-**Status:** Proposed — awaiting approval (Task 1 follow-up, 2026-07-12)
+**Status:** Approved and implemented — Runtime v1.0 (Task 2.1, 2026-07-12)
 **Implements:** `docs/runtime/runtime-spi.md` as executable tests.
 **Goal:** any runtime — llama.cpp, LiteRT-LM, ExecuTorch, an AICore delegate, a fork's
 adapter — passes the same kit **without engine changes**. "Conformant" has exactly one
 definition: the TCK is green.
+
+The device suite deliberately remains 28 JUnit methods. Requirements that share one
+execution path are verified together: TH-02 by CX-01, CX-05 by CX-06, ST-03 by the
+ST-02 method's exact backend-detokenization sub-check, ME-03 by ME-02's full-context
+resident-growth sub-check, and informative PF report creation by LC-02.
 
 ## 1. Shape
 
@@ -82,6 +87,9 @@ Every test cites the SPI requirement it enforces. Mandatory unless marked (I)nfo
 | TH-03 sink invoked on the decoding thread, never the main looper | SPI-TH-1/5 |
 | TH-04 after close, no adapter threads remain (thread enumeration diff) | SPI-TH-4 |
 
+TH-02 is enforced by CX-01: decode runs on the test thread while cancellation is
+signalled by the watcher thread, with termination and latency assertions.
+
 ### TCK-CX — Cancellation
 | Test | Verifies |
 |---|---|
@@ -91,6 +99,8 @@ Every test cites the SPI requirement it enforces. Mandatory unless marked (I)nfo
 | CX-04 cancel racing natural completion ×20: no crash/hang, ≤ 1-step overshoot | SPI-CX-7 |
 | CX-05 no exception from cancellation itself | SPI-CX-5 |
 | CX-06 post-cancel: only close() is exercised (kit never reuses; asserts close works) | SPI-LC-9 |
+
+CX-06 also asserts SPI-CX-5: cancellation itself propagates no exception.
 
 The per-step histogram approach makes CX-01 device-independent: the spike showed
 wall-clock varies 20× with load (65 ms–1.36 s) while the *step-bounded* property held —
@@ -105,6 +115,10 @@ so the kit measures the property, and per-tier wall-clock budgets live in §6 pr
 | ST-04 EOG never surfaced to the sink | SPI-ST-4 |
 | ST-05 throwing sink: generation stops, exception propagates, session closes cleanly | SPI-ST-6 |
 
+ST-03 executes inside the ST-02 JUnit method and compares concatenated streamed pieces
+with adapter-supplied backend detokenization of the emitted token ids. The same check
+round-trips CJK, a supplementary emoji, and embedded NUL through tokenization.
+
 ### TCK-DT — Determinism (token-level subjects)
 | Test | Verifies |
 |---|---|
@@ -118,6 +132,10 @@ so the kit measures the property, and per-tier wall-clock budgets live in §6 pr
 | ME-02 RSS after close ≤ baseline + 10% of model size | SPI-MM-4 |
 | ME-03 resident growth during a full-context generation ≤ declared KV estimate × 1.5 (measures **resident**, not reservations) | SPI-ME-2/3 |
 | ME-04 load/close ×5: no monotonic native-heap growth (leak detector) | SPI-ME-4 |
+
+ME-03 executes inside ME-02 after warming fixed compute buffers; incremental resident
+growth at near-full context must remain within the documented KV bytes/token ×1.5 plus
+a 4 MiB `/proc` measurement allowance.
 
 ### TCK-ER — Errors
 | Test | Verifies |
@@ -140,14 +158,19 @@ Profile numbers are **initial hypotheses** — they gate nothing until the first
 physical-device dataset calibrates them (explicitly revisited then; the kit refuses to
 "pass" PF on an emulator, it only records).
 
+`TckReport` is written during LC-02. Android connected tests use Gradle's
+`additionalTestOutputDir`, so reports are copied to build outputs before AGP uninstalls
+the test APK; JVM self-tests write to their temporary fixture directory.
+
 ## 4. Pass criteria
 
 An adapter is **conformant** when all mandatory categories are green in device mode on
 at least one physical device per supported tier, and PF meets the tier profile on each.
 Until physical devices are in CI, the interim bar for merging an adapter is: all
 mandatory categories green on emulator + PF recorded (informative) + no open TCK
-waivers. Waivers (documented, time-boxed) require explicit approval and live in the
-adapter's README.
+waivers. The llama.cpp adapter met this bar at 28/28 with zero skips/failures on
+2026-07-12; evidence is archived under `docs/runtime/results/`. Waivers (documented,
+time-boxed) require explicit approval and live in the adapter's README.
 
 ## 5. Versioning
 
@@ -160,8 +183,11 @@ all adapters. A conformance claim always names the TCK version.
 `runtime-tck`'s own test suite runs the kit against:
 - `FakeRuntime` (correct) — must pass everything;
 - sabotaged fakes — `LeakyFake` (skips frees) must fail ME-01/04, `ReorderingFake`
-  must fail ST-01, `CancelIgnoringFake` must fail CX-01, `CrashyParserFake` must fail
+  must fail ST-03, `CancelIgnoringFake` must fail CX-01, `CrashyParserFake` must fail
   ER-02, etc.
+
+The implemented sabotage suite additionally proves EOG leakage, nondeterminism,
+configuration-validation gaps, and user-content log leakage are detected.
 
 A kit that cannot detect the bugs it exists to catch is decoration; the sabotage suite
 is therefore mandatory in ordinary JVM CI.

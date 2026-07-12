@@ -15,11 +15,11 @@ Touvay Engine is a privacy-first, **offline** AI runtime platform for Android
 request to a (model pack, runtime, execution plan). Apps never see models, runtimes,
 prompts, or hardware.
 
-**Status:** Architecture v1.0 approved (ADR-001..014). Task 0 (walking skeleton,
-echo end-to-end over real Binder) and Task 1 (validation closure + isolated llama.cpp
-spike) are committed and green. Pending: device measurement run for the spike
-(docs/spikes/llamacpp-feasibility.md §6); spike → production adapter **requires
-explicit user approval**.
+**Status:** Architecture v1.0 approved (ADR-001..014). Tasks 0/1 are committed.
+Task 2.1 production hardening is implemented: Runtime SPI/TCK and the production
+llama.cpp adapter are build-green and 28/28 device-TCK green on the API 36 emulator.
+The adapter is **not engine-wired**. Pending: representative 4 GB arm64 measurement
+(`docs/spikes/llamacpp-feasibility.md` §6) and explicit approval before Task 3.
 
 ## Non-negotiable rules
 
@@ -63,10 +63,11 @@ explicit user approval**.
 | `sdk/touvay-sdk` | Public client API: `Touvay.connect`, `TouvayClient`, Flow streaming, `TouvayException`, binder-death handling | contract |
 | `engine/engine-core` | Pure JVM (no Android): `CapabilityRegistry`, `RequestProcessor` (streaming, cancel, coalescing, exactly-one-terminal) | runtime-api |
 | `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root (only place concretes are wired); `EchoPipeline` | contract, engine-core, runtime-api |
-| `runtime/runtime-api` | Runtime SPI (`InferenceRuntime`/`ModelInstance`/`InferenceSession`, `CancelSignal`) | nothing |
-| `runtime/runtime-llamacpp-spike` | **Isolated spike** — llama.cpp b5199 via JNI behind the SPI. Not wired to engine/SDK; conversion needs approval | runtime-api |
+| `runtime/runtime-api` | Runtime SPI (`InferenceRuntime`/`ModelInstance`/`InferenceSession`, `tokenize`, `CancelSignal`); normative spec `docs/runtime/runtime-spi.md` | nothing |
+| `runtime/runtime-tck` | Conformance kit (pure JVM): `AbstractRuntimeTck` + sabotage self-test; adapters conform via one androidTest subclass | runtime-api |
+| `runtime/runtime-llamacpp` | Production llama.cpp adapter (pinned b5199; abort-callback cancellation; NOT engine-wired — Task 3 gate) | runtime-api |
 | `apps/demo` | Demo client + cross-process instrumented tests | sdk, engine-service |
-| `apps/benchmark` | Spike benchmark (`:spike` process, JSON results) | runtime-api, spike |
+| `apps/benchmark` | Benchmark host (`:spike` process, JSON results) targeting the production adapter | runtime-api, runtime-llamacpp |
 | `build-logic` | Convention plugins + `DependencyRulesPlugin` (new modules MUST be added to its allowlist) | — |
 
 New modules: add to `settings.gradle.kts`, `DependencyRulesPlugin`, and (if not public
@@ -78,7 +79,7 @@ API) `apiValidation.ignoredProjects` in root `build.gradle.kts`.
 ./gradlew build                      # assemble + unit tests + lint + dep rules + apiCheck
 ./gradlew :apps:demo:connectedDebugAndroidTest      # cross-process tests (device/emulator)
 ./gradlew apiDump                    # ONLY as a reviewed API change
-scripts/fetch-llamacpp.ps1           # pinned b5199 -> spike third_party/ (gitignored)
+scripts/fetch-llamacpp.ps1           # pinned b5199 -> production adapter third_party/ (gitignored)
 scripts/fetch-model.ps1              # Qwen2.5-0.5B Q4_K_M, hash-verified -> models/ (gitignored)
 ```
 
@@ -125,7 +126,7 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 
 - Device measurement run for the spike (one 4 GB arm64 phone; instructions in
   docs/spikes/llamacpp-feasibility.md §3/§6) → T1 go/no-go.
-- **Gate:** spike → production `runtime-llamacpp` adapter + runtime-tck: needs explicit
-  user approval.
+- **Gate:** engine/router/model-manager wiring of `runtime-llamacpp` is Task 3 and
+  requires explicit user approval after representative device evidence.
 - Deferred (additive): `createSession` in AIDL; SDK per-request backpressure budget;
   convention-plugin guard for `ndkVersion`.

@@ -12,6 +12,18 @@ public interface ModelInstance : AutoCloseable {
 
     /** Creates an inference session. Sessions are single-owner and must be closed. */
     public fun createSession(config: SessionConfig): InferenceSession
+
+    /**
+     * Converts text to this model's token ids. Tokenization is model-owned: the vocab
+     * ships inside the model artifact and must match the consuming runtime exactly
+     * (docs/runtime/runtime-spi.md §9). Pure and side-effect-free: touches no session
+     * state and is safe to call concurrently with an active session (SPI-LC-7).
+     *
+     * @param text UTF-8 text; special-token markup is parsed (engine-owned templates
+     *   rely on this — pipelines never receive raw user special tokens unescaped).
+     * @throws IllegalStateException if the instance is closed.
+     */
+    public fun tokenize(text: String): TokenSequence
 }
 
 /** Resource facts the budget manager accounts for (ARCHITECTURE.md §14.3). */

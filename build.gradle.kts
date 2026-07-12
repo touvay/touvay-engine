@@ -12,8 +12,10 @@ apiValidation {
         "engine-core",
         "engine-service",
         "demo",
-        // Spike artifacts are not public API (Task 1 Part B; isolated by design).
-        "runtime-llamacpp-spike",
+        // Not public API surfaces: the adapter is engine-internal, the TCK evolves
+        // with the repo, the benchmark is a tool.
+        "runtime-llamacpp",
+        "runtime-tck",
         "benchmark",
     )
 }

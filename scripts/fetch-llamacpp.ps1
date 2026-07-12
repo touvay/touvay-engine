@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 
 $Tag = "b5199"
 $Commit = "ced44be34290fab450f8344efa047d8a08e723b4"
-$Dest = Join-Path $PSScriptRoot "..\runtime\runtime-llamacpp-spike\third_party\llama.cpp"
+$Dest = Join-Path $PSScriptRoot "..\runtime\runtime-llamacpp\third_party\llama.cpp"
 
 if (Test-Path (Join-Path $Dest "CMakeLists.txt")) {
     $actual = git -C $Dest rev-parse HEAD

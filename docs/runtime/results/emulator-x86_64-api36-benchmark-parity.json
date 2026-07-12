@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "runtimeId": "llamacpp",
+  "quick": false,
+  "timestamp": "2026-07-12T09:34:59Z",
+  "device": "Google sdk_gphone64_x86_64 API 36",
+  "modelBytes": 491400032,
+  "result": "pass-no-regression",
+  "guardrail": "fail only when a like-for-like latency/throughput/memory metric regresses by more than 20%; improvements are retained",
+  "comparisons": [
+    { "metric": "warmShortTtftMs", "spike": 1585.3943, "production": 919.6337, "deltaPercent": -42.0 },
+    { "metric": "warmShortDecodeTokS", "spike": 14.0564, "production": 16.5168, "deltaPercent": 17.5 },
+    { "metric": "threads2TtftMs", "spike": 1770.2621, "production": 1798.0051, "deltaPercent": 1.6 },
+    { "metric": "threads2DecodeTokS", "spike": 12.8505, "production": 13.8432, "deltaPercent": 7.7 },
+    { "metric": "threads4TtftMs", "spike": 977.2801, "production": 974.7158, "deltaPercent": -0.3 },
+    { "metric": "threads4DecodeTokS", "spike": 19.4193, "production": 21.4226, "deltaPercent": 10.3 },
+    { "metric": "threads6TtftMs", "spike": 787.8497, "production": 730.6050, "deltaPercent": -7.3 },
+    { "metric": "threads6DecodeTokS", "spike": 15.9920, "production": 26.0926, "deltaPercent": 63.2 },
+    { "metric": "maxCancelMs", "spike": 1356.4226, "production": 15.7129, "deltaPercent": -98.8 },
+    { "metric": "nativeHeapAfterUnloadKb", "spike": 5548, "production": 5644, "deltaPercent": 1.7 }
+  ]
+}

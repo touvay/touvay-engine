@@ -19,7 +19,7 @@ import androidx.activity.ComponentActivity
 import java.io.File
 
 /**
- * Manual driver for the spike benchmark. Results stream into the on-screen log and the
+ * Manual driver for the production-adapter benchmark. Results stream into the on-screen log and the
  * final JSON is written to this app's external files dir for `adb pull`.
  */
 class MainActivity : ComponentActivity() {
@@ -31,12 +31,12 @@ class MainActivity : ComponentActivity() {
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             runner = ISpikeRunner.Stub.asInterface(service)
-            appendLine("spike service connected (pid ${runner?.pid})")
+            appendLine("benchmark service connected (pid ${runner?.pid})")
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             runner = null
-            appendLine("spike service disconnected (process died); rebinding…")
+            appendLine("benchmark service disconnected (process died); rebinding…")
             // BIND_AUTO_CREATE restarts the service; onServiceConnected fires again.
         }
     }
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
 
         override fun onFinished(resultJson: String?) {
             val json = resultJson ?: return
-            val file = File(getExternalFilesDir(null), "spike-results-${System.currentTimeMillis()}.json")
+            val file = File(getExternalFilesDir(null), "benchmark-results-${System.currentTimeMillis()}.json")
             file.writeText(json)
             appendLine("FINISHED — results written to ${file.absolutePath}")
             appendLine(json)
@@ -118,7 +118,7 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("SetTextI18n") // developer tool; not localized by design
     private fun buildUi() {
-        log = TextView(this).apply { text = "Touvay llama.cpp spike benchmark\n" }
+        log = TextView(this).apply { text = "Touvay llama.cpp production benchmark\n" }
         val quick = Button(this).apply {
             text = "Run quick"
             setOnClickListener { run(quick = true) }

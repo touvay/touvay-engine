@@ -5,8 +5,10 @@ A privacy-first, offline AI runtime platform for Android. Applications request
 request to a model and inference runtime appropriate for the device. Apps never depend on
 models, runtimes, prompts, or hardware details.
 
-**Status:** walking skeleton — the SDK ↔ engine contract works end to end over Binder
-(diagnostic `dev.echo` capability); no inference runtimes are wired yet.
+**Status:** Runtime v1.0 production hardening complete. The Binder walking skeleton,
+SDK, Runtime SPI/TCK, and production llama.cpp adapter are green. The adapter remains
+deliberately unwired from the engine; routing/model-manager integration is the Task 3 gate.
+Release checkpoint: [Runtime v1.0 Foundation](docs/runtime/runtime-v1.0-release.md).
 
 > **AI coding agents:** read [AGENTS.md](AGENTS.md) first — it replaces repo
 > exploration (module map, rules, commands, known gotchas). `CLAUDE.md` points there.
@@ -30,9 +32,10 @@ plug in.
 | `engine/engine-core` | Pure-JVM request routing/execution core |
 | `engine/engine-service` | Bound service hosting the engine in the `:touvay` process |
 | `runtime/runtime-api` | Runtime SPI |
-| `runtime/runtime-llamacpp-spike` | **Spike (isolated)**: llama.cpp behind the SPI; see [docs/spikes/llamacpp-feasibility.md](docs/spikes/llamacpp-feasibility.md) |
+| `runtime/runtime-tck` | Runtime v1.0 executable conformance specification |
+| `runtime/runtime-llamacpp` | Production llama.cpp adapter, pinned to b5199; not engine-wired |
 | `apps/demo` | Demo client + cross-process instrumented tests |
-| `apps/benchmark` | Spike benchmark host (`:spike` process, JSON results) |
+| `apps/benchmark` | Production-adapter benchmark host (`:spike` process name retained for compatibility, JSON results) |
 
 Module dependency rules (ARCHITECTURE.md §8) are enforced by `./gradlew checkDependencyRules`,
 which runs as part of `check`/`build`.

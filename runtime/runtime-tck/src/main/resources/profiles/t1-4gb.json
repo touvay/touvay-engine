@@ -1,0 +1,7 @@
+{
+  "id": "t1-4gb",
+  "calibrated": false,
+  "ttftShortWarmMaxMs": 1500,
+  "decodeTokensPerSecondMin": 8,
+  "sustainedBurstDegradationMaxPercent": 40
+}

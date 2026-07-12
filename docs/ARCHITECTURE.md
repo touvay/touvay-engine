@@ -1,7 +1,8 @@
 # Touvay Engine — Architecture Design Document
 
 **Status:** Approved — v1.0 (2026-07-11), amended at review: ADR-013 (local-only diagnostics).
-Amended 2026-07-12: ADR-014 (schema ownership); spike-evidence refinements in §12/§14.3;
+Amended 2026-07-12: ADR-014 (schema ownership); Runtime v1 tokenization surface and
+spike-evidence refinements in §12/§14.3;
 normative runtime specs split out to `docs/runtime/` (runtime-spi.md, runtime-tck.md).
 **Audience:** Engine maintainers, SDK consumers, contributors
 **Scope:** Architecture only. No production code until this document is approved.
@@ -535,6 +536,7 @@ interface InferenceRuntime {
 
 interface ModelInstance : AutoCloseable {
     val info: ModelInstanceInfo                                // mem footprint, ctx max
+    fun tokenize(text: String): TokenSeq                       // model-owned vocabulary
     fun createSession(config: SessionConfig): InferenceSession
 }
 

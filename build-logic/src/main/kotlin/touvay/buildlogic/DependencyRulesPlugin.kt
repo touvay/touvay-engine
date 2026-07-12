@@ -42,11 +42,13 @@ class DependencyRulesPlugin : Plugin<Project> {
             ":sdk:touvay-sdk",
             ":engine:engine-service",
         ),
-        // Task 1 spike (isolated by design): may see the SPI, never the SDK or engine.
-        ":runtime:runtime-llamacpp-spike" to setOf(":runtime:runtime-api"),
+        // Conformance kit: executable form of docs/runtime/runtime-spi.md.
+        ":runtime:runtime-tck" to setOf(":runtime:runtime-api"),
+        // Production adapter (Task 2): SPI only; engine wiring is a separate approved task.
+        ":runtime:runtime-llamacpp" to setOf(":runtime:runtime-api"),
         ":apps:benchmark" to setOf(
             ":runtime:runtime-api",
-            ":runtime:runtime-llamacpp-spike",
+            ":runtime:runtime-llamacpp",
         ),
     )
 

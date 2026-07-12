@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "tckVersion": "1.0",
+  "runtimeId": "llamacpp",
+  "timestamp": "2026-07-12T09:24:14Z",
+  "device": "Medium_Phone_API_36.1(AVD) - 16",
+  "tests": 28,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "durationSeconds": 160.496,
+  "performanceReportWritten": true,
+  "performanceGating": "informative-emulator",
+  "source": "Gradle connectedDebugAndroidTest XML; LC-02 asserts TckReport creation"
+}
