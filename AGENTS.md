@@ -15,13 +15,14 @@ Touvay Engine is a privacy-first, **offline** AI runtime platform for Android
 request to a (model pack, runtime, execution plan). Apps never see models, runtimes,
 prompts, or hardware.
 
-**Status:** Architecture v1.0 plus ADR-015/016 approved. Runtime v1.0 is tagged
+**Status:** Architecture v1.0 plus ADR-015–019 approved. Runtime v1.0 is tagged
 `runtime-v1.0-foundation`, build-green, and 28/28 device-TCK green. Task 3 Slice 1
 implements the approved offline model-pack manifest/signature/compatibility verifier in
 `engine-models`. Slices 2–3 durable storage, catalog, selection, and storage ownership
 are approved. Slice 4 Runtime Registry resolution and cached `ModelInstance` lifecycle
-is approved; sessions/inference and engine wiring remain **not authorized**. The
-llama.cpp adapter remains unwired.
+is approved. Execution Architecture v1.0 is frozen in `docs/execution/`; Milestone 5
+execution-engine implementation is authorized. User-facing capabilities, keyboard
+integration, and networking remain out of scope. The llama.cpp adapter remains unwired.
 
 ## Non-negotiable rules
 
@@ -129,10 +130,10 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 ## Open items / approval gates
 
 - Representative 4 GB arm64 calibration remains required before runtime/lifecycle wiring.
-- **Gate:** Task 3 Slice 4 is approved. Sessions/inference, Scheduler, routing,
-  downloader/networking, and Slice 5 remain unauthorized pending execution-architecture
-  review.
+- **Gate:** Milestone 5 execution-engine implementation is authorized under ADR-017–019.
+  User-facing capabilities, keyboard integration, networking, and follow-on milestones
+  remain unauthorized.
 - Measure Tink 1.23.0's shrunk APK contribution before engine-service wiring; Slice 1
   uses one pure-Java verifier path across API 29+ and adds no Android composition edge.
-- Deferred (additive): `createSession` in AIDL; SDK per-request backpressure budget;
-  convention-plugin guard for `ndkVersion`.
+- Deferred (additive): public logical-session facade; convention-plugin guard for
+  `ndkVersion`.

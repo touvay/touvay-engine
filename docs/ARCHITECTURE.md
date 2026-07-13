@@ -7,6 +7,9 @@ normative runtime specs split out to `docs/runtime/` (runtime-spi.md, runtime-tc
 Amended 2026-07-12: ADR-015 (Model Manager resolution and instance identity) and
 ADR-016 (model-pack manifest/signature envelope); normative Model Manager contract in
 `docs/model-manager/model-manager.md`.
+Amended 2026-07-13: ADR-017 (execution ownership/terminal semantics), ADR-018
+(credit-based streaming), and ADR-019 (logical conversations versus Runtime sessions);
+normative Execution Architecture contract in `docs/execution/execution-architecture.md`.
 **Audience:** Engine maintainers, SDK consumers, contributors
 **Scope:** Architecture only. No production code until this document is approved.
 
@@ -910,6 +913,24 @@ Task 3 architecture refinement.)* Packs use exact protobuf-lite manifest bytes p
 domain-separated Ed25519 signature; per-file hashes remain mandatory. This replaces the
 illustrative JSONC example before any durable format ships. Full record:
 `docs/adr/ADR-016-model-pack-manifest-and-signature-envelope.md`.
+
+**ADR-017 — Execution coordinator and terminal semantics.** *(Accepted 2026-07-13,
+Execution Architecture v1.0.)* One coordinator owns request orchestration, immutable
+`ExecutionContext` metadata, an immutable routed `ExecutionPlan`, resource-owning sequential
+`ExecutionAttempt` objects, admitted-only acceptance, exact terminal arbitration, and reverse
+cleanup. Retry selects a precomputed fallback without rerouting. Full record:
+`docs/adr/ADR-017-execution-coordinator-and-terminal-semantics.md`.
+
+**ADR-018 — Credit-based Binder streaming and bounded decode quanta.** *(Accepted
+2026-07-13, Execution Architecture v1.0.)* Production streaming uses negotiated count-and-byte
+credits, bounded SDK buffers, serialized outbound lanes, and fixed-capacity per-quantum Runtime
+token accumulation. The Runtime SPI API is unchanged. Full record:
+`docs/adr/ADR-018-credit-based-streaming.md`.
+
+**ADR-019 — Logical conversations versus Runtime sessions.** *(Accepted 2026-07-13,
+Execution Architecture v1.0.)* Runtime sessions are request-attempt scoped; logical conversation
+state and reconstruction remain client-owned. The engine persists no transcript or KV state.
+Full record: `docs/adr/ADR-019-logical-conversations-and-runtime-sessions.md`.
 
 ---
 
