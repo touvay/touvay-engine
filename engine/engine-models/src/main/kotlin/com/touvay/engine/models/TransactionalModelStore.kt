@@ -8,6 +8,7 @@ import com.touvay.engine.models.store.proto.ActivePointer
 import com.touvay.engine.models.store.proto.InstallMarker
 import com.touvay.engine.models.store.proto.PackIdentityRecord
 import java.io.InputStream
+import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -19,6 +20,7 @@ import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
 import java.security.MessageDigest
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -137,13 +139,19 @@ internal class TransactionalModelStore(
         }
     }
 
-    fun recover(): RecoveryReport = lock.withLock {
+    fun recover(): RecoveryReport = recoverForCatalog(emptyMap()).report
+
+    fun recoverForCatalog(
+        cachedVerifications: Map<ModelRevisionIdentity, CachedRevisionVerification>,
+    ): StoreCatalogRecovery = lock.withLock {
         translateIo {
             ensureRoot()
             var stagingRemoved = 0
             var trashRemoved = 0
             var invalidRemoved = 0
             var pointersCleared = 0
+            val allRevisions = mutableListOf<StoredCatalogRevision>()
+            val activeRevisions = linkedSetOf<ModelRevisionIdentity>()
 
             childDirectories(stagingRoot).forEach {
                 deleteTreeNoFollow(it)
@@ -170,29 +178,31 @@ internal class TransactionalModelStore(
                     invalidRemoved++
                     return@forEach
                 }
-                val validRevisions = mutableListOf<VerifiedManifest>()
+                val validRevisions = mutableListOf<StoredCatalogRevision>()
                 childDirectories(versions).forEach { revision ->
-                    val verified = try {
-                        val verified = verifyRevision(revision)
-                        if (revision.fileName.toString() != revisionDirectoryName(verified.identity())) {
+                    val stored = try {
+                        val stored = inspectRevision(revision, cachedVerifications = cachedVerifications)
+                        if (revision.fileName.toString() !=
+                            revisionDirectoryName(stored.verifiedManifest.identity())
+                        ) {
                             null
                         } else {
-                            verified
+                            stored
                         }
                     } catch (_: Exception) {
                         null
                     }
-                    if (verified == null) {
+                    if (stored == null) {
                         quarantineAndDelete(revision)
                         invalidRemoved++
                     } else {
-                        validRevisions += verified
+                        validRevisions += stored
                     }
                 }
                 val directoryName = packDirectory.fileName.toString()
                 val recordedIdentity = readPackIdentityOrNull(packDirectory)
                     ?.takeIf { packDirectoryName(it) == directoryName }
-                val derivedIdentities = validRevisions.map { it.manifest.packId }
+                val derivedIdentities = validRevisions.map { it.verifiedManifest.manifest.packId }
                     .filter { packDirectoryName(it) == directoryName }
                     .distinct()
                 val identity = recordedIdentity ?: derivedIdentities.singleOrNull()
@@ -202,12 +212,14 @@ internal class TransactionalModelStore(
                     return@forEach
                 }
                 if (recordedIdentity == null) writePackIdentity(packDirectory, identity)
-                validRevisions.toList().forEach { verified ->
-                    if (verified.manifest.packId != identity) {
+                validRevisions.toList().forEach { stored ->
+                    if (stored.verifiedManifest.manifest.packId != identity) {
                         quarantineAndDelete(
-                            versions.resolve(revisionDirectoryName(verified.identity())),
+                            versions.resolve(
+                                revisionDirectoryName(stored.verifiedManifest.identity()),
+                            ),
                         )
-                        validRevisions -= verified
+                        validRevisions -= stored
                         invalidRemoved++
                     }
                 }
@@ -215,21 +227,41 @@ internal class TransactionalModelStore(
                 if (Files.exists(pointer, LinkOption.NOFOLLOW_LINKS)) {
                     val valid = try {
                         val active = parseActivePointer(readBounded(pointer, MAX_RECORD_BYTES)).toIdentity()
-                        val verified = verifyRevision(revisionDirectory(active), active)
-                        compatibilityVerifier().verify(verified.manifest, environment)
+                        val stored = validRevisions.singleOrNull {
+                            it.verifiedManifest.identity() == active
+                        } ?: modelStoreFailure(ModelStoreFailure.STORE_CORRUPT)
+                        compatibilityVerifier().verify(stored.verifiedManifest.manifest, environment)
                         active.packId == identity
                     } catch (_: Exception) {
                         false
                     }
                     if (!valid) {
-                        repairOrClearActivePointer(packDirectory, validRevisions)
+                        repairOrClearActivePointer(
+                            packDirectory,
+                            validRevisions.map { it.verifiedManifest },
+                        )
                         pointersCleared++
                     }
                 }
+                activeRevisionUnsafe(identity)?.let { active ->
+                    if (validRevisions.any { it.verifiedManifest.identity() == active }) {
+                        activeRevisions += active
+                    }
+                }
+                allRevisions += validRevisions
             }
             durability.forceDirectory(stagingRoot)
             durability.forceDirectory(trashRoot)
-            RecoveryReport(stagingRemoved, trashRemoved, invalidRemoved, pointersCleared)
+            StoreCatalogRecovery(
+                report = RecoveryReport(
+                    stagingRemoved,
+                    trashRemoved,
+                    invalidRemoved,
+                    pointersCleared,
+                ),
+                revisions = allRevisions.toList(),
+                activeRevisions = activeRevisions.toSet(),
+            )
         }
     }
 
@@ -331,7 +363,17 @@ internal class TransactionalModelStore(
     private fun verifyRevision(
         directory: Path,
         expectedIdentity: ModelRevisionIdentity? = null,
-    ): VerifiedManifest {
+    ): VerifiedManifest = inspectRevision(
+        directory = directory,
+        expectedIdentity = expectedIdentity,
+        cachedVerifications = emptyMap(),
+    ).verifiedManifest
+
+    private fun inspectRevision(
+        directory: Path,
+        expectedIdentity: ModelRevisionIdentity? = null,
+        cachedVerifications: Map<ModelRevisionIdentity, CachedRevisionVerification>,
+    ): StoredCatalogRevision {
         if (!Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(directory)) {
             modelStoreFailure(ModelStoreFailure.REVISION_NOT_FOUND)
         }
@@ -348,6 +390,7 @@ internal class TransactionalModelStore(
         val expected = verified.manifest.filesList.associateBy { it.logicalPath }
         val filesRoot = directory.resolve(FILES_DIRECTORY)
         val seen = linkedSetOf<String>()
+        val observations = mutableListOf<FileObservation>()
         if (!Files.isDirectory(filesRoot, LinkOption.NOFOLLOW_LINKS)) {
             modelStoreFailure(ModelStoreFailure.STORE_CORRUPT)
         }
@@ -363,13 +406,51 @@ internal class TransactionalModelStore(
                 }
                 val logical = filesRoot.relativize(file).joinToString("/") { it.toString() }
                 val declared = expected[logical] ?: modelStoreFailure(ModelStoreFailure.STORE_CORRUPT)
-                verifyFile(file, declared.byteSize, declared.sha256)
+                if (attrs.size() != declared.byteSize) {
+                    modelStoreFailure(ModelStoreFailure.STORE_CORRUPT)
+                }
+                observations += FileObservation(
+                    logicalPath = logical,
+                    path = file,
+                    byteSize = attrs.size(),
+                    lastModifiedNanos = attrs.lastModifiedTime().to(TimeUnit.NANOSECONDS),
+                )
                 seen += logical
                 return FileVisitResult.CONTINUE
             }
         })
         if (seen != expected.keys) modelStoreFailure(ModelStoreFailure.STORE_CORRUPT)
-        return verified
+        val fingerprint = payloadMetadataFingerprint(observations)
+        val cachedFingerprint = cachedVerifications[identity]?.payloadMetadataFingerprint
+        val requiresFullVerification = cachedFingerprint != fingerprint
+        if (requiresFullVerification) {
+            observations.forEach { observation ->
+                val declared = expected.getValue(observation.logicalPath)
+                verifyFile(observation.path, declared.byteSize, declared.sha256)
+            }
+        }
+        return StoredCatalogRevision(
+            verifiedManifest = verified,
+            directory = directory,
+            payloadMetadataFingerprint = fingerprint,
+            payloadFullyVerified = requiresFullVerification,
+        )
+    }
+
+    private fun payloadMetadataFingerprint(observations: List<FileObservation>): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.update(PAYLOAD_FINGERPRINT_DOMAIN)
+        observations.sortedBy { it.logicalPath }.forEach { observation ->
+            digest.update(observation.logicalPath.toByteArray(StandardCharsets.UTF_8))
+            digest.update(0.toByte())
+            digest.update(
+                ByteBuffer.allocate(java.lang.Long.BYTES * 2)
+                    .putLong(observation.byteSize)
+                    .putLong(observation.lastModifiedNanos)
+                    .array(),
+            )
+        }
+        return digest.digest().toHex()
     }
 
     private fun verifyFile(path: Path, expectedSize: Long, expectedDigest: ByteString) {
@@ -387,6 +468,13 @@ internal class TransactionalModelStore(
             modelStoreFailure(ModelStoreFailure.STORE_CORRUPT)
         }
     }
+
+    private class FileObservation(
+        val logicalPath: String,
+        val path: Path,
+        val byteSize: Long,
+        val lastModifiedNanos: Long,
+    )
 
     private fun rejectVersionConflict(identity: ModelRevisionIdentity) {
         val pack = packDirectory(identity.packId)
@@ -713,5 +801,7 @@ internal class TransactionalModelStore(
         private val ROOT_VERSION_BYTES = "TOUVAY_MODEL_STORE_V1\n".toByteArray(StandardCharsets.US_ASCII)
         private val VERSION_DIRECTORY_DOMAIN =
             "TOUVAY_MODEL_VERSION_DIR_V1".toByteArray(StandardCharsets.US_ASCII)
+        private val PAYLOAD_FINGERPRINT_DOMAIN =
+            "TOUVAY_PAYLOAD_METADATA_V1\u0000".toByteArray(StandardCharsets.US_ASCII)
     }
 }

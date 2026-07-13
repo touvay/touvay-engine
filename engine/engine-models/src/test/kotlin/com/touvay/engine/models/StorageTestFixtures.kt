@@ -14,11 +14,13 @@ import java.security.MessageDigest
 internal object StorageTestFixtures {
     fun pack(
         version: String = "1.0.0",
+        packId: String = "touvay.pack.compact-writer-q4",
         content: ByteArray = "model-$version".toByteArray(),
         entries: List<ModelPackSourceEntry>? = null,
         openedContent: ByteArray = content,
     ): TestPack {
         val manifest = TestFixtures.manifest().toBuilder()
+            .setPackId(packId)
             .setPackVersion(version)
             .clearCapabilities()
             .clearFiles()
@@ -57,6 +59,26 @@ internal object StorageTestFixtures {
         faultInjector = faultInjector,
     )
 
+    fun catalog(
+        root: Path,
+        clock: CatalogClock = CatalogClock { 1_000 },
+        environment: CompatibilityEnvironment = TestFixtures.environment(),
+        cacheFaultInjector: CatalogCacheFaultInjector = CatalogCacheFaultInjector.NONE,
+    ): CatalogTestHarness {
+        val store = store(root)
+        return CatalogTestHarness(
+            store = store,
+            manager = ModelCatalogManager(
+                root = root,
+                store = store,
+                environment = environment,
+                durability = TestStorageDurability,
+                clock = clock,
+                cacheFaultInjector = cacheFaultInjector,
+            ),
+        )
+    }
+
     fun revisionDirectory(root: Path): Path = Files.walk(root.resolve("packs")).use { paths ->
         paths.filter { it.fileName.toString() == "installed.ok" }
             .findFirst()
@@ -74,6 +96,11 @@ internal class TestPack(
     val source: ModelPackSource,
     val manifestBytes: ByteArray,
     val identity: ModelRevisionIdentity,
+)
+
+internal class CatalogTestHarness(
+    val store: TransactionalModelStore,
+    val manager: ModelCatalogManager,
 )
 
 private class MemoryPackSource(

@@ -18,9 +18,9 @@ prompts, or hardware.
 **Status:** Architecture v1.0 plus ADR-015/016 approved. Runtime v1.0 is tagged
 `runtime-v1.0-foundation`, build-green, and 28/28 device-TCK green. Task 3 Slice 1
 implements the approved offline model-pack manifest/signature/compatibility verifier in
-`engine-models`. Slice 2 durable storage/transaction work is approved. Slice 3 is
-authorized only for catalog and storage-reference ownership; model loading/runtime
-wiring remain **not authorized**. The
+`engine-models`. Slices 2–3 durable storage, catalog, selection, and storage ownership
+are approved. Slice 4 is authorized only for Runtime Registry resolution and cached
+`ModelInstance` lifecycle; sessions/inference and engine wiring remain **not authorized**. The
 llama.cpp adapter remains unwired.
 
 ## Non-negotiable rules
@@ -64,7 +64,7 @@ llama.cpp adapter remains unwired.
 | `contract/touvay-contract` | AIDL surface + `@Parcelize` envelope + proto payload schemas (owns ALL wire schemas, ADR-014). Most stable artifact | nothing |
 | `sdk/touvay-sdk` | Public client API: `Touvay.connect`, `TouvayClient`, Flow streaming, `TouvayException`, binder-death handling | contract |
 | `engine/engine-core` | Pure JVM (no Android): `CapabilityRegistry`, `RequestProcessor` (streaming, cancel, coalescing, exactly-one-terminal) | runtime-api |
-| `engine/engine-models` | Pure JVM, offline Task 3 boundary: pack verification plus transactional staging, immutable version storage, activation/rollback, safe deletion, and recovery. No catalog/lifecycle/model loading/runtime integration | runtime-api allowed (not yet declared) |
+| `engine/engine-models` | Pure JVM, offline Task 3 boundary: pack verification, transactional version storage, immutable catalog snapshots/cache, selection, and exact-revision storage leases. No model loading/Runtime lifecycle/integration | runtime-api allowed (not yet declared) |
 | `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root (only place concretes are wired); `EchoPipeline` | contract, engine-core, runtime-api |
 | `runtime/runtime-api` | Runtime SPI (`InferenceRuntime`/`ModelInstance`/`InferenceSession`, `tokenize`, `CancelSignal`); normative spec `docs/runtime/runtime-spi.md` | nothing |
 | `runtime/runtime-tck` | Conformance kit (pure JVM): `AbstractRuntimeTck` + sabotage self-test; adapters conform via one androidTest subclass | runtime-api |
@@ -80,7 +80,7 @@ API) `apiValidation.ignoredProjects` in root `build.gradle.kts`.
 
 ```
 ./gradlew build                      # assemble + unit tests + lint + dep rules + apiCheck
-./gradlew :engine:engine-models:test # Task 3 verifier, security, and storage transaction suite
+./gradlew :engine:engine-models:test # Task 3 verifier, storage, catalog, and lease suite
 ./gradlew :apps:demo:connectedDebugAndroidTest      # cross-process tests (device/emulator)
 ./gradlew apiDump                    # ONLY as a reviewed API change
 scripts/fetch-llamacpp.ps1           # pinned b5199 -> production adapter third_party/ (gitignored)
@@ -129,9 +129,10 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 ## Open items / approval gates
 
 - Representative 4 GB arm64 calibration remains required before runtime/lifecycle wiring.
-- **Gate:** Task 3 Slice 3 is authorized for catalog/cache rebuild, selection, storage
-  leases, and reference counting only. Model loading, Runtime instances/sessions,
-  scheduler/runtime integration, downloader, routing, and Slice 4 remain unauthorized.
+- **Gate:** Task 3 Slice 4 is authorized for Runtime Registry resolution, Runtime
+  acquisition, cached `ModelInstance` lifecycle, leases, release, and consistency only.
+  Sessions/inference, Scheduler, routing, downloader/networking, and Slice 5 remain
+  unauthorized.
 - Measure Tink 1.23.0's shrunk APK contribution before engine-service wiring; Slice 1
   uses one pure-Java verifier path across API 29+ and adds no Android composition edge.
 - Deferred (additive): `createSession` in AIDL; SDK per-request backpressure budget;

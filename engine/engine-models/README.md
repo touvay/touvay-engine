@@ -1,9 +1,9 @@
-# engine-models — Task 3 Slices 1–2
+# engine-models — Task 3 Slices 1–3
 
-**Status:** Slices 1–2 approved; Slice 3 catalog/ownership work is separately authorized.
+**Status:** Slices 1–3 approved; Slice 4 runtime-lifecycle work is separately authorized.
 
 This pure-JVM, offline module owns the model-pack schema, bounded verification boundary,
-and transactional local storage. The normative contract is
+transactional local storage, and the immutable catalog/storage-lease boundary. The normative contract is
 `docs/model-manager/model-manager.md`; ADR-015 and ADR-016 freeze the boundaries and
 signed envelope.
 
@@ -22,10 +22,14 @@ signed envelope.
 - same-filesystem staging with marker-last immutable revision commits;
 - hashed pack/revision directories, atomic active-pointer replacement, rollback, and
   idempotent duplicate installation;
-- inactive-only rename-to-trash deletion and deterministic crash recovery.
+- inactive-only rename-to-trash deletion and deterministic crash recovery;
+- immutable atomic catalog snapshots rebuilt from committed storage;
+- disposable bounded metadata cache with per-revision payload metadata fingerprints;
+- explicit active/exact/highest-compatible version selection without plan ranking;
+- idempotent exact-revision storage leases, reference counts, and deferred deletion.
 
-There is no catalog, catalog rebuild, model loading, reference counting, lifecycle,
-runtime registry/integration, scheduler, routing, downloader, or network code. All
+There is no model loading, Runtime instance/session lifecycle, runtime registry/integration,
+scheduler, routing, downloader, or network code. All
 hand-written declarations remain module-internal; generated protobuf classes are not
 exposed through a cross-module port, and `engine-models` is not a published API artifact.
 
@@ -42,6 +46,19 @@ pointer to the newest compatible verified revision or clears it.
 `NioStorageDurability` treats file and directory fsync failures as failed transactions.
 Unit tests inject an NTFS-compatible durability adapter; production Android composition
 and device power-loss testing remain a later, explicitly gated integration concern.
+
+## Catalog and ownership contract
+
+`ModelCatalogManager` owns one lock-free immutable snapshot and serializes mutation. Its
+cache is derived acceleration data: signed manifests, commit markers, active pointers,
+and exact file metadata are still checked on rebuild; a missing, malformed, stale, or
+future-dated cache entry forces full payload verification. The cache never becomes a
+source of truth.
+
+`PackRevisionLease` pins one exact immutable revision and is deliberately not a Runtime
+or inference lease. Removal of a referenced inactive revision becomes pending and the
+directory remains present until the final idempotent release. Runtime-backed
+`ModelInstance` leases remain a later authorization gate.
 
 ## Verification bounds
 
@@ -86,6 +103,6 @@ that measurement is a gate before Android composition.
 ## Validation
 
 ```text
-./gradlew :engine:engine-models:test # verifier + transactional storage suite
+./gradlew :engine:engine-models:test # verifier + storage + catalog/lease suite
 ./gradlew build apiCheck checkDependencyRules
 ```

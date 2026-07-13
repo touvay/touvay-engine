@@ -1,6 +1,6 @@
 # Model Manager Architecture v1.0
 
-**Status:** Frozen architecture — Slices 1–2 approved; Slice 3 authorized, not implemented
+**Status:** Frozen architecture — Slices 1–3 approved; Slice 4 authorized, not implemented
 **Checkpoint baseline:** `runtime-v1.0-foundation` (`7a68daa`)
 **Decisions:** [ADR-015](../adr/ADR-015-model-manager-resolution-and-instance-identity.md)
 and [ADR-016](../adr/ADR-016-model-pack-manifest-and-signature-envelope.md)
@@ -542,6 +542,28 @@ active pointers, rebuilds the snapshot, then optionally rewrites the cache.
 The capability router later joins this snapshot with device policy and runtime
 availability. The catalog does not rank or select plans.
 
+### 11.1 Slice 3 catalog and cache contract
+
+Slice 3 implements an internal `ModelCatalogManager` with an atomically published,
+immutable snapshot. Rebuild owns the storage recovery transaction and derives every
+entry from a signed committed revision and the exact active pointer. It publishes only
+after `CatalogConsistencyVerifier` proves unique identities, at most one durable active
+revision per pack, compatibility/state agreement, balanced references, exact manifest
+file descriptors, and paths contained under the immutable revision.
+
+`catalog-cache.pb` is a bounded protobuf-lite cache of exact revision identity, a
+versioned payload metadata fingerprint, and the last full-verification time. Rebuild
+always revalidates signed manifest/signature/marker bytes and the exact file set. An
+entry can avoid rehashing weights only when identity, sizes, paths, and nanosecond file
+timestamps still match. Missing, malformed, duplicate, stale, or future-dated entries
+force streaming digest verification. Cache replacement is atomic; interrupted temporary
+files are discarded on restart. The cache is never required for correctness.
+
+Version selection is intentionally pack-local and explicit: durable active revision,
+exact revision identity, or highest compatible installed SemVer with manifest digest as
+a deterministic tie-breaker. This is artifact selection, not capability ranking or
+execution-plan routing.
+
 ## 12. mmap ownership and file immutability
 
 The Model Manager owns pack files; the runtime owns mappings/native handles.
@@ -561,6 +583,18 @@ This directly satisfies SPI-MM-1/4 and prevents SIGBUS/corruption from deleting 
 GGUF.
 
 ## 13. Reference counting and concurrency
+
+Slice 3 implements the prerequisite `PackRevisionLease`: an idempotent storage hold on
+one exact immutable revision. It carries only resolved metadata/file descriptors and no
+runtime object. Reference counts are process-local, published in catalog snapshots, and
+block physical deletion. A referenced inactive revision becomes `PENDING_REMOVAL`; its
+directory is deleted only after the last release. Process death releases every hold by
+definition and leaves the committed revision safely installed; a process-local pending
+removal request may need to be reissued because no durable removal tombstone exists in
+the approved v1 storage layout.
+
+The Runtime-backed `ModelLease` described below remains unimplemented until a later
+explicit authorization.
 
 `acquire(modelRevision, executionProfileRequest)` is suspending and returns an idempotent
 `ModelLease : AutoCloseable`.
@@ -1107,13 +1141,16 @@ Authorization is per slice:
 1. **Schema + verifier — implemented and validated:** manifest/signature format, bounded
    parser, immutable trust store, compatibility verifier, and golden/security/negative/
    fuzz-style tests. Engineering review: `slice-1-engineering-review.md`.
-2. **Transactional store — Slice 2 storage subset implemented, awaiting review:**
+2. **Transactional store — Slice 2 approved:**
    staging, commit markers, recovery, active pointers, safe deletion, and
    install/upgrade/rollback tests. Catalog work is explicitly excluded.
-3. **Loaded-instance manager — not authorized:** Runtime Registry resolution port, semantic execution
+3. **Catalog + storage ownership — Slice 3 implemented, awaiting review:** immutable
+   snapshots, rebuildable metadata cache, explicit version selection, exact-revision
+   leases/reference counts, deferred deletion, and consistency/crash tests.
+4. **Loaded-instance manager — not authorized:** Runtime Registry resolution port, semantic execution
    profiles, single-flight load, leases, mmap holds, budgets, idle unload, and multi-model
    tests using fake runtimes.
-4. **Android composition/integration — not authorized:** app-private paths, lifecycle/trim bridge, real
+5. **Android composition/integration — not authorized:** app-private paths, lifecycle/trim bridge, real
    llama.cpp instrumented tests. Router/scheduler production wiring remains a separately
    reviewed sub-scope if Task 3 approval does not explicitly include it.
 
@@ -1135,7 +1172,7 @@ Model Manager Architecture v1.0 freezes:
 9. scheduler policy separated from manager lifecycle mechanics;
 10. a separate future downloader/network module.
 
-Slices 1–2 implement the frozen verification and durable-storage boundaries without
-engine wiring, catalog, runtime loading, downloader code, or public APIs. No later slice
-begins automatically; the next step is engineering review of Slice 2 and explicit
-authorization for any subsequent scope.
+Slices 1–3 implement the frozen verification, durable-storage, catalog, and storage-hold
+boundaries without engine wiring, runtime loading, downloader code, or public APIs. No
+later slice begins automatically; the next step is engineering review of Slice 3 and
+explicit authorization for any subsequent scope.

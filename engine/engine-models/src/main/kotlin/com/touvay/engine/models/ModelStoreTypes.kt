@@ -33,6 +33,25 @@ internal class RecoveryReport(
     val repairedOrClearedActivePointers: Int,
 )
 
+internal class CachedRevisionVerification(
+    val identity: ModelRevisionIdentity,
+    val payloadMetadataFingerprint: String,
+    val fullyVerifiedAtEpochMillis: Long,
+)
+
+internal class StoredCatalogRevision(
+    val verifiedManifest: VerifiedManifest,
+    val directory: java.nio.file.Path,
+    val payloadMetadataFingerprint: String,
+    val payloadFullyVerified: Boolean,
+)
+
+internal class StoreCatalogRecovery(
+    val report: RecoveryReport,
+    val revisions: List<StoredCatalogRevision>,
+    val activeRevisions: Set<ModelRevisionIdentity>,
+)
+
 internal enum class StoreCheckpoint {
     STAGING_CREATED,
     MANIFESTS_DURABLE,
