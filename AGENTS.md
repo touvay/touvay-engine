@@ -20,11 +20,14 @@ prompts, or hardware.
 implements the approved offline model-pack manifest/signature/compatibility verifier in
 `engine-models`. Slices 2–3 durable storage, catalog, selection, and storage ownership
 are approved. Slice 4 Runtime Registry resolution and cached `ModelInstance` lifecycle
-is approved. Execution Architecture v1.0 is frozen in `docs/execution/`; Milestone 5
-implements the Coordinator, Scheduler, Runtime-session mechanics, Model Manager adapter,
-and contract-v2 bounded streaming protocol and is build-green. No user-facing execution
-program or Router is registered yet. User-facing capabilities, keyboard integration, and
-networking remain out of scope. The llama.cpp adapter remains unwired to a capability.
+is approved. Execution Architecture v1.0 and Milestone 5 are complete and tagged
+`foundation-v0.5`; the Coordinator, Scheduler, Runtime-session mechanics, Model Manager
+adapter, and contract-v2 bounded streaming protocol are build-green. Capability Framework
+Architecture v1.0 and ADR-020/021 are approved; framework implementation and its 20-check
+TCK are complete and awaiting final engineering review. No
+user-facing execution program or Router is
+registered yet. User-facing capabilities, keyboard integration, and networking remain
+out of scope. The llama.cpp adapter remains unwired to a capability.
 
 ## Non-negotiable rules
 
@@ -52,7 +55,7 @@ networking remain out of scope. The llama.cpp adapter remains unwired to a capab
 |---|---|---|
 | Any code change | this file only, then the touched module | full ARCHITECTURE.md |
 | Wire format / AIDL / protos | `contract/` sources + ARCHITECTURE.md ADR-003, ADR-009, ADR-014 | rest of doc |
-| New capability | ARCHITECTURE.md §9 §11 + `engine-core` `CapabilityPipeline` + `EchoPipeline` as the reference impl | runtime sections |
+| New capability | **`docs/capabilities/CAPABILITY_SPEC.md` (normative)** + ARCHITECTURE.md §9 §11; `CapabilityPipeline`/`EchoPipeline` are diagnostic compatibility code, not the production SPI | runtime adapter internals |
 | Runtime / inference | **`docs/runtime/runtime-spi.md` (normative)** + `runtime-api`; TCK work → `docs/runtime/runtime-tck.md`; llama.cpp adapter → `docs/runtime/runtime-llamacpp-design.md` | full ARCHITECTURE.md |
 | SDK surface | ARCHITECTURE.md §9 + `sdk/touvay-sdk` + `.api` dumps | engine internals |
 | Model packs / downloads | `docs/model-manager/model-manager.md` (normative) + ADR-011/015/016 + `engine/engine-models/README.md` | — |
@@ -66,7 +69,8 @@ networking remain out of scope. The llama.cpp adapter remains unwired to a capab
 |---|---|---|
 | `contract/touvay-contract` | AIDL surface + `@Parcelize` envelope + proto payload schemas (owns ALL wire schemas, ADR-014). Most stable artifact | nothing |
 | `sdk/touvay-sdk` | Public client API: `Touvay.connect`, `TouvayClient`, Flow streaming, `TouvayException`, binder-death handling | contract |
-| `engine/engine-core` | Pure JVM (no Android): `CapabilityRegistry`, `RequestProcessor` (streaming, cancel, coalescing, exactly-one-terminal) | runtime-api |
+| `engine/engine-core` | Pure JVM: execution orchestration plus production Capability SPI, exact registry/adapter, semantic plans, typed recipes, and bounded prompt assets | runtime-api |
+| `capabilities/capability-tck` | Pure-JVM Capability SPI conformance kit and deterministic harness; 20 mandatory checks plus sabotage self-tests | engine-core, runtime-api |
 | `engine/engine-models` | Pure JVM, offline Task 3 boundary: pack verification, transactional storage, catalog/leases, Runtime Registry resolution, and cached `ModelInstance` ownership. No sessions, inference, scheduler, routing, downloader, or network | runtime-api |
 | `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root (only place concretes are wired); `EchoPipeline` | contract, engine-core, engine-models, runtime-api |
 | `runtime/runtime-api` | Runtime SPI (`InferenceRuntime`/`ModelInstance`/`InferenceSession`, `tokenize`, `CancelSignal`); normative spec `docs/runtime/runtime-spi.md` | nothing |
@@ -84,6 +88,7 @@ API) `apiValidation.ignoredProjects` in root `build.gradle.kts`.
 ```
 ./gradlew build                      # assemble + unit tests + lint + dep rules + apiCheck
 ./gradlew :engine:engine-models:test # Task 3 verifier, storage, catalog, and lifecycle suite
+./gradlew :capabilities:capability-tck:test # Capability framework conformance self-test
 ./gradlew :apps:demo:connectedDebugAndroidTest      # cross-process tests (device/emulator)
 ./gradlew apiDump                    # ONLY as a reviewed API change
 scripts/fetch-llamacpp.ps1           # pinned b5199 -> production adapter third_party/ (gitignored)
@@ -131,11 +136,11 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 
 ## Open items / approval gates
 
-- Representative 4 GB arm64 calibration remains required before runtime/lifecycle wiring.
-- **Gate:** Milestone 5 is implemented and awaiting merge approval. User-facing
-  capabilities, Router policy, keyboard integration, networking, and follow-on
-  milestones remain unauthorized.
-- Measure Tink 1.23.0's shrunk APK contribution before engine-service wiring; Slice 1
-  uses one pure-Java verifier path across API 29+ and adds no Android composition edge.
+- Representative 4 GB arm64 calibration remains required before a model capability ships.
+- **Gate:** Capability Framework implementation only is authorized. Production capability
+  code, prompts, Router policy, keyboard integration, networking, and follow-on milestones
+  remain unauthorized.
+- Measure Tink 1.23.0's shrunk APK contribution before a user-facing engine release;
+  Slice 1 uses one pure-Java verifier path across API 29+.
 - Deferred (additive): public logical-session facade; convention-plugin guard for
   `ndkVersion`.

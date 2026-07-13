@@ -50,13 +50,14 @@ public class ExecutionCoordinator(
     /** Enqueues a request without running preparation or Runtime work on the caller thread. */
     public fun submit(request: ExecutionRequest, observer: ExecutionObserver): Boolean {
         val key = RequestKey(request.principal, request.requestId)
-        val factory = programs.find(request.capabilityId)
+        val factory = programs.find(request.capabilityId, request.schemaVersion)
         if (factory == null) {
-            safeFail(observer, key, ExecutionFailureCode.UNKNOWN_CAPABILITY)
-            return false
-        }
-        if (factory.descriptor.schemaVersion != request.schemaVersion) {
-            safeFail(observer, key, ExecutionFailureCode.SCHEMA_VERSION_MISMATCH)
+            val failure = if (programs.containsId(request.capabilityId)) {
+                ExecutionFailureCode.SCHEMA_VERSION_MISMATCH
+            } else {
+                ExecutionFailureCode.UNKNOWN_CAPABILITY
+            }
+            safeFail(observer, key, failure)
             return false
         }
 
@@ -335,15 +336,25 @@ public class ExecutionCoordinator(
             ensureActive(execution)
 
             val instance = lease.instance
-            val prompt = program.prompt()
-            val tokens = runtimeCall(lease) { instance.tokenize(prompt) }
-            val contextCap = min(candidate.contextLength, instance.info.maxContextLength)
-            if (tokens.ids.size > contextCap) {
+            val modelInput = program.buildModelInput(
+                AttemptEnvironment(instance.info, lease.promptAssets) { text ->
+                    runtimeCall(lease) { instance.tokenize(text) }
+                },
+            )
+            val tokens = modelInput.tokens
+            val maximumContext = min(candidate.contextLength, instance.info.maxContextLength)
+            val sessionConfig = program.sessionConfig(instance.info)
+            if (sessionConfig.contextLength !in 1..maximumContext) {
+                throw ExecutionException(ExecutionFailureCode.INTERNAL)
+            }
+            val contextCap = sessionConfig.contextLength
+            val maxInputTokens = contextCap - candidate.maxOutputTokens
+            if (maxInputTokens < 0 || tokens.ids.size > maxInputTokens) {
                 throw ExecutionException(ExecutionFailureCode.INVALID_REQUEST)
             }
             signal = AtomicCancelSignal()
             execution.signal.set(signal)
-            session = runtimeCall(lease) { instance.createSession(program.sessionConfig(instance.info)) }
+            session = runtimeCall(lease) { instance.createSession(sessionConfig) }
             runtimeCall(lease) { session.prefill(tokens, signal) }
             ensureRuntimeUsable(execution, signal)
 

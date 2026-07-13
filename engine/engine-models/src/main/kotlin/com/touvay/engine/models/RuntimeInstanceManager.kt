@@ -3,6 +3,7 @@ package com.touvay.engine.models
 import com.touvay.runtime.api.DeviceProfile
 import com.touvay.runtime.api.ModelInstance
 import com.touvay.runtime.api.ResolvedModelPack
+import java.nio.file.Files
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
@@ -54,12 +55,25 @@ internal class RuntimeCacheSnapshot(
 public class RuntimeModelLease internal constructor(
     public val key: InstanceKey,
     public val instance: ModelInstance,
+    private val readAssetAction: suspend (String, Int) -> ByteArray,
     private val releaseAction: () -> Unit,
 ) : AutoCloseable {
     private val closed = AtomicBoolean(false)
 
+    /** Reads one bounded file from the exact pinned revision without exposing its path. */
+    public suspend fun readAsset(logicalPath: String, maxBytes: Int): ByteArray {
+        require(logicalPath.isNotBlank() && maxBytes in 1..MAX_ASSET_BYTES)
+        if (closed.get()) throw IllegalStateException("model lease is closed")
+        return readAssetAction(logicalPath, maxBytes)
+    }
+
     override fun close() {
         if (closed.compareAndSet(false, true)) releaseAction()
+    }
+
+    public companion object {
+        /** Hard heap bound for data assets read through a loaded model lease. */
+        public const val MAX_ASSET_BYTES: Int = 512 * 1024
     }
 }
 
@@ -124,7 +138,7 @@ public class RuntimeInstanceManager internal constructor(
             }
 
             warm?.let { entry ->
-                return RuntimeModelLease(key, entry.instance) { release(entry) }
+                return newLease(entry)
             }
             if (waitForUnload != null) {
                 waitForUnload!!.await()
@@ -340,7 +354,59 @@ public class RuntimeInstanceManager internal constructor(
         if (operation.publishedEntry !== entry || entry.referenceCount <= 0) {
             runtimeLifecycleFailure(RuntimeLifecycleFailure.CACHE_INCONSISTENT)
         }
-        RuntimeModelLease(key, entry.instance) { release(entry) }
+        newLease(entry)
+    }
+
+    private fun newLease(entry: LoadedEntry): RuntimeModelLease = RuntimeModelLease(
+        key = entry.key,
+        instance = entry.instance,
+        readAssetAction = { logicalPath, maxBytes -> readAsset(entry, logicalPath, maxBytes) },
+        releaseAction = { release(entry) },
+    )
+
+    private suspend fun readAsset(
+        entry: LoadedEntry,
+        logicalPath: String,
+        maxBytes: Int,
+    ): ByteArray {
+        val file = lock.withLock {
+            if (managerState != ManagerState.OPEN || loaded[entry.key] !== entry || entry.closed ||
+                entry.referenceCount <= 0
+            ) {
+                runtimeLifecycleFailure(RuntimeLifecycleFailure.MODEL_ASSET_UNAVAILABLE)
+            }
+            entry.storageLease.revision.files.singleOrNull { it.logicalPath == logicalPath }
+                ?: runtimeLifecycleFailure(RuntimeLifecycleFailure.MODEL_ASSET_UNAVAILABLE)
+        }
+        if (file.byteSize !in 1..maxBytes.toLong() || file.byteSize > Int.MAX_VALUE) {
+            runtimeLifecycleFailure(RuntimeLifecycleFailure.MODEL_ASSET_UNAVAILABLE)
+        }
+        return withContext(loadDispatcher) {
+            try {
+                if (Files.size(file.absolutePath) != file.byteSize) {
+                    runtimeLifecycleFailure(RuntimeLifecycleFailure.MODEL_ASSET_UNAVAILABLE)
+                }
+                val bytes = ByteArray(file.byteSize.toInt())
+                Files.newInputStream(file.absolutePath).use { input ->
+                    var offset = 0
+                    while (offset < bytes.size) {
+                        val read = input.read(bytes, offset, bytes.size - offset)
+                        if (read < 0) {
+                            runtimeLifecycleFailure(RuntimeLifecycleFailure.MODEL_ASSET_UNAVAILABLE)
+                        }
+                        offset += read
+                    }
+                    if (input.read() != -1) {
+                        runtimeLifecycleFailure(RuntimeLifecycleFailure.MODEL_ASSET_UNAVAILABLE)
+                    }
+                }
+                bytes
+            } catch (failure: RuntimeLifecycleException) {
+                throw failure
+            } catch (_: Exception) {
+                runtimeLifecycleFailure(RuntimeLifecycleFailure.MODEL_ASSET_UNAVAILABLE)
+            }
+        }
     }
 
     private fun abandonReservation(key: InstanceKey, operation: LoadingOperation) = lock.withLock {

@@ -7,6 +7,7 @@ internal enum class RuntimeLifecycleFailure(internal val safeMessage: String) {
     RUNTIME_UNAVAILABLE("model runtime is unavailable"),
     INVALID_EXECUTION_PROFILE("execution profile is invalid"),
     MODEL_LOAD_FAILED("model runtime load failed"),
+    MODEL_ASSET_UNAVAILABLE("model data asset is unavailable"),
     INSTANCE_INCONSISTENT("runtime instance consistency verification failed"),
     INSTANCE_REFERENCED("runtime instance is still referenced"),
     MANAGER_CLOSED("runtime instance manager is closed"),

@@ -12,6 +12,7 @@ apiValidation {
         "engine-core",
         "engine-models",
         "engine-service",
+        "capability-tck",
         "demo",
         // Not public API surfaces: the adapter is engine-internal, the TCK evolves
         // with the repo, the benchmark is a tool.

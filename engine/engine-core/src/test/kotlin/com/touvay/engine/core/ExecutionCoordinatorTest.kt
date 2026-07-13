@@ -211,6 +211,18 @@ class ExecutionCoordinatorTest {
         assertEquals(null, observer.failure?.incidentId)
     }
 
+    @Test
+    fun promptTokensCannotConsumeReservedOutputBudget() = runTest {
+        val fixture = fixture(candidates = listOf(candidate("primary", contextLength = 16, maxOutputTokens = 16)))
+        val observer = RecordingObserver()
+
+        fixture.coordinator.submit(request(), observer)
+        advanceUntilIdle()
+
+        assertEquals(ExecutionFailureCode.INVALID_REQUEST, observer.failure?.code)
+        assertEquals(1, observer.terminals)
+    }
+
     private fun kotlinx.coroutines.test.TestScope.fixture(
         candidates: List<ExecutionCandidate> = listOf(candidate("primary")),
         failingCandidates: Set<String> = emptySet(),
@@ -407,13 +419,17 @@ class ExecutionCoordinatorTest {
     }
 
     private companion object {
-        fun candidate(id: String) = ExecutionCandidate(
+        fun candidate(
+            id: String,
+            contextLength: Int = 16,
+            maxOutputTokens: Int = 2,
+        ) = ExecutionCandidate(
             id = id,
             modelRevision = ModelRevisionRef("pack", "1.0.0", "a".repeat(64)),
             profile = ExecutionProfileSpec(1),
-            contextLength = 16,
-            maxOutputTokens = 2,
-            decodeQuantumTokens = 2,
+            contextLength = contextLength,
+            maxOutputTokens = maxOutputTokens,
+            decodeQuantumTokens = minOf(2, maxOutputTokens),
             retryableFailures = setOf(
                 ExecutionFailureCode.MODEL_UNAVAILABLE,
                 ExecutionFailureCode.RUNTIME_FAILURE,

@@ -10,6 +10,9 @@ ADR-016 (model-pack manifest/signature envelope); normative Model Manager contra
 Amended 2026-07-13: ADR-017 (execution ownership/terminal semantics), ADR-018
 (credit-based streaming), and ADR-019 (logical conversations versus Runtime sessions);
 normative Execution Architecture contract in `docs/execution/execution-architecture.md`.
+Amended 2026-07-13: ADR-020 (production Capability SPI, ordered semantic plans, and
+exact-key registry) and ADR-021 (typed prompt recipes and frozen signed-asset binding);
+normative Capability Framework contract in `docs/capabilities/CAPABILITY_SPEC.md`.
 **Audience:** Engine maintainers, SDK consumers, contributors
 **Scope:** Architecture only. No production code until this document is approved.
 
@@ -331,9 +334,10 @@ Key structural facts:
 | `touvay-sdk` | Public client API: connection/discovery, capability facades, Flow streaming, error mapping, reconnect policy, Java interop layer | `touvay-contract` only |
 | `touvay-contract` | AIDL interfaces, wire schemas (protobuf-lite payloads), version negotiation types, error codes. **The most stable artifact in the repo.** | nothing |
 | `engine-service` | Android `Service`, binder implementation, caller authentication, per-client quotas, session registry, process lifecycle, **composition root** (the only place concrete implementations are wired) | everything below |
-| `engine-core` | Capability router, scheduler, budget manager, request state machine. Pure Kotlin; all effects behind ports | `runtime-api`, capability + model + device *interfaces* |
-| `capability-*` | One module per domain (text, vision, speech). Owns prompt templates, tokenizer-safe truncation policy, output parsing/validation, structured result assembly, per-capability quality eval definitions | `runtime-api`, `engine-models` interfaces |
-| `engine-models` | Offline pack verification, transactional storage, immutable catalog/cache, version selection, and exact-revision storage leases. Task 3 Slices 1–3 stop before model loading or Runtime lifecycle | `runtime-api` when runtime resolution lands; no concrete runtime or network |
+| `engine-core` | Execution Coordinator/Scheduler plus production Capability SPI, exact registry, semantic plans, typed prompt recipes, and bounded asset ports. Pure Kotlin; all effects behind ports | `runtime-api` |
+| `capability-*` (future) | One module per domain. Owns its public-schema parsing, semantic recipe, output validation/assembly, and quality evaluation definition | `engine-core`, `touvay-contract`; `runtime-api` only for SPI-exposed immutable facts |
+| `capability-tck` | Pure-JVM executable Capability SPI contract and deterministic plugin harness | `engine-core`, `runtime-api` |
+| `engine-models` | Pack verification, transactional storage, immutable catalog/cache, leases, Runtime Registry resolution, and cached `ModelInstance` ownership | `runtime-api`; no session, Scheduler, routing, concrete runtime, or network |
 | `engine-downloader` (future) | Consent-gated, resumable acquisition of signed artifacts by content hash; the only network-enabled engine module | narrow staged-pack source port |
 | `engine-device` | Device tier detection, memory pressure (`onTrimMemory`, `ActivityManager`), thermal (`PowerManager` thermal status/headroom), accelerator probing | Android SDK |
 | `runtime-api` | The Runtime SPI: mandatory core + typed feature interfaces + conformance-testable semantics | nothing |
@@ -939,6 +943,20 @@ token accumulation. The Runtime SPI API is unchanged. Full record:
 Execution Architecture v1.0.)* Runtime sessions are request-attempt scoped; logical conversation
 state and reconstruction remain client-owned. The engine persists no transcript or KV state.
 Full record: `docs/adr/ADR-019-logical-conversations-and-runtime-sessions.md`.
+
+**ADR-020 — Production Capability SPI and exact-key registry.** *(Accepted 2026-07-13,
+Capability Framework Architecture v1.0.)* `engine-core` owns a definition/preparation/
+semantic-plan/attempt SPI. Production registration uses exact `(capabilityId,
+schemaVersion)` identity. Prepared capabilities declare ordered semantic steps; routing
+freezes exact candidates into ADR-017's request plan. Full record:
+`docs/adr/ADR-020-production-capability-spi-and-exact-key-registry.md`.
+
+**ADR-021 — Typed prompt recipes and frozen signed-asset binding.** *(Accepted
+2026-07-13, Capability Framework Architecture v1.0.)* Prompt steps carry typed recipes;
+signed template/config assets use bounded protobuf-lite schemas and are frozen by exact
+digest in the routed plan. Capability code receives bounded asset/tokenizer ports rather
+than paths or Model Manager types. Full record:
+`docs/adr/ADR-021-typed-prompt-recipes-and-frozen-asset-binding.md`.
 
 ---
 

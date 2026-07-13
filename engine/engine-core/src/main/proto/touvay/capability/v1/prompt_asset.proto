@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package touvay.capability.v1;
+
+option java_package = "com.touvay.engine.core.proto";
+option java_multiple_files = true;
+
+// Signed model-pack data describing exact prompt assembly for one recipe revision.
+message PromptFormatAsset {
+  uint32 schema_version = 1;
+  string asset_id = 2;
+  string capability_id = 3;
+  uint32 capability_schema_version = 4;
+  string recipe_id = 5;
+  uint32 min_recipe_revision = 6;
+  optional uint32 max_recipe_revision = 7;
+  repeated PromptBlock blocks = 8;
+  repeated string required_features = 9;
+  uint32 max_expanded_bytes = 10;
+}
+
+message PromptBlock {
+  PromptRole role = 1;
+  repeated PromptSegment segments = 2;
+}
+
+message PromptSegment {
+  oneof value {
+    string literal = 1;
+    string slot_id = 2;
+  }
+}
+
+enum PromptRole {
+  PROMPT_ROLE_UNSPECIFIED = 0;
+  PROMPT_ROLE_SYSTEM = 1;
+  PROMPT_ROLE_USER = 2;
+  PROMPT_ROLE_ASSISTANT = 3;
+}

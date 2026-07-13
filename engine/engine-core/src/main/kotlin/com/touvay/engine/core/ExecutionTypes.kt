@@ -4,6 +4,7 @@ import com.touvay.runtime.api.DecodeParams
 import com.touvay.runtime.api.ModelInstance
 import com.touvay.runtime.api.ModelInstanceInfo
 import com.touvay.runtime.api.SessionConfig
+import com.touvay.runtime.api.TokenSequence
 import java.util.Collections
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -189,6 +190,8 @@ public class ExecutionCandidate(
     public val maxOutputTokens: Int,
     public val decodeQuantumTokens: Int,
     retryableFailures: Set<ExecutionFailureCode>,
+    public val capabilityStepId: String? = null,
+    public val promptAsset: PromptAssetRef? = null,
 ) {
     public val retryableFailures: Set<ExecutionFailureCode> =
         Collections.unmodifiableSet(retryableFailures.toSet())
@@ -198,6 +201,7 @@ public class ExecutionCandidate(
         require(contextLength > 0)
         require(maxOutputTokens > 0)
         require(decodeQuantumTokens in 1..maxOutputTokens)
+        require(capabilityStepId == null || capabilityStepId.isNotBlank())
     }
 }
 
@@ -237,7 +241,17 @@ public fun interface ExecutionRouter {
 
 /** Attempt-local capability semantics. A retry receives a new instance. */
 public interface AttemptProgram : AutoCloseable {
-    public fun prompt(): String
+    /**
+     * Builds exact model input after the routed model revision has been acquired.
+     * Existing diagnostic programs may implement [prompt] and inherit this adapter.
+     */
+    public suspend fun buildModelInput(environment: AttemptEnvironment): PreparedModelInput {
+        val text = prompt()
+        return PreparedModelInput(text, environment.tokenize(text))
+    }
+
+    /** Legacy text-only hook retained for the diagnostic walking skeleton. */
+    public fun prompt(): String = throw UnsupportedOperationException("MODEL_INPUT_REQUIRED")
     public fun sessionConfig(model: ModelInstanceInfo): SessionConfig
     public fun decodeParams(maxTokens: Int): DecodeParams
     public suspend fun consume(tokens: List<GeneratedToken>): List<ByteArray>
@@ -249,6 +263,24 @@ public data class GeneratedToken(
     public val tokenId: Int,
     public val piece: String,
 )
+
+/** Attempt-local services that become valid only after exact model acquisition. */
+public class AttemptEnvironment(
+    public val model: ModelInstanceInfo,
+    public val promptAssets: PromptAssetSource,
+    private val tokenizeAction: suspend (String) -> TokenSequence,
+) {
+    /** Tokenizes through the acquired Runtime instance on its serialized lane. */
+    public suspend fun tokenize(text: String): TokenSequence = tokenizeAction(text)
+}
+
+/** Text plus its exact Runtime tokenization; token ids are defensively copied. */
+public class PreparedModelInput(
+    public val text: String,
+    tokens: TokenSequence,
+) {
+    public val tokens: TokenSequence = TokenSequence(tokens.ids.copyOf())
+}
 
 /** Runtime/model boundary owned by the composition adapter. */
 public interface ExecutionModelProvider {
@@ -262,6 +294,10 @@ public interface ExecutionModelProvider {
 public interface ExecutionModelLease : AutoCloseable {
     public val instance: ModelInstance
     public val inferenceDispatcher: CoroutineDispatcher
+
+    /** Exact-revision data asset access. Unavailable unless the provider explicitly binds it. */
+    public val promptAssets: PromptAssetSource
+        get() = PromptAssetSource.UNAVAILABLE
 }
 
 /** Publicly safe reason for an execution terminal failure. */

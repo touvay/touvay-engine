@@ -15,6 +15,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertSame
@@ -50,6 +51,33 @@ class RuntimeInstanceLifecycleTest {
         assertEquals(1, instance.closeCalls.get())
         assertEquals(0, storageReferences(context))
         assertTrue(context.manager.snapshot().entries.isEmpty())
+    }
+
+    @Test
+    fun `lease reads only bounded files from its pinned revision`() = runBlocking<Unit> {
+        val context = context()
+        val lease = context.manager.acquire(
+            VersionSelection.Exact(context.pack.identity),
+            RuntimeTestFixtures.device,
+            ExecutionProfileRequest(threads = 2),
+        )
+
+        assertEquals(
+            "model-1.0.0",
+            lease.readAsset("weights/model.gguf", 64).toString(Charsets.UTF_8),
+        )
+        assertFailsWith<RuntimeLifecycleException> {
+            lease.readAsset("weights/model.gguf", 2)
+        }
+        assertFailsWith<RuntimeLifecycleException> {
+            lease.readAsset("prompts/missing.pb", 64)
+        }
+
+        lease.close()
+        assertFailsWith<IllegalStateException> {
+            lease.readAsset("weights/model.gguf", 64)
+        }
+        context.manager.releaseAllIdle()
     }
 
     @Test

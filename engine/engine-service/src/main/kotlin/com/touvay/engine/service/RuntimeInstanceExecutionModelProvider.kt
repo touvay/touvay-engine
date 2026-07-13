@@ -6,6 +6,7 @@ import com.touvay.engine.core.ExecutionException
 import com.touvay.engine.core.ExecutionFailureCode
 import com.touvay.engine.core.ExecutionModelLease
 import com.touvay.engine.core.ExecutionModelProvider
+import com.touvay.engine.core.PromptAssetSource
 import com.touvay.engine.models.ExecutionProfileRequest
 import com.touvay.engine.models.InstanceKey
 import com.touvay.engine.models.ModelRevisionIdentity
@@ -79,6 +80,9 @@ internal class RuntimeInstanceExecutionModelProvider(
         private val closed = AtomicBoolean(false)
         override val instance: ModelInstance get() = managerLease.instance
         override val inferenceDispatcher: CoroutineDispatcher get() = lane.dispatcher
+        override val promptAssets: PromptAssetSource = PromptAssetSource { ref ->
+            managerLease.readAsset(ref.logicalPath, ref.byteSize)
+        }
 
         override fun close() {
             if (closed.compareAndSet(false, true)) {
