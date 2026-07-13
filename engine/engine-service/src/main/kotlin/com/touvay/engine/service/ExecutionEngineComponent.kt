@@ -17,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 internal class ExecutionEngineComponent(
     modelManager: RuntimeInstanceManager,
     deviceProfile: () -> DeviceProfile,
-    programs: ExecutionProgramRegistry,
+    programs: ExecutionProgramRegistry = ProductionCapabilityComposition.executionPrograms,
     router: ExecutionRouter,
     limits: SchedulerLimits = SchedulerLimits.DEFAULT,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,

@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package touvay.contract.rewrite.v1;
+
+option java_package = "com.touvay.contract.rewrite.v1";
+option java_multiple_files = true;
+
+// Structured request for text.rewrite@1. Source text is explicit user-selected/client
+// content; the engine never obtains it from ambient editor or clipboard state.
+message RewriteRequest {
+  string text = 1;
+  RewriteTone tone = 2;
+  RewriteLength length = 3;
+  optional string output_locale_bcp47 = 4;
+}
+
+enum RewriteTone {
+  REWRITE_TONE_UNSPECIFIED = 0;
+  REWRITE_TONE_NEUTRAL = 1;
+  REWRITE_TONE_FORMAL = 2;
+  REWRITE_TONE_CASUAL = 3;
+}
+
+enum RewriteLength {
+  REWRITE_LENGTH_UNSPECIFIED = 0;
+  REWRITE_LENGTH_PRESERVE = 1;
+  REWRITE_LENGTH_SHORTER = 2;
+  REWRITE_LENGTH_LONGER = 3;
+}
+
+// Provisional append-only text. Clients concatenate ordered deltas for preview and
+// replace that preview with the authoritative RewriteResponse at completion.
+message RewriteDelta {
+  string text = 1;
+  bool provisional = 2;
+}
+
+message RewriteResponse {
+  string text = 1;
+  RewriteDisposition disposition = 2;
+}
+
+enum RewriteDisposition {
+  REWRITE_DISPOSITION_UNSPECIFIED = 0;
+  REWRITE_DISPOSITION_REWRITTEN = 1;
+  REWRITE_DISPOSITION_UNCHANGED = 2;
+}

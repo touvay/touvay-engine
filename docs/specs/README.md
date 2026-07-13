@@ -35,6 +35,7 @@ recommended correction for architecture review.
 | Capability Framework | [`docs/capabilities/CAPABILITY_SPEC.md`](../capabilities/CAPABILITY_SPEC.md) | Approved v1.0 implementation contract |
 | Capability TCK | [`docs/capabilities/capability-tck.md`](../capabilities/capability-tck.md) | Executable v1 conformance contract |
 | Context | [`docs/context/CONTEXT_SPEC.md`](../context/CONTEXT_SPEC.md) | Approved v1.0 implementation contract |
+| Rewrite Capability | [`docs/capabilities/rewrite-v1.md`](../capabilities/rewrite-v1.md) | Implemented `text.rewrite@1` contract |
 
 ## Accepted ADRs
 
@@ -66,6 +67,7 @@ normative contracts:
 - [`docs/model-manager/slice-4-engineering-review.md`](../model-manager/slice-4-engineering-review.md)
 - [`docs/execution/milestone-5-engineering-review.md`](../execution/milestone-5-engineering-review.md)
 - [`docs/capabilities/capability-framework-engineering-review.md`](../capabilities/capability-framework-engineering-review.md)
+- [`docs/capabilities/rewrite-engineering-review.md`](../capabilities/rewrite-engineering-review.md)
 
 Current delivery state and approval gates are summarized in
 [`PROJECT_STATUS.md`](../../PROJECT_STATUS.md).

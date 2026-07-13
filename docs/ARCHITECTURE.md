@@ -338,8 +338,9 @@ Key structural facts:
 | `touvay-contract` | AIDL interfaces, wire schemas (protobuf-lite payloads), version negotiation types, error codes. **The most stable artifact in the repo.** | nothing |
 | `engine-service` | Android `Service`, binder implementation, caller authentication, per-client quotas, session registry, process lifecycle, **composition root** (the only place concrete implementations are wired) | everything below |
 | `engine-core` | Execution Coordinator/Scheduler plus production Capability SPI, exact registry, semantic plans, typed prompt recipes, and bounded asset ports. Pure Kotlin; all effects behind ports | `runtime-api` |
-| `capability-*` (future) | One module per domain. Owns its public-schema parsing, semantic recipe, output validation/assembly, and quality evaluation definition | `engine-core`, `touvay-contract`; `runtime-api` only for SPI-exposed immutable facts |
+| `capability-*` | One module per domain. Owns its public-schema parsing, semantic recipe, output validation/assembly, and quality evaluation definition | `engine-core`, `touvay-contract`; `runtime-api` only for SPI-exposed immutable facts |
 | `capability-tck` | Pure-JVM executable Capability SPI contract and deterministic plugin harness | `engine-core`, `runtime-api` |
+| `capability-rewrite` | Production `text.rewrite@1` plugin: bounded contract parsing, semantic recipe/plan, signed-pack reference prompt asset, and structured output assembly | `engine-core`, `touvay-contract` |
 | `engine-models` | Pack verification, transactional storage, immutable catalog/cache, leases, Runtime Registry resolution, and cached `ModelInstance` ownership | `runtime-api`; no session, Scheduler, routing, concrete runtime, or network |
 | `engine-downloader` (future) | Consent-gated, resumable acquisition of signed artifacts by content hash; the only network-enabled engine module | narrow staged-pack source port |
 | `engine-device` | Device tier detection, memory pressure (`onTrimMemory`, `ActivityManager`), thermal (`PowerManager` thermal status/headroom), accelerator probing | Android SDK |

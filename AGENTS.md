@@ -18,10 +18,11 @@ prompts, or hardware.
 **Status:** Platform Foundation v0.5 is tagged and build-green. Runtime v1.0, Model
 Manager Slices 1–4, Execution Engine, and Capability Framework v1 are complete; the
 framework is committed as `a40caa2`. Context Architecture v1.0 and ADR-022/023 are
-approved. Capability 1 Rewrite is the active implementation milestone. General Context
-Provider implementation, keyboard integration, UI, networking, retrieval, and memory
-remain out of scope. No user-facing execution program is registered yet, and the
-llama.cpp adapter remains unwired to a capability.
+approved and committed as `8bdc07b`. Capability 1 Rewrite is implemented, build-green,
+and awaiting merge approval. General Context Provider implementation, keyboard
+integration, UI, networking, retrieval, and memory remain out of scope. Rewrite is
+registered as an execution program, while actual inference availability remains gated
+on a signed compatible model pack and production Router composition.
 
 ## Non-negotiable rules
 
@@ -66,8 +67,9 @@ llama.cpp adapter remains unwired to a capability.
 | `sdk/touvay-sdk` | Public client API: `Touvay.connect`, `TouvayClient`, Flow streaming, `TouvayException`, binder-death handling | contract |
 | `engine/engine-core` | Pure JVM: execution orchestration plus production Capability SPI, exact registry/adapter, semantic plans, typed recipes, and bounded prompt assets | runtime-api |
 | `capabilities/capability-tck` | Pure-JVM Capability SPI conformance kit and deterministic harness; 20 mandatory checks plus sabotage self-tests | engine-core, runtime-api |
+| `capabilities/capability-rewrite` | Production `text.rewrite@1`: contract parsing, semantic plan/recipe, signed-pack reference asset, structured streaming/final assembly, and TCK | contract, engine-core |
 | `engine/engine-models` | Pure JVM, offline Task 3 boundary: pack verification, transactional storage, catalog/leases, Runtime Registry resolution, and cached `ModelInstance` ownership. No sessions, inference, scheduler, routing, downloader, or network | runtime-api |
-| `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root (only place concretes are wired); `EchoPipeline` | contract, engine-core, engine-models, runtime-api |
+| `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root; diagnostic echo plus production Rewrite registration | contract, capability-rewrite, engine-core, engine-models, runtime-api |
 | `runtime/runtime-api` | Runtime SPI (`InferenceRuntime`/`ModelInstance`/`InferenceSession`, `tokenize`, `CancelSignal`); normative spec `docs/runtime/runtime-spi.md` | nothing |
 | `runtime/runtime-tck` | Conformance kit (pure JVM): `AbstractRuntimeTck` + sabotage self-test; adapters conform via one androidTest subclass | runtime-api |
 | `runtime/runtime-llamacpp` | Production llama.cpp adapter (pinned b5199; abort-callback cancellation; NOT engine-wired — Task 3 gate) | runtime-api |
@@ -84,6 +86,7 @@ API) `apiValidation.ignoredProjects` in root `build.gradle.kts`.
 ./gradlew build                      # assemble + unit tests + lint + dep rules + apiCheck
 ./gradlew :engine:engine-models:test # Task 3 verifier, storage, catalog, and lifecycle suite
 ./gradlew :capabilities:capability-tck:test # Capability framework conformance self-test
+./gradlew :capabilities:capability-rewrite:testDebugUnitTest # Rewrite TCK + capability tests
 ./gradlew :apps:demo:connectedDebugAndroidTest      # cross-process tests (device/emulator)
 ./gradlew apiDump                    # ONLY as a reviewed API change
 scripts/fetch-llamacpp.ps1           # pinned b5199 -> production adapter third_party/ (gitignored)
@@ -132,9 +135,9 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 ## Open items / approval gates
 
 - Representative 4 GB arm64 calibration remains required before a model capability ships.
-- **Gate:** Capability Framework implementation only is authorized. Production capability
-  code, prompts, Router policy, keyboard integration, networking, and follow-on milestones
-  remain unauthorized.
+- **Gate:** Capability 1 Rewrite is implemented and awaiting merge approval. Additional
+  capabilities, Router policy changes, keyboard integration, networking, and follow-on
+  milestones remain unauthorized.
 - Measure Tink 1.23.0's shrunk APK contribution before a user-facing engine release;
   Slice 1 uses one pure-Java verifier path across API 29+.
 - Deferred (additive): public logical-session facade; convention-plugin guard for

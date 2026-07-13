@@ -36,6 +36,11 @@ class DependencyRulesPlugin : Plugin<Project> {
             ":engine:engine-core",
             ":runtime:runtime-api",
         ),
+        // ADR-004/014/020/021: compiled capability plugin with contract-owned schemas.
+        ":capabilities:capability-rewrite" to setOf(
+            ":contract:touvay-contract",
+            ":engine:engine-core",
+        ),
         // ADR-015/016: offline model metadata and verification; no concrete runtime/network.
         ":engine:engine-models" to setOf(":runtime:runtime-api"),
         // §8 rule 4: the composition root is the only module that wires concretes.
@@ -43,6 +48,7 @@ class DependencyRulesPlugin : Plugin<Project> {
             ":contract:touvay-contract",
             ":engine:engine-core",
             ":engine:engine-models",
+            ":capabilities:capability-rewrite",
             ":runtime:runtime-api",
         ),
         // §8 rule 7: client apps depend only on the SDK (+ the engine host they embed).

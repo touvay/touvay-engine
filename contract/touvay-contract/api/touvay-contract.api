@@ -94,6 +94,7 @@ public final class com/touvay/contract/EngineErrorCodes {
 	public static final field INPUT_TOO_LARGE I
 	public static final field INSTANCE Lcom/touvay/contract/EngineErrorCodes;
 	public static final field INTERNAL I
+	public static final field INVALID_OUTPUT I
 	public static final field MODEL_UNAVAILABLE I
 	public static final field PREEMPTED I
 	public static final field RUNTIME_FAILURE I
@@ -301,6 +302,7 @@ public final class com/touvay/contract/StreamCreditWindow$Creator : android/os/P
 public final class com/touvay/contract/TouvayContract {
 	public static final field ACTION_BIND_ENGINE Ljava/lang/String;
 	public static final field CAPABILITY_DIAGNOSTICS_ECHO Ljava/lang/String;
+	public static final field CAPABILITY_TEXT_REWRITE Ljava/lang/String;
 	public static final field CONTRACT_VERSION I
 	public static final field FEATURE_STREAM_CREDITS_V1 Ljava/lang/String;
 	public static final field INSTANCE Lcom/touvay/contract/TouvayContract;
@@ -426,5 +428,218 @@ public final class com/touvay/contract/proto/EchoResponse$Builder : com/google/p
 public abstract interface class com/touvay/contract/proto/EchoResponseOrBuilder : com/google/protobuf/MessageLiteOrBuilder {
 	public abstract fun getText ()Ljava/lang/String;
 	public abstract fun getTextBytes ()Lcom/google/protobuf/ByteString;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteDelta : com/google/protobuf/GeneratedMessageLite, com/touvay/contract/rewrite/v1/RewriteDeltaOrBuilder {
+	public static final field PROVISIONAL_FIELD_NUMBER I
+	public static final field TEXT_FIELD_NUMBER I
+	public static fun getDefaultInstance ()Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public fun getProvisional ()Z
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public static fun newBuilder ()Lcom/touvay/contract/rewrite/v1/RewriteDelta$Builder;
+	public static fun newBuilder (Lcom/touvay/contract/rewrite/v1/RewriteDelta;)Lcom/touvay/contract/rewrite/v1/RewriteDelta$Builder;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom (Ljava/io/InputStream;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom ([B)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parseFrom ([BLcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteDelta;
+	public static fun parser ()Lcom/google/protobuf/Parser;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteDelta$Builder : com/google/protobuf/GeneratedMessageLite$Builder, com/touvay/contract/rewrite/v1/RewriteDeltaOrBuilder {
+	public fun clearProvisional ()Lcom/touvay/contract/rewrite/v1/RewriteDelta$Builder;
+	public fun clearText ()Lcom/touvay/contract/rewrite/v1/RewriteDelta$Builder;
+	public fun getProvisional ()Z
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public fun setProvisional (Z)Lcom/touvay/contract/rewrite/v1/RewriteDelta$Builder;
+	public fun setText (Ljava/lang/String;)Lcom/touvay/contract/rewrite/v1/RewriteDelta$Builder;
+	public fun setTextBytes (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/rewrite/v1/RewriteDelta$Builder;
+}
+
+public abstract interface class com/touvay/contract/rewrite/v1/RewriteDeltaOrBuilder : com/google/protobuf/MessageLiteOrBuilder {
+	public abstract fun getProvisional ()Z
+	public abstract fun getText ()Ljava/lang/String;
+	public abstract fun getTextBytes ()Lcom/google/protobuf/ByteString;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteDisposition : java/lang/Enum, com/google/protobuf/Internal$EnumLite {
+	public static final field REWRITE_DISPOSITION_REWRITTEN Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public static final field REWRITE_DISPOSITION_REWRITTEN_VALUE I
+	public static final field REWRITE_DISPOSITION_UNCHANGED Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public static final field REWRITE_DISPOSITION_UNCHANGED_VALUE I
+	public static final field REWRITE_DISPOSITION_UNSPECIFIED Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public static final field REWRITE_DISPOSITION_UNSPECIFIED_VALUE I
+	public static final field UNRECOGNIZED Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public static fun forNumber (I)Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public final fun getNumber ()I
+	public static fun internalGetValueMap ()Lcom/google/protobuf/Internal$EnumLiteMap;
+	public static fun internalGetVerifier ()Lcom/google/protobuf/Internal$EnumVerifier;
+	public static fun valueOf (I)Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public static fun valueOf (Ljava/lang/String;)Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public static fun values ()[Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteLength : java/lang/Enum, com/google/protobuf/Internal$EnumLite {
+	public static final field REWRITE_LENGTH_LONGER Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public static final field REWRITE_LENGTH_LONGER_VALUE I
+	public static final field REWRITE_LENGTH_PRESERVE Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public static final field REWRITE_LENGTH_PRESERVE_VALUE I
+	public static final field REWRITE_LENGTH_SHORTER Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public static final field REWRITE_LENGTH_SHORTER_VALUE I
+	public static final field REWRITE_LENGTH_UNSPECIFIED Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public static final field REWRITE_LENGTH_UNSPECIFIED_VALUE I
+	public static final field UNRECOGNIZED Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public static fun forNumber (I)Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public final fun getNumber ()I
+	public static fun internalGetValueMap ()Lcom/google/protobuf/Internal$EnumLiteMap;
+	public static fun internalGetVerifier ()Lcom/google/protobuf/Internal$EnumVerifier;
+	public static fun valueOf (I)Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public static fun valueOf (Ljava/lang/String;)Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public static fun values ()[Lcom/touvay/contract/rewrite/v1/RewriteLength;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteRequest : com/google/protobuf/GeneratedMessageLite, com/touvay/contract/rewrite/v1/RewriteRequestOrBuilder {
+	public static final field LENGTH_FIELD_NUMBER I
+	public static final field OUTPUT_LOCALE_BCP47_FIELD_NUMBER I
+	public static final field TEXT_FIELD_NUMBER I
+	public static final field TONE_FIELD_NUMBER I
+	public static fun getDefaultInstance ()Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public fun getLength ()Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public fun getLengthValue ()I
+	public fun getOutputLocaleBcp47 ()Ljava/lang/String;
+	public fun getOutputLocaleBcp47Bytes ()Lcom/google/protobuf/ByteString;
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public fun getTone ()Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public fun getToneValue ()I
+	public fun hasOutputLocaleBcp47 ()Z
+	public static fun newBuilder ()Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public static fun newBuilder (Lcom/touvay/contract/rewrite/v1/RewriteRequest;)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom (Ljava/io/InputStream;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom ([B)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parseFrom ([BLcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteRequest;
+	public static fun parser ()Lcom/google/protobuf/Parser;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteRequest$Builder : com/google/protobuf/GeneratedMessageLite$Builder, com/touvay/contract/rewrite/v1/RewriteRequestOrBuilder {
+	public fun clearLength ()Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun clearOutputLocaleBcp47 ()Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun clearText ()Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun clearTone ()Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun getLength ()Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public fun getLengthValue ()I
+	public fun getOutputLocaleBcp47 ()Ljava/lang/String;
+	public fun getOutputLocaleBcp47Bytes ()Lcom/google/protobuf/ByteString;
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public fun getTone ()Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public fun getToneValue ()I
+	public fun hasOutputLocaleBcp47 ()Z
+	public fun setLength (Lcom/touvay/contract/rewrite/v1/RewriteLength;)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun setLengthValue (I)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun setOutputLocaleBcp47 (Ljava/lang/String;)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun setOutputLocaleBcp47Bytes (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun setText (Ljava/lang/String;)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun setTextBytes (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun setTone (Lcom/touvay/contract/rewrite/v1/RewriteTone;)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+	public fun setToneValue (I)Lcom/touvay/contract/rewrite/v1/RewriteRequest$Builder;
+}
+
+public abstract interface class com/touvay/contract/rewrite/v1/RewriteRequestOrBuilder : com/google/protobuf/MessageLiteOrBuilder {
+	public abstract fun getLength ()Lcom/touvay/contract/rewrite/v1/RewriteLength;
+	public abstract fun getLengthValue ()I
+	public abstract fun getOutputLocaleBcp47 ()Ljava/lang/String;
+	public abstract fun getOutputLocaleBcp47Bytes ()Lcom/google/protobuf/ByteString;
+	public abstract fun getText ()Ljava/lang/String;
+	public abstract fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public abstract fun getTone ()Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public abstract fun getToneValue ()I
+	public abstract fun hasOutputLocaleBcp47 ()Z
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteResponse : com/google/protobuf/GeneratedMessageLite, com/touvay/contract/rewrite/v1/RewriteResponseOrBuilder {
+	public static final field DISPOSITION_FIELD_NUMBER I
+	public static final field TEXT_FIELD_NUMBER I
+	public static fun getDefaultInstance ()Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public fun getDisposition ()Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public fun getDispositionValue ()I
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public static fun newBuilder ()Lcom/touvay/contract/rewrite/v1/RewriteResponse$Builder;
+	public static fun newBuilder (Lcom/touvay/contract/rewrite/v1/RewriteResponse;)Lcom/touvay/contract/rewrite/v1/RewriteResponse$Builder;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseDelimitedFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom (Lcom/google/protobuf/ByteString;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom (Lcom/google/protobuf/CodedInputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom (Ljava/io/InputStream;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom (Ljava/io/InputStream;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom (Ljava/nio/ByteBuffer;Lcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom ([B)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parseFrom ([BLcom/google/protobuf/ExtensionRegistryLite;)Lcom/touvay/contract/rewrite/v1/RewriteResponse;
+	public static fun parser ()Lcom/google/protobuf/Parser;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteResponse$Builder : com/google/protobuf/GeneratedMessageLite$Builder, com/touvay/contract/rewrite/v1/RewriteResponseOrBuilder {
+	public fun clearDisposition ()Lcom/touvay/contract/rewrite/v1/RewriteResponse$Builder;
+	public fun clearText ()Lcom/touvay/contract/rewrite/v1/RewriteResponse$Builder;
+	public fun getDisposition ()Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public fun getDispositionValue ()I
+	public fun getText ()Ljava/lang/String;
+	public fun getTextBytes ()Lcom/google/protobuf/ByteString;
+	public fun setDisposition (Lcom/touvay/contract/rewrite/v1/RewriteDisposition;)Lcom/touvay/contract/rewrite/v1/RewriteResponse$Builder;
+	public fun setDispositionValue (I)Lcom/touvay/contract/rewrite/v1/RewriteResponse$Builder;
+	public fun setText (Ljava/lang/String;)Lcom/touvay/contract/rewrite/v1/RewriteResponse$Builder;
+	public fun setTextBytes (Lcom/google/protobuf/ByteString;)Lcom/touvay/contract/rewrite/v1/RewriteResponse$Builder;
+}
+
+public abstract interface class com/touvay/contract/rewrite/v1/RewriteResponseOrBuilder : com/google/protobuf/MessageLiteOrBuilder {
+	public abstract fun getDisposition ()Lcom/touvay/contract/rewrite/v1/RewriteDisposition;
+	public abstract fun getDispositionValue ()I
+	public abstract fun getText ()Ljava/lang/String;
+	public abstract fun getTextBytes ()Lcom/google/protobuf/ByteString;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteTone : java/lang/Enum, com/google/protobuf/Internal$EnumLite {
+	public static final field REWRITE_TONE_CASUAL Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public static final field REWRITE_TONE_CASUAL_VALUE I
+	public static final field REWRITE_TONE_FORMAL Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public static final field REWRITE_TONE_FORMAL_VALUE I
+	public static final field REWRITE_TONE_NEUTRAL Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public static final field REWRITE_TONE_NEUTRAL_VALUE I
+	public static final field REWRITE_TONE_UNSPECIFIED Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public static final field REWRITE_TONE_UNSPECIFIED_VALUE I
+	public static final field UNRECOGNIZED Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public static fun forNumber (I)Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public final fun getNumber ()I
+	public static fun internalGetValueMap ()Lcom/google/protobuf/Internal$EnumLiteMap;
+	public static fun internalGetVerifier ()Lcom/google/protobuf/Internal$EnumVerifier;
+	public static fun valueOf (I)Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public static fun valueOf (Ljava/lang/String;)Lcom/touvay/contract/rewrite/v1/RewriteTone;
+	public static fun values ()[Lcom/touvay/contract/rewrite/v1/RewriteTone;
+}
+
+public final class com/touvay/contract/rewrite/v1/RewriteV1 {
+	public static fun registerAllExtensions (Lcom/google/protobuf/ExtensionRegistryLite;)V
 }
 

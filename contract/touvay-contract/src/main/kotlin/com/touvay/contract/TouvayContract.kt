@@ -28,6 +28,9 @@ public object TouvayContract {
      * Payload schemas: [com.touvay.contract.proto.EchoRequest] et al., schema version 1.
      */
     public const val CAPABILITY_DIAGNOSTICS_ECHO: String = "dev.echo"
+
+    /** Structured text rewrite capability using `RewriteRequest`, schema version 1. */
+    public const val CAPABILITY_TEXT_REWRITE: String = "text.rewrite"
 }
 
 /** Status codes carried by [CapabilityInfo.statusCode]. */
@@ -56,6 +59,9 @@ public object EngineErrorCodes {
     public const val BACKPRESSURE_EXCEEDED: Int = 10
     public const val MODEL_UNAVAILABLE: Int = 11
     public const val RUNTIME_FAILURE: Int = 12
+
+    /** Model output failed capability-owned structural or semantic validation. */
+    public const val INVALID_OUTPUT: Int = 13
 }
 
 /** Scheduling classes carried by [RequestEnvelope.priority] (ARCHITECTURE.md §14.1). */

@@ -150,6 +150,7 @@ private fun CapabilityFailureCode.toExecutionFailure(): ExecutionFailureCode = w
     CapabilityFailureCode.PROMPT_EXPANSION_TOO_LARGE,
     -> ExecutionFailureCode.INVALID_REQUEST
     CapabilityFailureCode.PROMPT_ASSET_UNAVAILABLE -> ExecutionFailureCode.MODEL_UNAVAILABLE
+    CapabilityFailureCode.INVALID_OUTPUT -> ExecutionFailureCode.INVALID_OUTPUT
     CapabilityFailureCode.INVALID_PROMPT_ASSET,
     CapabilityFailureCode.UNSUPPORTED_PLAN,
     CapabilityFailureCode.MISSING_PLAN_BINDING,

@@ -5,14 +5,10 @@ A privacy-first, offline AI runtime platform for Android. Applications request
 request to a model and inference runtime appropriate for the device. Apps never depend on
 models, runtimes, prompts, or hardware details.
 
-**Status:** Runtime v1.0 production hardening complete. The Binder walking skeleton,
-SDK, Runtime SPI/TCK, and production llama.cpp adapter are green. The adapter remains
-deliberately unwired from the engine; routing/model-manager integration is the Task 3 gate.
-Release checkpoint: [Runtime v1.0 Foundation](docs/runtime/runtime-v1.0-release.md).
-Task 3 implementation contract: [Model Manager Architecture v1.0](docs/model-manager/model-manager.md)
-(architecture frozen). Slice 1—the bounded manifest/signature/compatibility verifier—is
-approved. Slice 2 transactional durable storage and Slice 3 catalog/storage ownership
-are approved. Slice 4 runtime lifecycle is authorized but not yet implemented.
+**Status:** Platform Foundation v0.5, Runtime v1.0, Model Manager Slices 1–4,
+Execution Engine, Capability Framework v1, and Context Architecture v1 are complete.
+Capability 1 `text.rewrite@1` is implemented, build-green, and ready for merge review.
+Keyboard, UI, networking, retrieval, and memory remain out of scope.
 
 > **AI coding agents:** read [AGENTS.md](AGENTS.md) first — it replaces repo
 > exploration (module map, rules, commands, known gotchas). `CLAUDE.md` points there.
@@ -34,8 +30,10 @@ plug in.
 | `contract/touvay-contract` | AIDL + protobuf wire contract (most stable artifact) |
 | `sdk/touvay-sdk` | Public client API (Kotlin coroutines/Flow) |
 | `engine/engine-core` | Pure-JVM request routing/execution core |
-| `engine/engine-models` | Offline pack verification, transactional storage, catalog, and storage leases (Task 3 Slices 1–3) |
+| `engine/engine-models` | Offline pack verification, transactional storage, catalog/leases, Runtime Registry resolution, and instance lifecycle (Task 3 Slices 1–4) |
 | `engine/engine-service` | Bound service hosting the engine in the `:touvay` process |
+| `capabilities/capability-tck` | Capability Framework executable conformance kit |
+| `capabilities/capability-rewrite` | Production `text.rewrite@1` plugin |
 | `runtime/runtime-api` | Runtime SPI |
 | `runtime/runtime-tck` | Runtime v1.0 executable conformance specification |
 | `runtime/runtime-llamacpp` | Production llama.cpp adapter, pinned to b5199; not engine-wired |

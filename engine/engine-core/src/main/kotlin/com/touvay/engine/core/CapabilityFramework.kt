@@ -371,6 +371,7 @@ public enum class CapabilityFailureCode {
     INVALID_PROMPT_ASSET,
     PROMPT_ASSET_UNAVAILABLE,
     PROMPT_EXPANSION_TOO_LARGE,
+    INVALID_OUTPUT,
     INTERNAL,
 }
 

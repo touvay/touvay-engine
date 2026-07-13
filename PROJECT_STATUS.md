@@ -7,9 +7,10 @@
 The platform foundation is complete and tagged `foundation-v0.5`. Runtime, Model
 Manager, Execution, and Capability Framework foundations are implemented and
 build-green. Capability Framework v1 was approved and committed as `a40caa2`. Context
-Architecture v1.0 and ADR-022/023 are approved. Capability 1 Rewrite is the active
-implementation milestone. Keyboard integration, UI, downloader, networking, retrieval,
-memory, and general Context Provider implementation remain unauthorized.
+Architecture v1.0 and ADR-022/023 are approved and committed as `8bdc07b`. Capability 1
+Rewrite is implemented and has completed its engineering review. Keyboard integration,
+UI, downloader, networking, retrieval, memory, and general Context Provider
+implementation remain unauthorized.
 
 ## Completed milestones
 
@@ -29,15 +30,17 @@ memory, and general Context Provider implementation remain unauthorized.
 | Capability Framework Architecture v1.0 | Complete | `docs/capabilities/CAPABILITY_SPEC.md`, ADR-020/021 |
 | Capability Framework implementation | Complete | Commit `a40caa29648f58ce48f01cde6dc8c080e05ee571`; SPI, registry/discovery, prompt assets, semantic plans, 20-check TCK |
 | Context Architecture v1.0 | Complete | `docs/context/CONTEXT_SPEC.md`, ADR-022/023 |
+| Capability 1 Rewrite | Complete; awaiting merge approval | `text.rewrite@1`, 20-check Capability TCK, golden/streaming/cancellation/Coordinator integration tests |
 
 ## Current milestone
 
-**Capability 1 — Rewrite**
+**Capability 1 — Rewrite engineering review**
 
-Authorized scope is the `text.rewrite@1` structured contract, request/response models,
-semantic plan, typed recipe, signed-pack prompt-format asset contract, deterministic
-post-processing and structured output, capability conformance/golden/streaming/
-cancellation tests, and integration through the existing Execution Engine adapter.
+The authorized `text.rewrite@1` scope is implemented and build-green. It includes the
+structured contract, request/response models, semantic plan, typed recipe, signed-pack
+prompt-format asset contract, deterministic post-processing and structured output,
+capability conformance/golden/streaming/cancellation tests, and integration through the
+existing Execution Engine adapter and service composition root.
 
 Runtime SPI, Model Manager architecture, Execution Engine architecture, keyboard, UI,
 networking, retrieval, memory, and general Context Provider implementation are excluded.
@@ -46,7 +49,7 @@ networking, retrieval, memory, and general Context Provider implementation are e
 
 These are sequencing candidates, not implementation authorization:
 
-1. Capability 1 Rewrite implementation and engineering review.
+1. Merge Capability 1 Rewrite after approval.
 2. Representative 4 GB arm64 calibration before any model capability ships.
 3. Keyboard integration only after capability/runtime behavior is separately approved.
 
@@ -90,8 +93,9 @@ The canonical ADR list is maintained in `docs/specs/README.md`.
 
 ## Open gates and risks
 
-- Rewrite must pass its capability-specific TCK and the full platform validation before
-  merge.
+- Rewrite is ready for merge; no P1/P2 implementation finding remains open.
+- A signed compatible model pack, production Router policy, and model-quality evaluation
+  are still release gates; host tests do not make a language-quality claim.
 - Representative 4 GB arm64 calibration remains required before a model capability ships.
 - Tink 1.23.0 shrunk APK contribution must be measured before a user-facing engine
   release.
