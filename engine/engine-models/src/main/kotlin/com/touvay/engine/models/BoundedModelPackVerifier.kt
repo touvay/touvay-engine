@@ -23,6 +23,15 @@ internal class BoundedModelPackVerifier(
         signatureEnvelopeBytes: ByteArray,
         environment: CompatibilityEnvironment,
     ): VerifiedManifest {
+        val verified = verifyAuthenticity(manifestBytes, signatureEnvelopeBytes)
+        compatibilityVerifier.verify(verified.manifest, environment)
+        return verified
+    }
+
+    fun verifyAuthenticity(
+        manifestBytes: ByteArray,
+        signatureEnvelopeBytes: ByteArray,
+    ): VerifiedManifest {
         val manifest = manifestParser.parse(manifestBytes)
         val envelope = signatureEnvelopeCodec.decode(signatureEnvelopeBytes)
         if (manifest.signingKeyId != envelope.keyId) {
@@ -37,7 +46,6 @@ internal class BoundedModelPackVerifier(
         if (!signatureVerifier.verify(signingKey.publicKey, message, envelope.signature)) {
             verificationFailure(VerificationFailure.INVALID_SIGNATURE)
         }
-        compatibilityVerifier.verify(manifest, environment)
         return VerifiedManifest(
             manifest = manifest,
             manifestSha256 = sha256Hex(manifestBytes),

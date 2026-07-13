@@ -330,7 +330,7 @@ Key structural facts:
 | `engine-service` | Android `Service`, binder implementation, caller authentication, per-client quotas, session registry, process lifecycle, **composition root** (the only place concrete implementations are wired) | everything below |
 | `engine-core` | Capability router, scheduler, budget manager, request state machine. Pure Kotlin; all effects behind ports | `runtime-api`, capability + model + device *interfaces* |
 | `capability-*` | One module per domain (text, vision, speech). Owns prompt templates, tokenizer-safe truncation policy, output parsing/validation, structured result assembly, per-capability quality eval definitions | `runtime-api`, `engine-models` interfaces |
-| `engine-models` | Offline pack schema, bounded verification, and later pack/catalog/instance ownership. Task 3 Slice 1 implements only manifest/signature/compatibility verification | `runtime-api` when runtime resolution lands; no concrete runtime or network |
+| `engine-models` | Offline pack schema, bounded verification, and durable transactional pack storage. Task 3 Slices 1–2 stop before catalog, model loading, or instance ownership | `runtime-api` when runtime resolution lands; no concrete runtime or network |
 | `engine-downloader` (future) | Consent-gated, resumable acquisition of signed artifacts by content hash; the only network-enabled engine module | narrow staged-pack source port |
 | `engine-device` | Device tier detection, memory pressure (`onTrimMemory`, `ActivityManager`), thermal (`PowerManager` thermal status/headroom), accelerator probing | Android SDK |
 | `runtime-api` | The Runtime SPI: mandatory core + typed feature interfaces + conformance-testable semantics | nothing |

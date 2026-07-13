@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package touvay.modelstore.v1;
+
+option java_package = "com.touvay.engine.models.store.proto";
+option java_multiple_files = true;
+
+// Durable identity for one hashed pack directory.
+message PackIdentityRecord {
+  uint32 schema_version = 1;
+  string pack_id = 2;
+}
+
+// Commit record written only after all immutable revision bytes are durable.
+message InstallMarker {
+  uint32 schema_version = 1;
+  string pack_id = 2;
+  string pack_version = 3;
+  bytes manifest_sha256 = 4;
+}
+
+// Atomic selection of one already committed revision.
+message ActivePointer {
+  uint32 schema_version = 1;
+  string pack_id = 2;
+  string pack_version = 3;
+  bytes manifest_sha256 = 4;
+}

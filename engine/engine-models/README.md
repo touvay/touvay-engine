@@ -1,9 +1,9 @@
-# engine-models — Task 3 Slice 1
+# engine-models — Task 3 Slices 1–2
 
-**Status:** Slice 1 approved; Slice 2 durable storage work is separately authorized.
+**Status:** Slices 1–2 approved; Slice 3 catalog/ownership work is separately authorized.
 
-This pure-JVM, offline module currently owns only the durable model-pack schema and its
-bounded trust/compatibility verification boundary. The normative contract is
+This pure-JVM, offline module owns the model-pack schema, bounded verification boundary,
+and transactional local storage. The normative contract is
 `docs/model-manager/model-manager.md`; ADR-015 and ADR-016 freeze the boundaries and
 signed envelope.
 
@@ -17,12 +17,31 @@ signed envelope.
 - engine/runtime/device compatibility verification using immutable facts;
 - typed, content-free failures with no untrusted parser cause attached;
 - golden, RFC 8032, security, negative, boundary, SemVer, and deterministic fuzz-style
-  tests.
+  tests;
+- store-owned bounded source reads and streaming file digest/size verification;
+- same-filesystem staging with marker-last immutable revision commits;
+- hashed pack/revision directories, atomic active-pointer replacement, rollback, and
+  idempotent duplicate installation;
+- inactive-only rename-to-trash deletion and deterministic crash recovery.
 
-There is no storage, catalog, installer, lifecycle, runtime registry/integration,
-scheduler, routing, downloader, or network code. All hand-written Slice 1 declarations
-remain module-internal; generated protobuf classes are not exposed through a cross-module
-port, and `engine-models` is not a published API artifact.
+There is no catalog, catalog rebuild, model loading, reference counting, lifecycle,
+runtime registry/integration, scheduler, routing, downloader, or network code. All
+hand-written declarations remain module-internal; generated protobuf classes are not
+exposed through a cross-module port, and `engine-models` is not a published API artifact.
+
+## Durable storage contract
+
+The caller supplies a local, reopenable `ModelPackSource`; the store copies every byte
+and never adopts a source path. It serializes mutations, verifies authenticity and
+compatibility before copying, verifies every declared file while streaming, writes
+`installed.ok` last, and commits a revision by same-filesystem rename. `active.pb` is the
+only mutable pack record and requires atomic replacement. Recovery removes abandoned
+staging, drains trash, quarantines invalid revisions, and repairs an invalid active
+pointer to the newest compatible verified revision or clears it.
+
+`NioStorageDurability` treats file and directory fsync failures as failed transactions.
+Unit tests inject an NTFS-compatible durability adapter; production Android composition
+and device power-loss testing remain a later, explicitly gated integration concern.
 
 ## Verification bounds
 
@@ -67,6 +86,6 @@ that measurement is a gate before Android composition.
 ## Validation
 
 ```text
-./gradlew :engine:engine-models:test
+./gradlew :engine:engine-models:test # verifier + transactional storage suite
 ./gradlew build apiCheck checkDependencyRules
 ```

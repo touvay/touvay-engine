@@ -1,6 +1,6 @@
 # Model Manager Architecture v1.0
 
-**Status:** Frozen architecture — Slice 1 approved; Slice 2 authorized but not implemented
+**Status:** Frozen architecture — Slices 1–2 approved; Slice 3 authorized, not implemented
 **Checkpoint baseline:** `runtime-v1.0-foundation` (`7a68daa`)
 **Decisions:** [ADR-015](../adr/ADR-015-model-manager-resolution-and-instance-identity.md)
 and [ADR-016](../adr/ADR-016-model-pack-manifest-and-signature-envelope.md)
@@ -490,6 +490,35 @@ time. Staging without a commit marker and trash are safe to remove during recove
 
 Android backup must exclude the model root. Model files are app-private and never stored
 in shared/external storage in production.
+
+### 10.1 Slice 2 durable-format contract
+
+Slice 2 implements the layout above with these exact local format rules:
+
+- `root.version` is the ASCII record `TOUVAY_MODEL_STORE_V1\n`; a non-empty root without
+  that record is never adopted;
+- pack directories are lowercase `SHA-256(UTF-8(pack_id))`;
+- revision directories are lowercase SHA-256 over
+  `TOUVAY_MODEL_VERSION_DIR_V1 || 0x00 || UTF-8(version) || 0x00 || manifest_sha256`;
+- `identity.pb`, `installed.ok`, and `active.pb` are bounded protobuf-lite records with
+  schema version 1; install and active records repeat pack id, version, and the raw
+  32-byte manifest digest;
+- `installed.ok` is written and fsynced only after exact manifest, signature, payload
+  files, and containing directory metadata are durable;
+- directory commit may fall back from atomic move to a same-filesystem rename because
+  the marker is the commit authority; active-pointer replacement has no non-atomic
+  fallback;
+- operations are serialized inside the single Model Manager writer. A second process or
+  independently constructed writer is outside v1 and must not target the same root;
+- recovery fully re-verifies signed metadata and payload digests, removes incomplete
+  staging, drains trash, quarantines invalid revisions, and repairs an invalid pointer
+  to the newest compatible verified SemVer (digest breaks an otherwise equal tie), or
+  clears it when none remains.
+
+The store performs full integrity verification before activation in Slice 2. A later
+catalog slice may introduce the approved cheap metadata fingerprint without weakening
+the mandatory full checks after recovery or observed metadata change. Slice 2 does not
+publish a catalog, load a model, retain mmap references, or consult Runtime SPI.
 
 ## 11. Model catalog
 
@@ -1078,9 +1107,9 @@ Authorization is per slice:
 1. **Schema + verifier — implemented and validated:** manifest/signature format, bounded
    parser, immutable trust store, compatibility verifier, and golden/security/negative/
    fuzz-style tests. Engineering review: `slice-1-engineering-review.md`.
-2. **Transactional store + catalog — Slice 2 storage subset authorized:** staging, commit
-   markers, recovery, active pointers,
-   install/uninstall/upgrade/rollback tests.
+2. **Transactional store — Slice 2 storage subset implemented, awaiting review:**
+   staging, commit markers, recovery, active pointers, safe deletion, and
+   install/upgrade/rollback tests. Catalog work is explicitly excluded.
 3. **Loaded-instance manager — not authorized:** Runtime Registry resolution port, semantic execution
    profiles, single-flight load, leases, mmap holds, budgets, idle unload, and multi-model
    tests using fake runtimes.
@@ -1106,7 +1135,7 @@ Model Manager Architecture v1.0 freezes:
 9. scheduler policy separated from manager lifecycle mechanics;
 10. a separate future downloader/network module.
 
-Slice 1 implements the frozen schema and verification boundary without engine wiring,
-runtime loading, downloader code, or public APIs. No later slice begins automatically;
-the next step is architecture/engineering review of Slice 1 and explicit Slice 2
-authorization.
+Slices 1–2 implement the frozen verification and durable-storage boundaries without
+engine wiring, catalog, runtime loading, downloader code, or public APIs. No later slice
+begins automatically; the next step is engineering review of Slice 2 and explicit
+authorization for any subsequent scope.
