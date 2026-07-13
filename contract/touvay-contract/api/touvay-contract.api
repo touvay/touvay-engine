@@ -95,6 +95,7 @@ public final class com/touvay/contract/EngineErrorCodes {
 	public static final field INSTANCE Lcom/touvay/contract/EngineErrorCodes;
 	public static final field INTERNAL I
 	public static final field INVALID_OUTPUT I
+	public static final field INVALID_REQUEST I
 	public static final field MODEL_UNAVAILABLE I
 	public static final field PREEMPTED I
 	public static final field RUNTIME_FAILURE I

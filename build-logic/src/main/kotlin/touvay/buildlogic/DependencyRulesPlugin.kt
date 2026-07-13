@@ -50,6 +50,7 @@ class DependencyRulesPlugin : Plugin<Project> {
             ":engine:engine-models",
             ":capabilities:capability-rewrite",
             ":runtime:runtime-api",
+            ":runtime:runtime-llamacpp",
         ),
         // §8 rule 7: client apps depend only on the SDK (+ the engine host they embed).
         ":apps:demo" to setOf(

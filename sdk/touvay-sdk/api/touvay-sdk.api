@@ -62,6 +62,113 @@ public final class com/touvay/sdk/CapabilityStatus$Unknown : com/touvay/sdk/Capa
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/touvay/sdk/RewriteCapability {
+	public static final field INSTANCE Lcom/touvay/sdk/RewriteCapability;
+	public static final field schemaVersion I
+	public final fun getId-wizmbEQ ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/RewriteDisposition : java/lang/Enum {
+	public static final field REWRITTEN Lcom/touvay/sdk/RewriteDisposition;
+	public static final field UNCHANGED Lcom/touvay/sdk/RewriteDisposition;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/touvay/sdk/RewriteDisposition;
+	public static fun values ()[Lcom/touvay/sdk/RewriteDisposition;
+}
+
+public abstract interface class com/touvay/sdk/RewriteEvent {
+}
+
+public final class com/touvay/sdk/RewriteEvent$Completed : com/touvay/sdk/RewriteEvent {
+	public fun <init> (Lcom/touvay/sdk/RewriteResult;)V
+	public final fun component1 ()Lcom/touvay/sdk/RewriteResult;
+	public final fun copy (Lcom/touvay/sdk/RewriteResult;)Lcom/touvay/sdk/RewriteEvent$Completed;
+	public static synthetic fun copy$default (Lcom/touvay/sdk/RewriteEvent$Completed;Lcom/touvay/sdk/RewriteResult;ILjava/lang/Object;)Lcom/touvay/sdk/RewriteEvent$Completed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResult ()Lcom/touvay/sdk/RewriteResult;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/RewriteEvent$Delta : com/touvay/sdk/RewriteEvent {
+	public fun <init> (ILjava/lang/String;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (ILjava/lang/String;)Lcom/touvay/sdk/RewriteEvent$Delta;
+	public static synthetic fun copy$default (Lcom/touvay/sdk/RewriteEvent$Delta;ILjava/lang/String;ILjava/lang/Object;)Lcom/touvay/sdk/RewriteEvent$Delta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSequence ()I
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/RewriteLength : java/lang/Enum {
+	public static final field LONGER Lcom/touvay/sdk/RewriteLength;
+	public static final field PRESERVE Lcom/touvay/sdk/RewriteLength;
+	public static final field SHORTER Lcom/touvay/sdk/RewriteLength;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/touvay/sdk/RewriteLength;
+	public static fun values ()[Lcom/touvay/sdk/RewriteLength;
+}
+
+public final class com/touvay/sdk/RewriteRequest {
+	public fun <init> (Ljava/lang/String;Lcom/touvay/sdk/RewriteTone;Lcom/touvay/sdk/RewriteLength;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/touvay/sdk/RewriteTone;Lcom/touvay/sdk/RewriteLength;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/touvay/sdk/RewriteTone;
+	public final fun component3 ()Lcom/touvay/sdk/RewriteLength;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lcom/touvay/sdk/RewriteTone;Lcom/touvay/sdk/RewriteLength;Ljava/lang/String;)Lcom/touvay/sdk/RewriteRequest;
+	public static synthetic fun copy$default (Lcom/touvay/sdk/RewriteRequest;Ljava/lang/String;Lcom/touvay/sdk/RewriteTone;Lcom/touvay/sdk/RewriteLength;Ljava/lang/String;ILjava/lang/Object;)Lcom/touvay/sdk/RewriteRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLength ()Lcom/touvay/sdk/RewriteLength;
+	public final fun getOutputLocaleBcp47 ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getTone ()Lcom/touvay/sdk/RewriteTone;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/RewriteResult {
+	public fun <init> (Ljava/lang/String;Lcom/touvay/sdk/RewriteDisposition;Lcom/touvay/sdk/RewriteTiming;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/touvay/sdk/RewriteDisposition;
+	public final fun component3 ()Lcom/touvay/sdk/RewriteTiming;
+	public final fun copy (Ljava/lang/String;Lcom/touvay/sdk/RewriteDisposition;Lcom/touvay/sdk/RewriteTiming;)Lcom/touvay/sdk/RewriteResult;
+	public static synthetic fun copy$default (Lcom/touvay/sdk/RewriteResult;Ljava/lang/String;Lcom/touvay/sdk/RewriteDisposition;Lcom/touvay/sdk/RewriteTiming;ILjava/lang/Object;)Lcom/touvay/sdk/RewriteResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDisposition ()Lcom/touvay/sdk/RewriteDisposition;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getTiming ()Lcom/touvay/sdk/RewriteTiming;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/RewriteTiming {
+	public fun <init> (JJI)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()I
+	public final fun copy (JJI)Lcom/touvay/sdk/RewriteTiming;
+	public static synthetic fun copy$default (Lcom/touvay/sdk/RewriteTiming;JJIILjava/lang/Object;)Lcom/touvay/sdk/RewriteTiming;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeltaCount ()I
+	public final fun getTimeToFirstTokenMillis ()J
+	public final fun getTotalMillis ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/touvay/sdk/RewriteTone : java/lang/Enum {
+	public static final field CASUAL Lcom/touvay/sdk/RewriteTone;
+	public static final field FORMAL Lcom/touvay/sdk/RewriteTone;
+	public static final field NEUTRAL Lcom/touvay/sdk/RewriteTone;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/touvay/sdk/RewriteTone;
+	public static fun values ()[Lcom/touvay/sdk/RewriteTone;
+}
+
 public final class com/touvay/sdk/Touvay {
 	public static final field INSTANCE Lcom/touvay/sdk/Touvay;
 	public final fun connect (Landroid/content/Context;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -71,6 +178,7 @@ public abstract interface class com/touvay/sdk/TouvayClient : java/lang/AutoClos
 	public abstract fun capabilities (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun close ()V
 	public abstract fun diagnostics ()Lcom/touvay/sdk/TouvayDiagnostics;
+	public abstract fun rewrite ()Lcom/touvay/sdk/TouvayRewrite;
 }
 
 public abstract interface class com/touvay/sdk/TouvayDiagnostics {
@@ -117,11 +225,20 @@ public final class com/touvay/sdk/TouvayException$EngineUnavailable : com/touvay
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
+public final class com/touvay/sdk/TouvayException$InvalidRequest : com/touvay/sdk/TouvayException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
 public final class com/touvay/sdk/TouvayException$RequestCancelled : com/touvay/sdk/TouvayException {
 	public fun <init> ()V
 }
 
 public final class com/touvay/sdk/TouvayException$RequestSuperseded : com/touvay/sdk/TouvayException {
 	public fun <init> ()V
+}
+
+public abstract interface class com/touvay/sdk/TouvayRewrite {
+	public abstract fun execute (Lcom/touvay/sdk/RewriteRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun stream (Lcom/touvay/sdk/RewriteRequest;)Lkotlinx/coroutines/flow/Flow;
 }
 

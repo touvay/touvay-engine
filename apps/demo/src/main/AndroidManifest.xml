@@ -5,6 +5,23 @@
         android:label="Touvay Demo"
         android:theme="@android:style/Theme.Material.Light">
 
+        <!-- Explicit demo-only trust configuration. Production hosts do not inherit it. -->
+        <meta-data
+            android:name="com.touvay.engine.demo.ENABLED"
+            android:value="true" />
+        <meta-data
+            android:name="com.touvay.engine.demo.PACK_ID"
+            android:value="touvay.demo.qwen2.5-0.5b-rewrite" />
+        <meta-data
+            android:name="com.touvay.engine.demo.KEY_ID"
+            android:value="d086218cf3b91da80208646e6a4e0ded99da431e8848d74417d08fb09851edb6" />
+        <meta-data
+            android:name="com.touvay.engine.demo.PUBLIC_KEY_BASE64"
+            android:value="2SmylYadUGTDCKocs5z03VH0J8jE9QBV2RTaux9pWW8=" />
+        <meta-data
+            android:name="com.touvay.engine.demo.SOURCE_DIRECTORY"
+            android:value="touvay-demo-pack" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

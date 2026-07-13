@@ -62,6 +62,9 @@ public object EngineErrorCodes {
 
     /** Model output failed capability-owned structural or semantic validation. */
     public const val INVALID_OUTPUT: Int = 13
+
+    /** Capability request failed bounded structural or semantic validation. */
+    public const val INVALID_REQUEST: Int = 14
 }
 
 /** Scheduling classes carried by [RequestEnvelope.priority] (ARCHITECTURE.md §14.1). */

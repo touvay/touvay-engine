@@ -50,13 +50,7 @@ internal class EngineBinder(
 
     override fun listCapabilities(): List<CapabilityInfo> {
         enforceCallerAllowed()
-        return component.registry.all().map { pipeline ->
-            CapabilityInfo(
-                id = pipeline.descriptor.id,
-                schemaVersion = pipeline.descriptor.schemaVersion,
-                statusCode = CapabilityStatusCodes.READY,
-            )
-        }
+        return component.capabilities()
     }
 
     override fun listTransportFeatures(): List<String> {
@@ -76,15 +70,13 @@ internal class EngineBinder(
     ) {
         enforceCallerAllowed()
         if (callback == null) return
-        val credits = try {
+        val limits = try {
             requireNotNull(window)
-            StreamCreditWindow(
-                StreamLimits(
-                    initialDeltaCredits = window.initialDeltaCredits,
-                    initialByteCredits = window.initialByteCredits,
-                    maxDeltaCredits = window.maxDeltaCredits,
-                    maxByteCredits = window.maxByteCredits,
-                ),
+            StreamLimits(
+                initialDeltaCredits = window.initialDeltaCredits,
+                initialByteCredits = window.initialByteCredits,
+                maxDeltaCredits = window.maxDeltaCredits,
+                maxByteCredits = window.maxByteCredits,
             )
         } catch (_: IllegalArgumentException) {
             runCatching {
@@ -99,7 +91,7 @@ internal class EngineBinder(
             }
             return
         }
-        submitInternal(request, callback, credits)
+        submitInternal(request, callback, limits)
     }
 
     override fun grantCredits(
@@ -110,14 +102,25 @@ internal class EngineBinder(
     ) {
         enforceCallerAllowed()
         if (requestId == null) return
-        val key = RequestKey(Binder.getCallingUid().toString(), requestId)
+        val principal = Binder.getCallingUid().toString()
+        if (component.production?.grantCredits(
+                principal,
+                requestId,
+                grantSequence,
+                deltaCredits,
+                byteCredits,
+            ) == true
+        ) {
+            return
+        }
+        val key = RequestKey(principal, requestId)
         creditWindows[key]?.grant(grantSequence, deltaCredits, byteCredits)
     }
 
     private fun submitInternal(
         request: RequestEnvelope?,
         callback: ITouvayResponseCallback?,
-        credits: StreamCreditWindow?,
+        limits: StreamLimits?,
     ) {
         if (callback == null) return
         if (request == null) {
@@ -132,6 +135,44 @@ internal class EngineBinder(
         }
 
         val clientId = Binder.getCallingUid().toString()
+        if (component.isProductionCapabilityId(request.capabilityId)) {
+            if (!component.isProductionCapability(request.capabilityId, request.schemaVersion)) {
+                runCatching {
+                    callback.onFailed(
+                        EngineError(
+                            request.requestId,
+                            EngineErrorCodes.SCHEMA_VERSION_MISMATCH,
+                            false,
+                            "unsupported capability schema",
+                        ),
+                    )
+                }
+                return
+            }
+            val production = component.production
+            if (production == null) {
+                runCatching {
+                    callback.onFailed(
+                        EngineError(
+                            request.requestId,
+                            EngineErrorCodes.MODEL_UNAVAILABLE,
+                            true,
+                            "rewrite model unavailable",
+                        ),
+                    )
+                }
+                return
+            }
+            production.submit(
+                request = request,
+                principal = clientId,
+                limits = limits ?: StreamLimits.DIAGNOSTIC_DEFAULT,
+                callback = callback,
+            )
+            return
+        }
+
+        val credits = limits?.let(::StreamCreditWindow)
         val key = RequestKey(clientId, request.requestId)
         if (credits != null && creditWindows.putIfAbsent(key, credits) != null) {
             credits.close()
@@ -168,7 +209,9 @@ internal class EngineBinder(
     override fun cancel(requestId: String?) {
         enforceCallerAllowed()
         if (requestId != null) {
-            component.processor.cancel(Binder.getCallingUid().toString(), requestId)
+            val principal = Binder.getCallingUid().toString()
+            component.production?.cancel(principal, requestId)
+            component.processor.cancel(principal, requestId)
         }
     }
 

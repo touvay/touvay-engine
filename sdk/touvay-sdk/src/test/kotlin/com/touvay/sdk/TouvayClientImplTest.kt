@@ -18,6 +18,10 @@ import com.touvay.contract.TouvayContract
 import com.touvay.contract.proto.EchoDelta
 import com.touvay.contract.proto.EchoRequest
 import com.touvay.contract.proto.EchoResponse
+import com.touvay.contract.rewrite.v1.RewriteDelta
+import com.touvay.contract.rewrite.v1.RewriteDisposition
+import com.touvay.contract.rewrite.v1.RewriteRequest as ContractRewriteRequest
+import com.touvay.contract.rewrite.v1.RewriteResponse
 import com.touvay.sdk.internal.TouvayClientImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -76,6 +80,41 @@ class TouvayClientImplTest {
             val fail = failWith
             if (fail != null) {
                 callback.onFailed(fail(request.requestId))
+                return
+            }
+            if (request.capabilityId == TouvayContract.CAPABILITY_TEXT_REWRITE) {
+                val rewrite = ContractRewriteRequest.parseFrom(request.payload)
+                thread(name = "fake-rewrite-${request.requestId}") {
+                    callback.onAccepted(request.requestId)
+                    val rewritten = "Rewritten: ${rewrite.text}"
+                    val pieces = listOf("Rewritten: ", rewrite.text)
+                    pieces.forEachIndexed { sequence, piece ->
+                        callback.onDelta(
+                            ResponseDelta(
+                                request.requestId,
+                                sequence,
+                                RewriteDelta.newBuilder()
+                                    .setText(piece)
+                                    .setProvisional(true)
+                                    .build()
+                                    .toByteArray(),
+                            ),
+                        )
+                    }
+                    callback.onCompleted(
+                        ResponseFinal(
+                            request.requestId,
+                            RewriteResponse.newBuilder()
+                                .setText(rewritten)
+                                .setDisposition(
+                                    RewriteDisposition.REWRITE_DISPOSITION_REWRITTEN,
+                                )
+                                .build()
+                                .toByteArray(),
+                            RequestStats(12, 34, pieces.size),
+                        ),
+                    )
+                }
                 return
             }
             val echo = EchoRequest.parseFrom(request.payload)
@@ -184,6 +223,35 @@ class TouvayClientImplTest {
     }
 
     @Test
+    fun rewrite_streamsTypedDeltasAndAuthoritativeStructuredResult() = runBlocking<Unit> {
+        val events = client().rewrite().stream(
+            RewriteRequest("make this clearer", RewriteTone.FORMAL, RewriteLength.SHORTER),
+        ).toList()
+
+        assertEquals("Rewritten: ", (events[0] as RewriteEvent.Delta).text)
+        assertEquals("make this clearer", (events[1] as RewriteEvent.Delta).text)
+        val result = (events[2] as RewriteEvent.Completed).result
+        assertEquals("Rewritten: make this clearer", result.text)
+        assertEquals(com.touvay.sdk.RewriteDisposition.REWRITTEN, result.disposition)
+        assertEquals(12, result.timing.timeToFirstTokenMillis)
+        assertEquals(34, result.timing.totalMillis)
+        assertEquals(2, result.timing.deltaCount)
+    }
+
+    @Test
+    fun rewrite_executeReturnsFinalAndValidatesBeforeBinder() = runBlocking<Unit> {
+        val fake = FakeEngine()
+        val result = client(fake).rewrite().execute(RewriteRequest("hello"))
+        assertEquals("Rewritten: hello", result.text)
+
+        val submits = fake.creditSubmits
+        assertFailsWith<TouvayException.InvalidRequest> {
+            client(fake).rewrite().execute(RewriteRequest(" "))
+        }
+        assertEquals(submits, fake.creditSubmits)
+    }
+
+    @Test
     fun v1Engine_usesLegacySubmitWithoutCallingCreditMethods() = runBlocking<Unit> {
         val fake = FakeEngine()
         val client = TouvayClientImpl(fake, onClose = {}, supportsStreamingCredits = false)
@@ -219,6 +287,19 @@ class TouvayClientImplTest {
 
         assertFailsWith<TouvayException.RequestSuperseded> {
             client(fake).diagnostics().echo("x")
+        }
+        return@runBlocking
+    }
+
+    @Test
+    fun invalidRequestError_mapsToTypedSdkFailure() = runBlocking<Unit> {
+        val fake = FakeEngine()
+        fake.failWith = { requestId ->
+            EngineError(requestId, EngineErrorCodes.INVALID_REQUEST, false, "invalid request")
+        }
+
+        assertFailsWith<TouvayException.InvalidRequest> {
+            client(fake).rewrite().execute(RewriteRequest("valid locally"))
         }
         return@runBlocking
     }

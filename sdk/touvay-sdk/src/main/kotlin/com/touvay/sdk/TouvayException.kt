@@ -32,6 +32,9 @@ public sealed class TouvayException(
         message: String,
     ) : TouvayException(message)
 
+    /** Structured capability input failed validation and must be corrected before retrying. */
+    public class InvalidRequest(message: String) : TouvayException(message)
+
     /** The engine cancelled the request (e.g. engine shutdown mid-request). */
     public class RequestCancelled : TouvayException("request cancelled by the engine")
 

@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="input_hint">Text to echo</string>
-    <string name="input_default">Hello from the other process</string>
-    <string name="connecting">Connecting to engine…</string>
-    <string name="not_connected">Not connected to the engine.</string>
-    <string name="echo_button">Echo (unary)</string>
-    <string name="stream_button">Echo (streaming)</string>
+    <string name="app_name">Touvay Demo</string>
+    <string name="title">Rewrite v1 — End-to-End Platform Validation</string>
+    <string name="input_hint">Text to rewrite</string>
+    <string name="input_default">we need to make this message a little more clear and professional</string>
+    <string name="locale_hint">Optional output locale, for example en-US</string>
+    <string name="rewrite_button">Execute Rewrite</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="output_heading">Streaming / final output</string>
+    <string name="timing_heading">Execution timing</string>
+    <string name="capability_heading">Capability metadata</string>
+    <string name="diagnostics_heading">Runtime diagnostics</string>
+    <string name="preparing_pack">Preparing signed offline pack…</string>
+    <string name="executing">Executing…</string>
+    <string name="cancelled">Cancelled</string>
 </resources>

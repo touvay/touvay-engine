@@ -3,6 +3,7 @@ package com.touvay.sdk.internal
 import android.os.DeadObjectException
 import android.os.IBinder
 import android.os.RemoteException
+import com.google.protobuf.InvalidProtocolBufferException
 import com.touvay.contract.CapabilityInfo
 import com.touvay.contract.CapabilityStatusCodes
 import com.touvay.contract.EngineError
@@ -11,6 +12,7 @@ import com.touvay.contract.ITouvayEngine
 import com.touvay.contract.ITouvayResponseCallback
 import com.touvay.contract.RequestEnvelope
 import com.touvay.contract.RequestPriorities
+import com.touvay.contract.RequestStats
 import com.touvay.contract.ResponseDelta
 import com.touvay.contract.ResponseFinal
 import com.touvay.contract.StreamCreditWindow
@@ -18,11 +20,26 @@ import com.touvay.contract.TouvayContract
 import com.touvay.contract.proto.EchoDelta
 import com.touvay.contract.proto.EchoRequest
 import com.touvay.contract.proto.EchoResponse
+import com.touvay.contract.rewrite.v1.RewriteDelta
+import com.touvay.contract.rewrite.v1.RewriteDisposition as ContractRewriteDisposition
+import com.touvay.contract.rewrite.v1.RewriteLength as ContractRewriteLength
+import com.touvay.contract.rewrite.v1.RewriteRequest as ContractRewriteRequest
+import com.touvay.contract.rewrite.v1.RewriteResponse
+import com.touvay.contract.rewrite.v1.RewriteTone as ContractRewriteTone
 import com.touvay.sdk.CapabilityId
 import com.touvay.sdk.CapabilityStatus
 import com.touvay.sdk.TouvayClient
 import com.touvay.sdk.TouvayDiagnostics
 import com.touvay.sdk.TouvayException
+import com.touvay.sdk.TouvayRewrite
+import com.touvay.sdk.RewriteCapability
+import com.touvay.sdk.RewriteDisposition
+import com.touvay.sdk.RewriteEvent
+import com.touvay.sdk.RewriteLength
+import com.touvay.sdk.RewriteRequest
+import com.touvay.sdk.RewriteResult
+import com.touvay.sdk.RewriteTiming
+import com.touvay.sdk.RewriteTone
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -32,8 +49,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import java.util.IllformedLocaleException
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -68,6 +88,8 @@ internal class TouvayClientImpl(
 
     override fun diagnostics(): TouvayDiagnostics = Diagnostics()
 
+    override fun rewrite(): TouvayRewrite = RewriteOperations()
+
     override fun close() {
         if (closed.compareAndSet(false, true)) {
             runCatching { engine.asBinder().unlinkToDeath(deathRecipient, 0) }
@@ -85,7 +107,7 @@ internal class TouvayClientImpl(
 
     internal sealed class ResponseEvent {
         class Delta(val sequence: Int, val payload: ByteArray) : ResponseEvent()
-        class Final(val payload: ByteArray) : ResponseEvent()
+        class Final(val payload: ByteArray, val stats: RequestStats) : ResponseEvent()
     }
 
     /**
@@ -151,7 +173,9 @@ internal class TouvayClientImpl(
                     if (terminal.compareAndSet(false, true)) {
                         inFlight.remove(requestId)
                         if (result.requestId != requestId ||
-                            wireEvents.trySend(ResponseEvent.Final(result.payload.copyOf())).isFailure
+                            wireEvents.trySend(
+                                ResponseEvent.Final(result.payload.copyOf(), result.stats),
+                            ).isFailure
                         ) {
                             wireEvents.close(
                                 TouvayException.EngineFailure(
@@ -273,6 +297,119 @@ internal class TouvayClientImpl(
         )
     }
 
+    // -- Rewrite -----------------------------------------------------------------------------
+
+    private inner class RewriteOperations : TouvayRewrite {
+        override suspend fun execute(request: RewriteRequest): RewriteResult =
+            stream(request)
+                .filterIsInstance<RewriteEvent.Completed>()
+                .first()
+                .result
+
+        override fun stream(request: RewriteRequest): Flow<RewriteEvent> {
+            val payload = encodeRequest(request)
+            return this@TouvayClientImpl.execute(
+                capabilityId = RewriteCapability.id.value,
+                schemaVersion = RewriteCapability.schemaVersion,
+                payload = payload,
+            ).transform { event ->
+                when (event) {
+                    is ResponseEvent.Delta -> {
+                        val delta = parseDelta(event.payload)
+                        emit(RewriteEvent.Delta(event.sequence, delta.text))
+                    }
+                    is ResponseEvent.Final -> {
+                        val response = parseFinal(event.payload)
+                        emit(
+                            RewriteEvent.Completed(
+                                RewriteResult(
+                                    text = response.text,
+                                    disposition = when (response.disposition) {
+                                        ContractRewriteDisposition.REWRITE_DISPOSITION_REWRITTEN ->
+                                            RewriteDisposition.REWRITTEN
+                                        ContractRewriteDisposition.REWRITE_DISPOSITION_UNCHANGED ->
+                                            RewriteDisposition.UNCHANGED
+                                        else -> invalidOutput()
+                                    },
+                                    timing = RewriteTiming(
+                                        timeToFirstTokenMillis = event.stats.ttftMillis,
+                                        totalMillis = event.stats.totalMillis,
+                                        deltaCount = event.stats.deltaCount,
+                                    ),
+                                ),
+                            ),
+                        )
+                    }
+                }
+            }
+        }
+
+        private fun encodeRequest(request: RewriteRequest): ByteArray {
+            val textBytes = request.text.toByteArray(Charsets.UTF_8).size
+            if (request.text.isBlank() || textBytes !in 1..MAX_REWRITE_SOURCE_BYTES) {
+                throw TouvayException.InvalidRequest("rewrite text is blank or too large")
+            }
+            val builder = ContractRewriteRequest.newBuilder()
+                .setText(request.text)
+                .setTone(
+                    when (request.tone) {
+                        RewriteTone.NEUTRAL -> ContractRewriteTone.REWRITE_TONE_NEUTRAL
+                        RewriteTone.FORMAL -> ContractRewriteTone.REWRITE_TONE_FORMAL
+                        RewriteTone.CASUAL -> ContractRewriteTone.REWRITE_TONE_CASUAL
+                    },
+                )
+                .setLength(
+                    when (request.length) {
+                        RewriteLength.PRESERVE -> ContractRewriteLength.REWRITE_LENGTH_PRESERVE
+                        RewriteLength.SHORTER -> ContractRewriteLength.REWRITE_LENGTH_SHORTER
+                        RewriteLength.LONGER -> ContractRewriteLength.REWRITE_LENGTH_LONGER
+                    },
+                )
+            request.outputLocaleBcp47?.let { locale ->
+                val canonical = try {
+                    Locale.Builder().setLanguageTag(locale).build().toLanguageTag()
+                } catch (_: IllformedLocaleException) {
+                    throw TouvayException.InvalidRequest("invalid output locale")
+                }
+                if (canonical == "und" || canonical.length > MAX_LOCALE_CHARS) {
+                    throw TouvayException.InvalidRequest("invalid output locale")
+                }
+                builder.outputLocaleBcp47 = canonical
+            }
+            return builder.build().toByteArray().also { bytes ->
+                if (bytes.size > MAX_REWRITE_PAYLOAD_BYTES) {
+                    throw TouvayException.InvalidRequest("rewrite request is too large")
+                }
+            }
+        }
+
+        private fun parseDelta(bytes: ByteArray): RewriteDelta {
+            val delta = try {
+                RewriteDelta.parseFrom(bytes)
+            } catch (_: InvalidProtocolBufferException) {
+                invalidOutput()
+            }
+            if (!delta.provisional || delta.text.isEmpty()) invalidOutput()
+            return delta
+        }
+
+        private fun parseFinal(bytes: ByteArray): RewriteResponse {
+            val response = try {
+                RewriteResponse.parseFrom(bytes)
+            } catch (_: InvalidProtocolBufferException) {
+                invalidOutput()
+            }
+            if (response.text.isEmpty()) invalidOutput()
+            return response
+        }
+
+        private fun invalidOutput(): Nothing = throw TouvayException.EngineFailure(
+            EngineErrorCodes.INVALID_OUTPUT,
+            retryable = false,
+            message = "invalid Rewrite response",
+        )
+    }
+
     // -- diagnostics -------------------------------------------------------------------------
 
     private inner class Diagnostics : TouvayDiagnostics {
@@ -318,6 +455,9 @@ internal class TouvayClientImpl(
         const val MAX_DELAY_MILLIS = 10_000L
         const val STREAM_DELTA_CREDITS = 8
         const val STREAM_BYTE_CREDITS = 256 * 1024
+        const val MAX_REWRITE_SOURCE_BYTES = 8 * 1024
+        const val MAX_REWRITE_PAYLOAD_BYTES = 12 * 1024
+        const val MAX_LOCALE_CHARS = 35
     }
 }
 
@@ -334,5 +474,6 @@ private fun EngineError.toException(capabilityId: String): TouvayException = whe
         TouvayException.CapabilityUnavailable(capabilityId, message)
     EngineErrorCodes.CANCELLED -> TouvayException.RequestCancelled()
     EngineErrorCodes.SUPERSEDED -> TouvayException.RequestSuperseded()
+    EngineErrorCodes.INVALID_REQUEST -> TouvayException.InvalidRequest(message)
     else -> TouvayException.EngineFailure(code, retryable, message)
 }

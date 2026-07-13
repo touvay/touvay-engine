@@ -21,6 +21,9 @@ public interface TouvayClient : AutoCloseable {
     /** Diagnostic operations; free (no model is loaded). */
     public fun diagnostics(): TouvayDiagnostics
 
+    /** Typed access to the `text.rewrite@1` capability. */
+    public fun rewrite(): TouvayRewrite
+
     /** Idempotent. In-flight requests fail with [TouvayException.ClientClosed]. */
     override fun close()
 }

@@ -16,13 +16,13 @@ request to a (model pack, runtime, execution plan). Apps never see models, runti
 prompts, or hardware.
 
 **Status:** Platform Foundation v0.5 is tagged and build-green. Runtime v1.0, Model
-Manager Slices 1–4, Execution Engine, and Capability Framework v1 are complete; the
-framework is committed as `a40caa2`. Context Architecture v1.0 and ADR-022/023 are
-approved and committed as `8bdc07b`. Capability 1 Rewrite is implemented, build-green,
-and awaiting merge approval. General Context Provider implementation, keyboard
-integration, UI, networking, retrieval, and memory remain out of scope. Rewrite is
-registered as an execution program, while actual inference availability remains gated
-on a signed compatible model pack and production Router composition.
+Manager Slices 1–4, Execution Engine, Capability Framework v1, Context Architecture,
+and Rewrite v1 are complete; Rewrite is committed as `53cb87d`. Platform Validation is
+approved: the real signed offline Rewrite pack, Runtime Registry, llama.cpp, Execution
+Coordinator, Binder, typed SDK, and demo are green end to end. The repository is at its
+public release-readiness checkpoint. General Context Provider implementation, keyboard
+integration, production UI, networking, retrieval, memory, and additional capabilities
+remain out of scope.
 
 ## Non-negotiable rules
 
@@ -69,10 +69,10 @@ on a signed compatible model pack and production Router composition.
 | `capabilities/capability-tck` | Pure-JVM Capability SPI conformance kit and deterministic harness; 20 mandatory checks plus sabotage self-tests | engine-core, runtime-api |
 | `capabilities/capability-rewrite` | Production `text.rewrite@1`: contract parsing, semantic plan/recipe, signed-pack reference asset, structured streaming/final assembly, and TCK | contract, engine-core |
 | `engine/engine-models` | Pure JVM, offline Task 3 boundary: pack verification, transactional storage, catalog/leases, Runtime Registry resolution, and cached `ModelInstance` ownership. No sessions, inference, scheduler, routing, downloader, or network | runtime-api |
-| `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root; diagnostic echo plus production Rewrite registration | contract, capability-rewrite, engine-core, engine-models, runtime-api |
+| `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root; diagnostic echo plus signed-pack production Rewrite routing | contract, capability-rewrite, engine-core, engine-models, runtime-api, runtime-llamacpp |
 | `runtime/runtime-api` | Runtime SPI (`InferenceRuntime`/`ModelInstance`/`InferenceSession`, `tokenize`, `CancelSignal`); normative spec `docs/runtime/runtime-spi.md` | nothing |
 | `runtime/runtime-tck` | Conformance kit (pure JVM): `AbstractRuntimeTck` + sabotage self-test; adapters conform via one androidTest subclass | runtime-api |
-| `runtime/runtime-llamacpp` | Production llama.cpp adapter (pinned b5199; abort-callback cancellation; NOT engine-wired — Task 3 gate) | runtime-api |
+| `runtime/runtime-llamacpp` | Production llama.cpp adapter (pinned b5199; abort-callback cancellation); registered only by the engine-service composition root | runtime-api |
 | `apps/demo` | Demo client + cross-process instrumented tests | sdk, engine-service |
 | `apps/benchmark` | Benchmark host (`:spike` process, JSON results) targeting the production adapter | runtime-api, runtime-llamacpp |
 | `build-logic` | Convention plugins + `DependencyRulesPlugin` (new modules MUST be added to its allowlist) | — |
@@ -135,9 +135,9 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 ## Open items / approval gates
 
 - Representative 4 GB arm64 calibration remains required before a model capability ships.
-- **Gate:** Capability 1 Rewrite is implemented and awaiting merge approval. Additional
-  capabilities, Router policy changes, keyboard integration, networking, and follow-on
-  milestones remain unauthorized.
+- **Gate:** Signed-pack Platform Validation is approved. Additional capabilities, Router
+  policy changes, keyboard integration, networking, and follow-on milestones remain
+  unauthorized.
 - Measure Tink 1.23.0's shrunk APK contribution before a user-facing engine release;
   Slice 1 uses one pure-Java verifier path across API 29+.
 - Deferred (additive): public logical-session facade; convention-plugin guard for

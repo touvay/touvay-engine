@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":engine:engine-models"))
     implementation(project(":capabilities:capability-rewrite"))
     implementation(project(":runtime:runtime-api"))
+    implementation(project(":runtime:runtime-llamacpp"))
     implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit4)

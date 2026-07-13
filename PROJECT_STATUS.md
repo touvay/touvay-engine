@@ -4,13 +4,14 @@
 
 ## Current summary
 
-The platform foundation is complete and tagged `foundation-v0.5`. Runtime, Model
-Manager, Execution, and Capability Framework foundations are implemented and
-build-green. Capability Framework v1 was approved and committed as `a40caa2`. Context
-Architecture v1.0 and ADR-022/023 are approved and committed as `8bdc07b`. Capability 1
-Rewrite is implemented and has completed its engineering review. Keyboard integration,
-UI, downloader, networking, retrieval, memory, and general Context Provider
-implementation remain unauthorized.
+The platform foundation is complete and tagged `foundation-v0.5`. Capability 1 Rewrite
+is approved and committed as `53cb87d`. The Platform Validation milestone composes the
+approved Model Manager, Runtime Registry, llama.cpp adapter, Execution Coordinator,
+Binder, typed SDK, and engineering demo around a real signed offline model pack. It is
+build-green, 28/28 Runtime device-TCK green, and real cross-process Rewrite validation
+green. The project is at its public release-readiness checkpoint. Keyboard integration,
+production UI, downloader, networking, retrieval, memory, and additional capabilities
+remain unauthorized.
 
 ## Completed milestones
 
@@ -30,28 +31,29 @@ implementation remain unauthorized.
 | Capability Framework Architecture v1.0 | Complete | `docs/capabilities/CAPABILITY_SPEC.md`, ADR-020/021 |
 | Capability Framework implementation | Complete | Commit `a40caa29648f58ce48f01cde6dc8c080e05ee571`; SPI, registry/discovery, prompt assets, semantic plans, 20-check TCK |
 | Context Architecture v1.0 | Complete | `docs/context/CONTEXT_SPEC.md`, ADR-022/023 |
-| Capability 1 Rewrite | Complete; awaiting merge approval | `text.rewrite@1`, 20-check Capability TCK, golden/streaming/cancellation/Coordinator integration tests |
+| Capability 1 Rewrite | Complete | Commit `53cb87d`; `text.rewrite@1`, golden/streaming/cancellation/Coordinator integration tests |
+| End-to-End Platform Validation | Complete and approved | Signed pack, typed SDK, demo, real llama.cpp Rewrite, 28/28 device TCK |
 
 ## Current milestone
 
-**Capability 1 — Rewrite engineering review**
+**Platform Validation release-readiness checkpoint**
 
-The authorized `text.rewrite@1` scope is implemented and build-green. It includes the
-structured contract, request/response models, semantic plan, typed recipe, signed-pack
-prompt-format asset contract, deterministic post-processing and structured output,
-capability conformance/golden/streaming/cancellation tests, and integration through the
-existing Execution Engine adapter and service composition root.
+The engine now has a fixed production Rewrite route backed by an active, verified
+catalog revision and the real llama.cpp Runtime registration. The SDK exposes only a
+stable typed Rewrite API. The demo carries a demo-only public key and signed metadata,
+while the pinned GGUF remains a local offline input. The engineering screen exercises
+discovery, streaming, structured completion, cancellation, timing, and diagnostics.
 
-Runtime SPI, Model Manager architecture, Execution Engine architecture, keyboard, UI,
-networking, retrieval, memory, and general Context Provider implementation are excluded.
+No approved architecture or SPI was changed. Keyboard, production UI, networking,
+retrieval, memory, and additional capabilities remain excluded.
 
 ## Upcoming milestones
 
 These are sequencing candidates, not implementation authorization:
 
-1. Merge Capability 1 Rewrite after approval.
-2. Representative 4 GB arm64 calibration before any model capability ships.
-3. Keyboard integration only after capability/runtime behavior is separately approved.
+1. Representative 4 GB arm64 calibration before any model capability ships.
+2. Keyboard integration only after a separate authorization and design review.
+3. Additional capabilities only after their own scoped approval.
 
 ## Active ADRs
 
@@ -80,8 +82,8 @@ The canonical ADR list is maintained in `docs/specs/README.md`.
   arbitration, and the internal Capability SPI boundary.
 - `engine-models` owns verified immutable packs, transactional storage, catalog,
   reference counting, Runtime Registry resolution, and loaded-instance lifecycle.
-- Runtime v1.0 remains a narrow stable SPI; llama.cpp is production-adapter complete but
-  intentionally not routed to a user capability.
+- Runtime v1.0 remains a narrow stable SPI; the composition root now registers llama.cpp
+  and resolves it only for the verified fixed Rewrite route.
 - Model/runtime/prompt identity is hidden from clients. Apps request capability keys and
   structured schemas.
 - Engine process state is disposable. User content, prompts, transcripts, and Runtime
@@ -93,9 +95,8 @@ The canonical ADR list is maintained in `docs/specs/README.md`.
 
 ## Open gates and risks
 
-- Rewrite is ready for merge; no P1/P2 implementation finding remains open.
-- A signed compatible model pack, production Router policy, and model-quality evaluation
-  are still release gates; host tests do not make a language-quality claim.
+- Rewrite is merged; the real signed-pack path and fixed Router passed device validation.
+  This structural validation does not make a language-quality claim.
 - Representative 4 GB arm64 calibration remains required before a model capability ships.
 - Tink 1.23.0 shrunk APK contribution must be measured before a user-facing engine
   release.

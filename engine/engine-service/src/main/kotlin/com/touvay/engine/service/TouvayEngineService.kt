@@ -18,7 +18,7 @@ public class TouvayEngineService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        val created = EngineComponent()
+        val created = EngineComponent(applicationContext)
         component = created
         binder = EngineBinder(created)
     }

@@ -36,6 +36,8 @@ recommended correction for architecture review.
 | Capability TCK | [`docs/capabilities/capability-tck.md`](../capabilities/capability-tck.md) | Executable v1 conformance contract |
 | Context | [`docs/context/CONTEXT_SPEC.md`](../context/CONTEXT_SPEC.md) | Approved v1.0 implementation contract |
 | Rewrite Capability | [`docs/capabilities/rewrite-v1.md`](../capabilities/rewrite-v1.md) | Implemented `text.rewrite@1` contract |
+| Signed demo pack | [`docs/demo/demo-pack.md`](../demo/demo-pack.md) | Offline validation trust workflow |
+| Android SDK | [`sdk/touvay-sdk/README.md`](../../sdk/touvay-sdk/README.md) | Typed capability quick start |
 
 ## Accepted ADRs
 
@@ -68,6 +70,7 @@ normative contracts:
 - [`docs/execution/milestone-5-engineering-review.md`](../execution/milestone-5-engineering-review.md)
 - [`docs/capabilities/capability-framework-engineering-review.md`](../capabilities/capability-framework-engineering-review.md)
 - [`docs/capabilities/rewrite-engineering-review.md`](../capabilities/rewrite-engineering-review.md)
+- [`docs/demo/platform-validation-engineering-review.md`](../demo/platform-validation-engineering-review.md)
 
 Current delivery state and approval gates are summarized in
 [`PROJECT_STATUS.md`](../../PROJECT_STATUS.md).
