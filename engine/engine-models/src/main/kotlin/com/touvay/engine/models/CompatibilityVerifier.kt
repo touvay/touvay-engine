@@ -2,6 +2,11 @@ package com.touvay.engine.models
 
 import com.touvay.engine.models.proto.DeviceTier
 import com.touvay.engine.models.proto.ModelPackManifest
+import com.touvay.engine.models.proto.RuntimeRequirement
+
+internal fun interface RuntimeRequirementCompatibility {
+    fun isCompatible(requirement: RuntimeRequirement): Boolean
+}
 
 internal class RuntimeCompatibility(
     runtimeId: String,
@@ -31,7 +36,7 @@ internal class CompatibilityEnvironment(
     supportedAbis: Set<String>,
     runtimes: Collection<RuntimeCompatibility>,
     supportedManifestFeatures: Set<String> = emptySet(),
-) {
+) : RuntimeRequirementCompatibility {
     val engineVersion: SemanticVersion = requireNotNull(SemanticVersion.parse(engineVersion)) {
         "invalid engine compatibility configuration"
     }
@@ -59,13 +64,24 @@ internal class CompatibilityEnvironment(
         }
         this.runtimes = runtimes.associateBy { it.runtimeId }
     }
+
+    override fun isCompatible(requirement: RuntimeRequirement): Boolean {
+        val available = runtimes[requirement.id] ?: return false
+        val minimum = SemanticVersion.parse(requirement.minAdapterVersion) ?: return false
+        return available.adapterVersion >= minimum &&
+            available.features.containsAll(requirement.requiredFeaturesList)
+    }
 }
 
 internal class CompatibilityVerifier {
-    fun verify(manifest: ModelPackManifest, environment: CompatibilityEnvironment) {
+    fun verify(
+        manifest: ModelPackManifest,
+        environment: CompatibilityEnvironment,
+        runtimeCompatibility: RuntimeRequirementCompatibility = environment,
+    ) {
         verifyManifestFeatures(manifest, environment)
         verifyEngine(manifest, environment)
-        verifyRuntime(manifest, environment)
+        verifyRuntime(manifest, runtimeCompatibility)
         verifyDevice(manifest, environment)
     }
 
@@ -103,15 +119,12 @@ internal class CompatibilityVerifier {
 
     private fun verifyRuntime(
         manifest: ModelPackManifest,
-        environment: CompatibilityEnvironment,
+        runtimeCompatibility: RuntimeRequirementCompatibility,
     ) {
-        val available = environment.runtimes[manifest.runtime.id]
-            ?: verificationFailure(VerificationFailure.INCOMPATIBLE_RUNTIME)
-        val minimum = SemanticVersion.parse(manifest.runtime.minAdapterVersion)
-            ?: verificationFailure(VerificationFailure.INVALID_MANIFEST_FIELD)
-        if (available.adapterVersion < minimum ||
-            !available.features.containsAll(manifest.runtime.requiredFeaturesList)
-        ) {
+        if (SemanticVersion.parse(manifest.runtime.minAdapterVersion) == null) {
+            verificationFailure(VerificationFailure.INVALID_MANIFEST_FIELD)
+        }
+        if (!runtimeCompatibility.isCompatible(manifest.runtime)) {
             verificationFailure(VerificationFailure.INCOMPATIBLE_RUNTIME)
         }
     }

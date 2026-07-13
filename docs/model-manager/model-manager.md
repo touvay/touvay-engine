@@ -1,11 +1,11 @@
 # Model Manager Architecture v1.0
 
-**Status:** Frozen architecture — Slices 1–3 approved; Slice 4 authorized, not implemented
+**Status:** Frozen architecture — Slices 1–4 approved
 **Checkpoint baseline:** `runtime-v1.0-foundation` (`7a68daa`)
 **Decisions:** [ADR-015](../adr/ADR-015-model-manager-resolution-and-instance-identity.md)
 and [ADR-016](../adr/ADR-016-model-pack-manifest-and-signature-envelope.md)
-**Scope:** Normative implementation contract for Task 3. This document authorizes no
-production Model Manager code or engine wiring. Any implementation deviation that
+**Scope:** Normative implementation contract for Task 3. Production work is authorized
+only by the per-slice approvals recorded below; engine wiring remains unauthorized. Any implementation deviation that
 changes ownership, trust, durable format, identity, or dependency direction requires
 architecture review and an ADR amendment.
 
@@ -59,8 +59,9 @@ The approved architecture remains unchanged:
 
 ### 1.2 Implementation gates
 
-Slice 1 is explicitly authorized and complete. Before runtime/lifecycle wiring or later
-Task 3 slices begin:
+Slices 1–4 are approved. Slice 4 implements the authorized pure-JVM Registry and
+loaded-instance lifecycle without engine composition. Before Android composition,
+session/inference integration, or later Task 3 slices begin:
 
 1. run Runtime v1.0 on a representative 4 GB arm64 device and calibrate T1 budgets;
 2. make release-CI model fixture provisioning mandatory rather than silently skipped;
@@ -593,8 +594,9 @@ definition and leaves the committed revision safely installed; a process-local p
 removal request may need to be reissued because no durable removal tombstone exists in
 the approved v1 storage layout.
 
-The Runtime-backed `ModelLease` described below remains unimplemented until a later
-explicit authorization.
+Slice 4 implements the Runtime-backed `RuntimeModelLease` described below. It borrows
+the cached instance and contributes one instance reference; the loaded entry, not the
+runtime lease, owns the exact-revision storage hold.
 
 `acquire(modelRevision, executionProfileRequest)` is suspending and returns an idempotent
 `ModelLease : AutoCloseable`.
@@ -645,6 +647,10 @@ control instance reuse.
 The manager has its own supervisor scope. Shutdown rejects new work, cancels timers,
 waits for in-flight lifecycle operations, closes every loaded instance, then releases
 storage holds.
+
+Slice 4 implements the transition to `READY_IDLE`, explicit idle release, and shutdown.
+It does not arm the scheduler-owned idle timer; timer policy and pressure eviction remain
+outside the authorized scope.
 
 ## 14. Multi-model support
 
@@ -1144,12 +1150,14 @@ Authorization is per slice:
 2. **Transactional store — Slice 2 approved:**
    staging, commit markers, recovery, active pointers, safe deletion, and
    install/upgrade/rollback tests. Catalog work is explicitly excluded.
-3. **Catalog + storage ownership — Slice 3 implemented, awaiting review:** immutable
+3. **Catalog + storage ownership — Slice 3 approved:** immutable
    snapshots, rebuildable metadata cache, explicit version selection, exact-revision
    leases/reference counts, deferred deletion, and consistency/crash tests.
-4. **Loaded-instance manager — not authorized:** Runtime Registry resolution port, semantic execution
-   profiles, single-flight load, leases, mmap holds, budgets, idle unload, and multi-model
-   tests using fake runtimes.
+4. **Loaded-instance manager — Slice 4 approved:** Runtime Registry
+   compatibility/resolution, semantic execution profiles, exact-revision mmap holds,
+   single-flight load, instance leases, idle cache, explicit release/shutdown, and
+   multi-model tests using fake runtimes. Scheduler budgets, timers, sessions, and
+   inference remain excluded.
 5. **Android composition/integration — not authorized:** app-private paths, lifecycle/trim bridge, real
    llama.cpp instrumented tests. Router/scheduler production wiring remains a separately
    reviewed sub-scope if Task 3 approval does not explicitly include it.
@@ -1172,7 +1180,8 @@ Model Manager Architecture v1.0 freezes:
 9. scheduler policy separated from manager lifecycle mechanics;
 10. a separate future downloader/network module.
 
-Slices 1–3 implement the frozen verification, durable-storage, catalog, and storage-hold
-boundaries without engine wiring, runtime loading, downloader code, or public APIs. No
-later slice begins automatically; the next step is engineering review of Slice 3 and
-explicit authorization for any subsequent scope.
+Slices 1–4 implement the frozen verification, durable-storage, catalog, storage-hold,
+Runtime Registry, and loaded-instance ownership boundaries without engine wiring,
+sessions/inference, downloader code, or public APIs. No later slice begins
+automatically; engine orchestration requires a separately reviewed execution architecture
+and explicit authorization for any subsequent implementation scope.

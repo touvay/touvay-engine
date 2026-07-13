@@ -1,9 +1,10 @@
-# engine-models — Task 3 Slices 1–3
+# engine-models — Task 3 Slices 1–4
 
-**Status:** Slices 1–3 approved; Slice 4 runtime-lifecycle work is separately authorized.
+**Status:** Slices 1–4 approved; engine composition and inference remain gated.
 
 This pure-JVM, offline module owns the model-pack schema, bounded verification boundary,
-transactional local storage, and the immutable catalog/storage-lease boundary. The normative contract is
+transactional local storage, immutable catalog/storage ownership, and the internal
+Runtime Registry/loaded-instance lifecycle. The normative contract is
 `docs/model-manager/model-manager.md`; ADR-015 and ADR-016 freeze the boundaries and
 signed envelope.
 
@@ -26,10 +27,16 @@ signed envelope.
 - immutable atomic catalog snapshots rebuilt from committed storage;
 - disposable bounded metadata cache with per-revision payload metadata fingerprints;
 - explicit active/exact/highest-compatible version selection without plan ranking;
-- idempotent exact-revision storage leases, reference counts, and deferred deletion.
+- idempotent exact-revision storage leases, reference counts, and deferred deletion;
+- immutable Runtime Registry bindings with adapter-version/feature checks and
+  per-device probe caching;
+- canonical execution profiles keyed by binding identity, thread count, and mmap mode;
+- exact-revision `ResolvedModelPack` projection under a storage lease;
+- single-flight `ModelInstance` loading, idempotent runtime leases, idle caching,
+  explicit release, shutdown, and cache consistency verification.
 
-There is no model loading, Runtime instance/session lifecycle, runtime registry/integration,
-scheduler, routing, downloader, or network code. All
+There is no inference-session creation, tokenization/inference execution, scheduler,
+engine routing/composition, downloader, or network code. All
 hand-written declarations remain module-internal; generated protobuf classes are not
 exposed through a cross-module port, and `engine-models` is not a published API artifact.
 
@@ -55,10 +62,17 @@ and exact file metadata are still checked on rebuild; a missing, malformed, stal
 future-dated cache entry forces full payload verification. The cache never becomes a
 source of truth.
 
-`PackRevisionLease` pins one exact immutable revision and is deliberately not a Runtime
-or inference lease. Removal of a referenced inactive revision becomes pending and the
-directory remains present until the final idempotent release. Runtime-backed
-`ModelInstance` leases remain a later authorization gate.
+`PackRevisionLease` pins one exact immutable revision and remains separate from a
+Runtime lease. A loaded cache entry owns one `ModelInstance` and one storage lease;
+`RuntimeModelLease` contributes only a process-local instance reference. Instance close
+always precedes storage-lease release. Removal of a referenced inactive revision becomes
+pending and the directory remains present until the loaded entry is explicitly released
+or the manager shuts down.
+
+Zero-reference entries remain `READY_IDLE`; Slice 4 deliberately adds no timer,
+memory-pressure policy, or scheduler-owned eviction ranking. `RuntimeModelLease` exposes
+the borrowed SPI instance for the later integration boundary, but this slice never calls
+`createSession`, `tokenize`, prefill, or decode.
 
 ## Verification bounds
 
@@ -103,6 +117,6 @@ that measurement is a gate before Android composition.
 ## Validation
 
 ```text
-./gradlew :engine:engine-models:test # verifier + storage + catalog/lease suite
+./gradlew :engine:engine-models:test # verifier + storage + catalog + runtime lifecycle
 ./gradlew build apiCheck checkDependencyRules
 ```

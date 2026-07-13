@@ -22,9 +22,10 @@ internal class BoundedModelPackVerifier(
         manifestBytes: ByteArray,
         signatureEnvelopeBytes: ByteArray,
         environment: CompatibilityEnvironment,
+        runtimeCompatibility: RuntimeRequirementCompatibility = environment,
     ): VerifiedManifest {
         val verified = verifyAuthenticity(manifestBytes, signatureEnvelopeBytes)
-        compatibilityVerifier.verify(verified.manifest, environment)
+        compatibilityVerifier.verify(verified.manifest, environment, runtimeCompatibility)
         return verified
     }
 

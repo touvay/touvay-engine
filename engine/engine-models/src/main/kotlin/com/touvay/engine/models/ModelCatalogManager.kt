@@ -9,6 +9,7 @@ internal class ModelCatalogManager(
     root: Path,
     private val store: TransactionalModelStore,
     private val environment: CompatibilityEnvironment,
+    private val runtimeCompatibility: RuntimeRequirementCompatibility = environment,
     durability: StorageDurability = NioStorageDurability,
     private val clock: CatalogClock = CatalogClock.SYSTEM,
     cacheFaultInjector: CatalogCacheFaultInjector = CatalogCacheFaultInjector.NONE,
@@ -183,7 +184,7 @@ internal class ModelCatalogManager(
         val verified = stored.verifiedManifest
         val manifest = verified.manifest
         val compatibilityFailure = try {
-            compatibilityVerifier.verify(manifest, environment)
+            compatibilityVerifier.verify(manifest, environment, runtimeCompatibility)
             null
         } catch (failure: ModelPackVerificationException) {
             failure.failure

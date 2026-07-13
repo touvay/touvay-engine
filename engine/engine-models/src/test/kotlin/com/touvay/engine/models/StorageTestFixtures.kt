@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString
 import com.touvay.engine.models.proto.FileRole
 import com.touvay.engine.models.proto.ModelFile
 import com.touvay.engine.models.proto.ModelPackManifest
+import com.touvay.runtime.api.DeviceProfile
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.file.Files
@@ -51,10 +52,13 @@ internal object StorageTestFixtures {
     fun store(
         root: Path,
         faultInjector: StoreFaultInjector = StoreFaultInjector.NONE,
+        environment: CompatibilityEnvironment = TestFixtures.environment(),
+        runtimeCompatibility: RuntimeRequirementCompatibility = environment,
     ): TransactionalModelStore = TransactionalModelStore(
         root = root,
         verifier = BoundedModelPackVerifier(TestFixtures.trustStore()),
-        environment = TestFixtures.environment(),
+        environment = environment,
+        runtimeCompatibility = runtimeCompatibility,
         durability = TestStorageDurability,
         faultInjector = faultInjector,
     )
@@ -63,15 +67,28 @@ internal object StorageTestFixtures {
         root: Path,
         clock: CatalogClock = CatalogClock { 1_000 },
         environment: CompatibilityEnvironment = TestFixtures.environment(),
+        runtimeRegistry: RuntimeRegistry? = null,
+        runtimeDevice: DeviceProfile? = null,
         cacheFaultInjector: CatalogCacheFaultInjector = CatalogCacheFaultInjector.NONE,
     ): CatalogTestHarness {
-        val store = store(root)
+        val runtimeCompatibility = when {
+            runtimeRegistry == null && runtimeDevice == null -> environment
+            runtimeRegistry != null && runtimeDevice != null ->
+                RegistryRuntimeRequirementCompatibility(runtimeRegistry, runtimeDevice)
+            else -> error("runtime registry test configuration is incomplete")
+        }
+        val store = store(
+            root = root,
+            environment = environment,
+            runtimeCompatibility = runtimeCompatibility,
+        )
         return CatalogTestHarness(
             store = store,
             manager = ModelCatalogManager(
                 root = root,
                 store = store,
                 environment = environment,
+                runtimeCompatibility = runtimeCompatibility,
                 durability = TestStorageDurability,
                 clock = clock,
                 cacheFaultInjector = cacheFaultInjector,

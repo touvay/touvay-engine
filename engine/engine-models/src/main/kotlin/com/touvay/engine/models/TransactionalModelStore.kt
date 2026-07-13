@@ -28,6 +28,7 @@ internal class TransactionalModelStore(
     private val root: Path,
     private val verifier: BoundedModelPackVerifier,
     private val environment: CompatibilityEnvironment,
+    private val runtimeCompatibility: RuntimeRequirementCompatibility = environment,
     private val durability: StorageDurability = NioStorageDurability,
     private val faultInjector: StoreFaultInjector = StoreFaultInjector.NONE,
 ) {
@@ -42,7 +43,12 @@ internal class TransactionalModelStore(
             val signatureBytes = source.openSignatureEnvelope().use {
                 readBounded(it, MAX_SIGNATURE_BYTES, ModelStoreFailure.SOURCE_LAYOUT_INVALID)
             }
-            val verified = verifier.verify(manifestBytes, signatureBytes, environment)
+            val verified = verifier.verify(
+                manifestBytes,
+                signatureBytes,
+                environment,
+                runtimeCompatibility,
+            )
             val identity = verified.identity()
             validateSourceLayout(source.entries(), verified.manifest)
             rejectVersionConflict(identity)
@@ -91,7 +97,7 @@ internal class TransactionalModelStore(
             ensureRoot()
             val revision = revisionDirectory(identity)
             val verified = verifyRevision(revision, expectedIdentity = identity)
-            compatibilityVerifier().verify(verified.manifest, environment)
+            compatibilityVerifier().verify(verified.manifest, environment, runtimeCompatibility)
             ensurePackDirectory(identity.packId)
             val packDirectory = packDirectory(identity.packId)
             val temporary = packDirectory.resolve("active.${UUID.randomUUID()}.tmp")
@@ -230,7 +236,11 @@ internal class TransactionalModelStore(
                         val stored = validRevisions.singleOrNull {
                             it.verifiedManifest.identity() == active
                         } ?: modelStoreFailure(ModelStoreFailure.STORE_CORRUPT)
-                        compatibilityVerifier().verify(stored.verifiedManifest.manifest, environment)
+                        compatibilityVerifier().verify(
+                            stored.verifiedManifest.manifest,
+                            environment,
+                            runtimeCompatibility,
+                        )
                         active.packId == identity
                     } catch (_: Exception) {
                         false
@@ -271,7 +281,11 @@ internal class TransactionalModelStore(
     ) {
         val compatible = revisions.filter { verified ->
             try {
-                compatibilityVerifier().verify(verified.manifest, environment)
+                compatibilityVerifier().verify(
+                    verified.manifest,
+                    environment,
+                    runtimeCompatibility,
+                )
                 true
             } catch (_: ModelPackVerificationException) {
                 false
