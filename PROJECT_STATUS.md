@@ -5,10 +5,11 @@
 ## Current summary
 
 The platform foundation is complete and tagged `foundation-v0.5`. Runtime, Model
-Manager, and Execution foundations are implemented and build-green. Capability Framework
-Architecture v1.0 plus ADR-020/021 are approved. Capability Framework implementation is
-complete and in final engineering review. No user-facing capability, keyboard integration, UI, downloader,
-or networking work is authorized in this milestone.
+Manager, Execution, and Capability Framework foundations are implemented and
+build-green. Capability Framework v1 was approved and committed as `a40caa2`. Context
+Architecture v1.0 and ADR-022/023 are approved. Capability 1 Rewrite is the active
+implementation milestone. Keyboard integration, UI, downloader, networking, retrieval,
+memory, and general Context Provider implementation remain unauthorized.
 
 ## Completed milestones
 
@@ -26,48 +27,32 @@ or networking work is authorized in this milestone.
 | Milestone 5 Execution Engine | Complete | Coordinator, Scheduler, Runtime sessions, credits, cancellation, retry, terminal arbitration |
 | Platform Foundation v0.5 checkpoint | Complete | Commit `9288fe77081918e0f42ddd75563cd60d81d3e637`, tag `foundation-v0.5` |
 | Capability Framework Architecture v1.0 | Complete | `docs/capabilities/CAPABILITY_SPEC.md`, ADR-020/021 |
+| Capability Framework implementation | Complete | Commit `a40caa29648f58ce48f01cde6dc8c080e05ee571`; SPI, registry/discovery, prompt assets, semantic plans, 20-check TCK |
+| Context Architecture v1.0 | Complete | `docs/context/CONTEXT_SPEC.md`, ADR-022/023 |
 
 ## Current milestone
 
-**Capability Framework implementation**
+**Capability 1 — Rewrite**
 
-Implementation is complete: production SPI, exact registration/discovery and execution
-lookup, semantic plans, typed prompt recipes, bounded protobuf-lite asset verification,
-exact-revision asset access, generic execution adapter, and the 20-check Capability TCK
-with two sabotage tests. Final repository validation and engineering review are active.
+Authorized scope is the `text.rewrite@1` structured contract, request/response models,
+semantic plan, typed recipe, signed-pack prompt-format asset contract, deterministic
+post-processing and structured output, capability conformance/golden/streaming/
+cancellation tests, and integration through the existing Execution Engine adapter.
 
-Authorized scope:
-
-- Capability SPI;
-- exact-key registration and discovery;
-- PromptRecipe abstraction;
-- semantic, ordered ExecutionPlan abstraction;
-- bounded prompt asset loading and verification;
-- Capability TCK; and
-- reusable capability test harness.
-
-Explicit exclusions:
-
-- rewrite, grammar, translation, summarization, or other user-facing capabilities;
-- production prompt content;
-- keyboard integration, UI, or engine routing policy;
-- downloader or networking; and
-- unreviewed Runtime SPI, SDK, or AIDL changes.
+Runtime SPI, Model Manager architecture, Execution Engine architecture, keyboard, UI,
+networking, retrieval, memory, and general Context Provider implementation are excluded.
 
 ## Upcoming milestones
 
 These are sequencing candidates, not implementation authorization:
 
-1. Capability Framework engineering review and merge checkpoint.
-2. First capability contract/design, including wire schema, SDK facade, prompt recipe,
-   eligible model packs, quality evaluation, and privacy review.
-3. First capability implementation only after separate approval.
-4. Representative 4 GB arm64 calibration before any model capability ships.
-5. Keyboard integration only after capability/runtime behavior is separately approved.
+1. Capability 1 Rewrite implementation and engineering review.
+2. Representative 4 GB arm64 calibration before any model capability ships.
+3. Keyboard integration only after capability/runtime behavior is separately approved.
 
 ## Active ADRs
 
-All ADR-001 through ADR-021 are accepted and active. The decisions most directly
+All ADR-001 through ADR-023 are accepted and active. The decisions most directly
 governing current work are:
 
 - ADR-004: structured capability APIs, never prompt tunnels;
@@ -78,8 +63,9 @@ governing current work are:
 - ADR-018: bounded credit-based streaming;
 - ADR-019: request-attempt Runtime sessions and client-owned conversations;
 - ADR-020: production Capability SPI, ordered semantic plans, and exact-key registry;
-  and
-- ADR-021: typed prompt recipes and frozen signed-asset binding.
+- ADR-021: typed prompt recipes and frozen signed-asset binding;
+- ADR-022: request-scoped context providers and internal provenance; and
+- ADR-023: deterministic merging and exact tokenizer budgeting.
 
 The canonical ADR list is maintained in `docs/specs/README.md`.
 
@@ -100,13 +86,12 @@ The canonical ADR list is maintained in `docs/specs/README.md`.
 - No inference-path module has network access. The future downloader remains the only
   permitted network boundary.
 - The current ID-only `CapabilityPipeline`/`dev.echo` path is diagnostic compatibility
-  code. Production capabilities use the exact-key Capability Framework after this
-  milestone is reviewed.
+  code. Production capabilities use the committed exact-key Capability Framework.
 
 ## Open gates and risks
 
-- Capability Framework must pass its TCK, full build, API compatibility, and dependency
-  rules before the first capability design begins.
+- Rewrite must pass its capability-specific TCK and the full platform validation before
+  merge.
 - Representative 4 GB arm64 calibration remains required before a model capability ships.
 - Tink 1.23.0 shrunk APK contribution must be measured before a user-facing engine
   release.

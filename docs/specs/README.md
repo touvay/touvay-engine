@@ -26,7 +26,7 @@ recommended correction for architecture review.
 
 | Area | Specification | Status |
 |---|---|---|
-| Platform | [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) | Approved v1.0, amended through ADR-021 |
+| Platform | [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) | Approved v1.0, amended through ADR-023 |
 | Runtime SPI | [`docs/runtime/runtime-spi.md`](../runtime/runtime-spi.md) | Runtime v1.0 normative |
 | Runtime TCK | [`docs/runtime/runtime-tck.md`](../runtime/runtime-tck.md) | Runtime v1.0 executable contract |
 | llama.cpp adapter | [`docs/runtime/runtime-llamacpp-design.md`](../runtime/runtime-llamacpp-design.md) | Approved production adapter design |
@@ -34,6 +34,7 @@ recommended correction for architecture review.
 | Execution | [`docs/execution/execution-architecture.md`](../execution/execution-architecture.md) | Approved v1.0 implementation contract |
 | Capability Framework | [`docs/capabilities/CAPABILITY_SPEC.md`](../capabilities/CAPABILITY_SPEC.md) | Approved v1.0 implementation contract |
 | Capability TCK | [`docs/capabilities/capability-tck.md`](../capabilities/capability-tck.md) | Executable v1 conformance contract |
+| Context | [`docs/context/CONTEXT_SPEC.md`](../context/CONTEXT_SPEC.md) | Approved v1.0 implementation contract |
 
 ## Accepted ADRs
 
@@ -50,6 +51,8 @@ Later full records are:
 | [ADR-019](../adr/ADR-019-logical-conversations-and-runtime-sessions.md) | Client-owned conversations and request-attempt Runtime sessions |
 | [ADR-020](../adr/ADR-020-production-capability-spi-and-exact-key-registry.md) | Production Capability SPI, ordered semantic plan, and exact-key registry |
 | [ADR-021](../adr/ADR-021-typed-prompt-recipes-and-frozen-asset-binding.md) | Typed prompt recipes and frozen signed-asset binding |
+| [ADR-022](../adr/ADR-022-explicit-context-providers-and-provenance.md) | Explicit request-scoped providers and internal context provenance |
+| [ADR-023](../adr/ADR-023-deterministic-context-merge-and-token-budgeting.md) | Deterministic context merging and exact tokenizer budgeting |
 
 ## Milestone reviews and evidence
 

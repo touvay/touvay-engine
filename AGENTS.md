@@ -15,19 +15,13 @@ Touvay Engine is a privacy-first, **offline** AI runtime platform for Android
 request to a (model pack, runtime, execution plan). Apps never see models, runtimes,
 prompts, or hardware.
 
-**Status:** Architecture v1.0 plus ADR-015–019 approved. Runtime v1.0 is tagged
-`runtime-v1.0-foundation`, build-green, and 28/28 device-TCK green. Task 3 Slice 1
-implements the approved offline model-pack manifest/signature/compatibility verifier in
-`engine-models`. Slices 2–3 durable storage, catalog, selection, and storage ownership
-are approved. Slice 4 Runtime Registry resolution and cached `ModelInstance` lifecycle
-is approved. Execution Architecture v1.0 and Milestone 5 are complete and tagged
-`foundation-v0.5`; the Coordinator, Scheduler, Runtime-session mechanics, Model Manager
-adapter, and contract-v2 bounded streaming protocol are build-green. Capability Framework
-Architecture v1.0 and ADR-020/021 are approved; framework implementation and its 20-check
-TCK are complete and awaiting final engineering review. No
-user-facing execution program or Router is
-registered yet. User-facing capabilities, keyboard integration, and networking remain
-out of scope. The llama.cpp adapter remains unwired to a capability.
+**Status:** Platform Foundation v0.5 is tagged and build-green. Runtime v1.0, Model
+Manager Slices 1–4, Execution Engine, and Capability Framework v1 are complete; the
+framework is committed as `a40caa2`. Context Architecture v1.0 and ADR-022/023 are
+approved. Capability 1 Rewrite is the active implementation milestone. General Context
+Provider implementation, keyboard integration, UI, networking, retrieval, and memory
+remain out of scope. No user-facing execution program is registered yet, and the
+llama.cpp adapter remains unwired to a capability.
 
 ## Non-negotiable rules
 
@@ -56,6 +50,7 @@ out of scope. The llama.cpp adapter remains unwired to a capability.
 | Any code change | this file only, then the touched module | full ARCHITECTURE.md |
 | Wire format / AIDL / protos | `contract/` sources + ARCHITECTURE.md ADR-003, ADR-009, ADR-014 | rest of doc |
 | New capability | **`docs/capabilities/CAPABILITY_SPEC.md` (normative)** + ARCHITECTURE.md §9 §11; `CapabilityPipeline`/`EchoPipeline` are diagnostic compatibility code, not the production SPI | runtime adapter internals |
+| Context / prompt inputs | `docs/context/CONTEXT_SPEC.md` + `docs/capabilities/CAPABILITY_SPEC.md` §10 | runtime adapter internals |
 | Runtime / inference | **`docs/runtime/runtime-spi.md` (normative)** + `runtime-api`; TCK work → `docs/runtime/runtime-tck.md`; llama.cpp adapter → `docs/runtime/runtime-llamacpp-design.md` | full ARCHITECTURE.md |
 | SDK surface | ARCHITECTURE.md §9 + `sdk/touvay-sdk` + `.api` dumps | engine internals |
 | Model packs / downloads | `docs/model-manager/model-manager.md` (normative) + ADR-011/015/016 + `engine/engine-models/README.md` | — |

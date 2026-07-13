@@ -13,6 +13,9 @@ normative Execution Architecture contract in `docs/execution/execution-architect
 Amended 2026-07-13: ADR-020 (production Capability SPI, ordered semantic plans, and
 exact-key registry) and ADR-021 (typed prompt recipes and frozen signed-asset binding);
 normative Capability Framework contract in `docs/capabilities/CAPABILITY_SPEC.md`.
+Amended 2026-07-13: ADR-022 (explicit request-scoped context providers and internal
+provenance) and ADR-023 (deterministic context merge and exact token budgeting);
+normative Context Architecture contract in `docs/context/CONTEXT_SPEC.md`.
 **Audience:** Engine maintainers, SDK consumers, contributors
 **Scope:** Architecture only. No production code until this document is approved.
 
@@ -957,6 +960,20 @@ signed template/config assets use bounded protobuf-lite schemas and are frozen b
 digest in the routed plan. Capability code receives bounded asset/tokenizer ports rather
 than paths or Model Manager types. Full record:
 `docs/adr/ADR-021-typed-prompt-recipes-and-frozen-asset-binding.md`.
+
+**ADR-022 — Explicit request-scoped context providers and provenance.** *(Accepted
+2026-07-13, Context Architecture v1.0.)* Context Providers have no ambient authority;
+collection precedes preparation/admission; one immutable request snapshot is reused
+across attempts; and every fragment carries typed internal origin metadata that is
+minimized at public boundaries. `ExecutionContext` remains content-free. Full record:
+`docs/adr/ADR-022-explicit-context-providers-and-provenance.md`.
+
+**ADR-023 — Deterministic context merge and exact token budgeting.** *(Accepted
+2026-07-13, Context Architecture v1.0.)* Typed contributions merge by explicit stable
+precedence, not completion order. Context is bounded before routing and the final fully
+rendered input is checked with the exact selected tokenizer after acquisition. Trusted
+control remains structurally separate from untrusted data. Full record:
+`docs/adr/ADR-023-deterministic-context-merge-and-token-budgeting.md`.
 
 ---
 
