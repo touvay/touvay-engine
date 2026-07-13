@@ -116,8 +116,8 @@ READY ───────────► PRIMED ──────────
   MUST be bounded by `LoadConfig.threads`, and MUST NOT outlive the owning
   instance/session `close()`.
 - **SPI-TH-5** `TokenSink.onToken` is invoked on the decoding thread. The engine keeps
-  it non-blocking (unbounded channel at the binder layer); adapters MUST NOT assume the
-  sink is instantaneous but MAY assume it is not I/O-bound.
+  it non-blocking using the fixed-capacity per-quantum accumulator from ADR-018;
+  adapters MUST NOT assume the sink is instantaneous but MAY assume it is not I/O-bound.
 
 ## 5. Ownership and memory model
 

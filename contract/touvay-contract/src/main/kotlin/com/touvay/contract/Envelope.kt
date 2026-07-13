@@ -26,6 +26,15 @@ public class RequestEnvelope(
     public val coalesceKey: String?,
 ) : Parcelable
 
+/** Negotiated, bounded response-stream window (ADR-018). */
+@Parcelize
+public class StreamCreditWindow(
+    public val initialDeltaCredits: Int,
+    public val initialByteCredits: Long,
+    public val maxDeltaCredits: Int,
+    public val maxByteCredits: Long,
+) : Parcelable
+
 /** One streamed chunk of a response. [sequence] starts at 0 and increments by 1. */
 @Parcelize
 public class ResponseDelta(

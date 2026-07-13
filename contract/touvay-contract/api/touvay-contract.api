@@ -87,11 +87,16 @@ public final class com/touvay/contract/EngineError$Creator : android/os/Parcelab
 }
 
 public final class com/touvay/contract/EngineErrorCodes {
+	public static final field BACKPRESSURE_EXCEEDED I
 	public static final field BUSY I
 	public static final field CANCELLED I
+	public static final field DEADLINE_EXCEEDED I
 	public static final field INPUT_TOO_LARGE I
 	public static final field INSTANCE Lcom/touvay/contract/EngineErrorCodes;
 	public static final field INTERNAL I
+	public static final field MODEL_UNAVAILABLE I
+	public static final field PREEMPTED I
+	public static final field RUNTIME_FAILURE I
 	public static final field SCHEMA_VERSION_MISMATCH I
 	public static final field SUPERSEDED I
 	public static final field UNKNOWN_CAPABILITY I
@@ -126,18 +131,24 @@ public final class com/touvay/contract/EngineHello$Creator : android/os/Parcelab
 public abstract interface class com/touvay/contract/ITouvayEngine : android/os/IInterface {
 	public static final field DESCRIPTOR Ljava/lang/String;
 	public abstract fun cancel (Ljava/lang/String;)V
+	public abstract fun grantCredits (Ljava/lang/String;JIJ)V
 	public abstract fun listCapabilities ()Ljava/util/List;
+	public abstract fun listTransportFeatures ()Ljava/util/List;
 	public abstract fun negotiate (Lcom/touvay/contract/ClientHello;)Lcom/touvay/contract/EngineHello;
 	public abstract fun submit (Lcom/touvay/contract/RequestEnvelope;Lcom/touvay/contract/ITouvayResponseCallback;)V
+	public abstract fun submitWithCredits (Lcom/touvay/contract/RequestEnvelope;Lcom/touvay/contract/StreamCreditWindow;Lcom/touvay/contract/ITouvayResponseCallback;)V
 }
 
 public class com/touvay/contract/ITouvayEngine$Default : com/touvay/contract/ITouvayEngine {
 	public fun <init> ()V
 	public fun asBinder ()Landroid/os/IBinder;
 	public fun cancel (Ljava/lang/String;)V
+	public fun grantCredits (Ljava/lang/String;JIJ)V
 	public fun listCapabilities ()Ljava/util/List;
+	public fun listTransportFeatures ()Ljava/util/List;
 	public fun negotiate (Lcom/touvay/contract/ClientHello;)Lcom/touvay/contract/EngineHello;
 	public fun submit (Lcom/touvay/contract/RequestEnvelope;Lcom/touvay/contract/ITouvayResponseCallback;)V
+	public fun submitWithCredits (Lcom/touvay/contract/RequestEnvelope;Lcom/touvay/contract/StreamCreditWindow;Lcom/touvay/contract/ITouvayResponseCallback;)V
 }
 
 public abstract class com/touvay/contract/ITouvayEngine$Stub : android/os/Binder, com/touvay/contract/ITouvayEngine {
@@ -268,10 +279,30 @@ public final class com/touvay/contract/ResponseFinal$Creator : android/os/Parcel
 	public synthetic fun newArray (I)[Ljava/lang/Object;
 }
 
+public final class com/touvay/contract/StreamCreditWindow : android/os/Parcelable {
+	public static final field CREATOR Landroid/os/Parcelable$Creator;
+	public fun <init> (IJIJ)V
+	public final fun describeContents ()I
+	public final fun getInitialByteCredits ()J
+	public final fun getInitialDeltaCredits ()I
+	public final fun getMaxByteCredits ()J
+	public final fun getMaxDeltaCredits ()I
+	public final fun writeToParcel (Landroid/os/Parcel;I)V
+}
+
+public final class com/touvay/contract/StreamCreditWindow$Creator : android/os/Parcelable$Creator {
+	public fun <init> ()V
+	public final fun createFromParcel (Landroid/os/Parcel;)Lcom/touvay/contract/StreamCreditWindow;
+	public synthetic fun createFromParcel (Landroid/os/Parcel;)Ljava/lang/Object;
+	public final fun newArray (I)[Lcom/touvay/contract/StreamCreditWindow;
+	public synthetic fun newArray (I)[Ljava/lang/Object;
+}
+
 public final class com/touvay/contract/TouvayContract {
 	public static final field ACTION_BIND_ENGINE Ljava/lang/String;
 	public static final field CAPABILITY_DIAGNOSTICS_ECHO Ljava/lang/String;
 	public static final field CONTRACT_VERSION I
+	public static final field FEATURE_STREAM_CREDITS_V1 Ljava/lang/String;
 	public static final field INSTANCE Lcom/touvay/contract/TouvayContract;
 	public static final field MIN_SUPPORTED_CONTRACT_VERSION I
 }

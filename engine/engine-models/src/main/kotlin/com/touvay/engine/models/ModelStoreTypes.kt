@@ -1,9 +1,10 @@
 package com.touvay.engine.models
 
-internal class ModelRevisionIdentity(
-    val packId: String,
-    val packVersion: String,
-    val manifestSha256: String,
+/** Exact immutable installed revision identity exposed to the composition root. */
+public class ModelRevisionIdentity(
+    public val packId: String,
+    public val packVersion: String,
+    public val manifestSha256: String,
 ) {
     override fun equals(other: Any?): Boolean = other is ModelRevisionIdentity &&
         packId == other.packId &&

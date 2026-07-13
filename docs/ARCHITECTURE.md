@@ -463,7 +463,11 @@ interface ITouvayEngine {
     List<CapabilityInfo> listCapabilities();
     void submit(in RequestEnvelope req, ITouvayResponseCallback cb);
     oneway void cancel(String requestId);
-    ISession createSession(in SessionSpec spec);       // multi-turn context reuse
+    List<String> listTransportFeatures();              // v2, appended after all v1 methods
+    void submitWithCredits(in RequestEnvelope req, in StreamCreditWindow window,
+                           ITouvayResponseCallback cb);
+    oneway void grantCredits(String requestId, long sequence,
+                             int deltaCredits, long byteCredits);
 }
 oneway interface ITouvayResponseCallback {             // oneway: engine never blocks on clients
     void onAccepted(String requestId);
@@ -472,6 +476,10 @@ oneway interface ITouvayResponseCallback {             // oneway: engine never b
     void onFailed(in EngineError err);
 }
 ```
+
+Contract v2 implements ADR-018 with append-only count-and-byte credit methods. Binder
+transaction ids for the four v1 methods are frozen by a golden test. A public logical-session
+facade remains future additive work under ADR-019; it is not part of contract v2.
 
 **Evolution rules:** methods are added, never changed; `negotiate()` exchanges
 `{contractVersion, minSupported}` both ways; capabilities and their payload schema versions are

@@ -998,36 +998,37 @@ The Runtime TCK remains authoritative for adapter behavior. Execution tests use 
 deterministic fake runtime plus a small number of real-adapter instrumented integration
 tests; they do not duplicate the entire Runtime TCK.
 
-## 23. Existing implementation gaps
+## 23. Milestone 5 implementation status
 
-The current walking skeleton intentionally predates this specification and is not the
-production execution architecture. Implementation authorization must address these
-known gaps in focused slices:
+Milestone 5 implements the architecture-neutral execution foundation:
 
-1. `RequestProcessor` publishes an active request before assigning its `Job`, allowing a
-   concurrent cancel/publication race.
-2. `RequestListener` documents accepted-before-every-terminal while validation failures
-   currently fail without acceptance. This specification chooses admitted-only
-   `onAccepted`; KDoc/tests must be aligned.
-3. `RequestProcessor` copies arbitrary pipeline exception messages into public internal
-   failures. This violates EXE-INV-9.
-4. `RequestProcessor` has no Scheduler, deadline, priority, resource lease, attempt, or
-   runtime cancellation model.
-5. `EngineBinder` currently ignores `RequestEnvelope.priority` and has no additive
-   deadline or stream-credit input.
-6. SDK streaming uses `Channel.UNLIMITED` and blocking callback enqueue. It is acceptable
-   only for the bounded diagnostic skeleton, not production model streaming.
-7. The current Binder contract has no public logical-session or credit-control surface.
-   Neither should be improvised during orchestration implementation.
-8. Capability pipelines are monolithic and cannot yet separate bounded preparation,
-   routing demand, runtime token assembly, and retry reset.
-9. Model Manager is not wired into `engine-service`; this remains intentionally gated.
+1. `ExecutionCoordinator` owns immutable context, frozen plan, sequential attempts,
+   deadlines, retry commit, Runtime-session mechanics, reverse cleanup, and one terminal
+   CAS. Terminal callbacks run only after request-level reservations and prepared state
+   are released.
+2. `PriorityExecutionScheduler` implements bounded global/per-principal admission,
+   fixed-RAM/KV/load-cost reservations, strict interactive/FIFO ordering, atomic
+   coalescing, and cancellation preemption. Ingress reserves request capacity before a
+   preparation coroutine starts and permits at most one bounded successor slot per live
+   coalescing identity.
+3. `StreamCreditWindow` implements sequenced count-and-byte accounting; Runtime decode
+   uses fixed token/byte quanta and releases compute permission while credit-blocked.
+4. Contract v2 appends negotiated credit methods without changing v1 Binder transaction
+   ids. The SDK uses bounded callback storage and grants only after Flow consumption.
+5. `engine-service` provides the composition adapter from the Coordinator's model port
+   to `RuntimeInstanceManager`, with one single-thread inference lane per active instance
+   key. Model Manager still owns instance and pack-file lifetime.
+6. The diagnostic `RequestProcessor` race and content-leaking failure mapping are fixed;
+   it remains a compatibility path, not the production model executor.
 
-Milestone 5 is authorized to resolve these gaps only where required by its approved
-execution-engine scope. User-facing capability, keyboard, networking, and unrelated
-module work remain gated.
+No user-facing execution program or Router is registered in the service yet. Therefore
+the production Coordinator/Model Manager composition exists but is not reachable through
+a capability until a separately approved capability/orchestration milestone supplies
+bounded preparation and routing policy. Public logical conversations, keyboard
+integration, networking, downloader behavior, and inference execution from an app remain
+gated.
 
-## 24. ADRs required before implementation
+## 24. Accepted ADRs
 
 ### ADR-017 — Execution coordinator, request acceptance, and terminal semantics
 
@@ -1086,10 +1087,9 @@ runtime lifecycle respectively.
 
 ## 25. Implementation contract
 
-This specification and ADR-017, ADR-018, and ADR-019 are approved. Milestone 5 may
-implement the Execution Coordinator, request lifecycle, Scheduler integration, Runtime
-session orchestration, credit protocol, cancellation, retry, and terminal arbitration.
-Implementation should still establish the engine-core state-machine harness before
-wiring Model Manager and transport so ownership/race invariants stay independently
-testable. User-facing capabilities, keyboard integration, networking, and follow-on
-milestones are not authorized.
+This specification and ADR-017, ADR-018, and ADR-019 are approved. Milestone 5 implements
+the Execution Coordinator, request lifecycle, Scheduler integration, Runtime-session
+orchestration, credit protocol, cancellation, retry, and terminal arbitration. The
+engine-core state-machine harness remains independently testable from Model Manager and
+transport composition. User-facing capabilities, keyboard integration, networking, and
+follow-on milestones are not authorized by this contract.

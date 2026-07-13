@@ -21,8 +21,10 @@ implements the approved offline model-pack manifest/signature/compatibility veri
 `engine-models`. Slices 2–3 durable storage, catalog, selection, and storage ownership
 are approved. Slice 4 Runtime Registry resolution and cached `ModelInstance` lifecycle
 is approved. Execution Architecture v1.0 is frozen in `docs/execution/`; Milestone 5
-execution-engine implementation is authorized. User-facing capabilities, keyboard
-integration, and networking remain out of scope. The llama.cpp adapter remains unwired.
+implements the Coordinator, Scheduler, Runtime-session mechanics, Model Manager adapter,
+and contract-v2 bounded streaming protocol and is build-green. No user-facing execution
+program or Router is registered yet. User-facing capabilities, keyboard integration, and
+networking remain out of scope. The llama.cpp adapter remains unwired to a capability.
 
 ## Non-negotiable rules
 
@@ -66,7 +68,7 @@ integration, and networking remain out of scope. The llama.cpp adapter remains u
 | `sdk/touvay-sdk` | Public client API: `Touvay.connect`, `TouvayClient`, Flow streaming, `TouvayException`, binder-death handling | contract |
 | `engine/engine-core` | Pure JVM (no Android): `CapabilityRegistry`, `RequestProcessor` (streaming, cancel, coalescing, exactly-one-terminal) | runtime-api |
 | `engine/engine-models` | Pure JVM, offline Task 3 boundary: pack verification, transactional storage, catalog/leases, Runtime Registry resolution, and cached `ModelInstance` ownership. No sessions, inference, scheduler, routing, downloader, or network | runtime-api |
-| `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root (only place concretes are wired); `EchoPipeline` | contract, engine-core, runtime-api |
+| `engine/engine-service` | Bound service in `:touvay` process; binder impl; same-app UID policy; composition root (only place concretes are wired); `EchoPipeline` | contract, engine-core, engine-models, runtime-api |
 | `runtime/runtime-api` | Runtime SPI (`InferenceRuntime`/`ModelInstance`/`InferenceSession`, `tokenize`, `CancelSignal`); normative spec `docs/runtime/runtime-spi.md` | nothing |
 | `runtime/runtime-tck` | Conformance kit (pure JVM): `AbstractRuntimeTck` + sabotage self-test; adapters conform via one androidTest subclass | runtime-api |
 | `runtime/runtime-llamacpp` | Production llama.cpp adapter (pinned b5199; abort-callback cancellation; NOT engine-wired — Task 3 gate) | runtime-api |
@@ -130,9 +132,9 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 ## Open items / approval gates
 
 - Representative 4 GB arm64 calibration remains required before runtime/lifecycle wiring.
-- **Gate:** Milestone 5 execution-engine implementation is authorized under ADR-017–019.
-  User-facing capabilities, keyboard integration, networking, and follow-on milestones
-  remain unauthorized.
+- **Gate:** Milestone 5 is implemented and awaiting merge approval. User-facing
+  capabilities, Router policy, keyboard integration, networking, and follow-on
+  milestones remain unauthorized.
 - Measure Tink 1.23.0's shrunk APK contribution before engine-service wiring; Slice 1
   uses one pure-Java verifier path across API 29+ and adds no Android composition edge.
 - Deferred (additive): public logical-session facade; convention-plugin guard for

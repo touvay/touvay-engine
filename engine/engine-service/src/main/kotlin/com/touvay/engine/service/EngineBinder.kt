@@ -15,12 +15,17 @@ import com.touvay.contract.RequestEnvelope
 import com.touvay.contract.RequestStats
 import com.touvay.contract.ResponseDelta
 import com.touvay.contract.ResponseFinal
+import com.touvay.contract.StreamCreditWindow as ContractStreamCreditWindow
 import com.touvay.contract.TouvayContract
 import com.touvay.engine.core.ExecutionStats
 import com.touvay.engine.core.RequestFailure
 import com.touvay.engine.core.RequestJob
 import com.touvay.engine.core.RequestListener
 import com.touvay.engine.core.RequestProcessor
+import com.touvay.engine.core.RequestKey
+import com.touvay.engine.core.StreamCreditWindow
+import com.touvay.engine.core.StreamLimits
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The engine's side of the binder contract. Binder threads only enqueue here; inference
@@ -30,6 +35,7 @@ import com.touvay.engine.core.RequestProcessor
 internal class EngineBinder(
     private val component: EngineComponent,
 ) : ITouvayEngine.Stub() {
+    private val creditWindows = ConcurrentHashMap<RequestKey, StreamCreditWindow>()
 
     override fun negotiate(hello: ClientHello?): EngineHello {
         enforceCallerAllowed()
@@ -53,8 +59,66 @@ internal class EngineBinder(
         }
     }
 
+    override fun listTransportFeatures(): List<String> {
+        enforceCallerAllowed()
+        return listOf(TouvayContract.FEATURE_STREAM_CREDITS_V1)
+    }
+
     override fun submit(request: RequestEnvelope?, callback: ITouvayResponseCallback?) {
         enforceCallerAllowed()
+        submitInternal(request, callback, null)
+    }
+
+    override fun submitWithCredits(
+        request: RequestEnvelope?,
+        window: ContractStreamCreditWindow?,
+        callback: ITouvayResponseCallback?,
+    ) {
+        enforceCallerAllowed()
+        if (callback == null) return
+        val credits = try {
+            requireNotNull(window)
+            StreamCreditWindow(
+                StreamLimits(
+                    initialDeltaCredits = window.initialDeltaCredits,
+                    initialByteCredits = window.initialByteCredits,
+                    maxDeltaCredits = window.maxDeltaCredits,
+                    maxByteCredits = window.maxByteCredits,
+                ),
+            )
+        } catch (_: IllegalArgumentException) {
+            runCatching {
+                callback.onFailed(
+                    EngineError(
+                        request?.requestId.orEmpty(),
+                        EngineErrorCodes.BACKPRESSURE_EXCEEDED,
+                        false,
+                        "invalid stream credit window",
+                    ),
+                )
+            }
+            return
+        }
+        submitInternal(request, callback, credits)
+    }
+
+    override fun grantCredits(
+        requestId: String?,
+        grantSequence: Long,
+        deltaCredits: Int,
+        byteCredits: Long,
+    ) {
+        enforceCallerAllowed()
+        if (requestId == null) return
+        val key = RequestKey(Binder.getCallingUid().toString(), requestId)
+        creditWindows[key]?.grant(grantSequence, deltaCredits, byteCredits)
+    }
+
+    private fun submitInternal(
+        request: RequestEnvelope?,
+        callback: ITouvayResponseCallback?,
+        credits: StreamCreditWindow?,
+    ) {
         if (callback == null) return
         if (request == null) {
             // Defensive: only reachable from hand-written clients, but the failure must
@@ -67,21 +131,44 @@ internal class EngineBinder(
             return
         }
 
+        val clientId = Binder.getCallingUid().toString()
+        val key = RequestKey(clientId, request.requestId)
+        if (credits != null && creditWindows.putIfAbsent(key, credits) != null) {
+            credits.close()
+            runCatching {
+                callback.onFailed(
+                    EngineError(
+                        request.requestId,
+                        EngineErrorCodes.INTERNAL,
+                        false,
+                        "duplicate live request",
+                    ),
+                )
+            }
+            return
+        }
+
         val job = RequestJob(
             requestId = request.requestId,
-            clientId = Binder.getCallingUid().toString(),
+            clientId = clientId,
             capabilityId = request.capabilityId,
             schemaVersion = request.schemaVersion,
             payload = request.payload,
             coalesceKey = request.coalesceKey,
         )
-        component.processor.submit(job, BinderRequestListener(callback, component.processor))
+        component.processor.submit(
+            job,
+            BinderRequestListener(callback, component.processor, key, credits) {
+                if (credits != null) creditWindows.remove(key, credits)
+                credits?.close()
+            },
+        )
     }
 
     override fun cancel(requestId: String?) {
         enforceCallerAllowed()
         if (requestId != null) {
-            component.processor.cancel(requestId)
+            component.processor.cancel(Binder.getCallingUid().toString(), requestId)
         }
     }
 
@@ -101,18 +188,23 @@ internal class EngineBinder(
 private class BinderRequestListener(
     private val callback: ITouvayResponseCallback,
     private val processor: RequestProcessor,
+    private val requestKey: RequestKey,
+    private val credits: StreamCreditWindow?,
+    private val onTerminal: () -> Unit,
 ) : RequestListener {
 
     override fun onAccepted(requestId: String) = deliver(requestId) {
         callback.onAccepted(requestId)
     }
 
-    override fun onDelta(requestId: String, sequence: Int, payload: ByteArray) =
+    override suspend fun onDelta(requestId: String, sequence: Int, payload: ByteArray) {
+        credits?.awaitAndConsume(payload.size)
         deliver(requestId) {
             callback.onDelta(ResponseDelta(requestId, sequence, payload))
         }
+    }
 
-    override fun onCompleted(requestId: String, payload: ByteArray, stats: ExecutionStats) =
+    override fun onCompleted(requestId: String, payload: ByteArray, stats: ExecutionStats) {
         deliver(requestId) {
             callback.onCompleted(
                 ResponseFinal(
@@ -122,9 +214,14 @@ private class BinderRequestListener(
                 ),
             )
         }
+        onTerminal()
+    }
 
-    override fun onFailed(requestId: String, failure: RequestFailure) = deliver(requestId) {
-        callback.onFailed(failure.toEngineError(requestId))
+    override fun onFailed(requestId: String, failure: RequestFailure) {
+        deliver(requestId) {
+            callback.onFailed(failure.toEngineError(requestId))
+        }
+        onTerminal()
     }
 
     private inline fun deliver(requestId: String, block: () -> Unit) {
@@ -132,20 +229,20 @@ private class BinderRequestListener(
             block()
         } catch (e: RemoteException) {
             // The client process is gone (§11.4): stop doing work on its behalf.
-            processor.cancel(requestId)
+            processor.cancel(requestKey.principal, requestId)
         }
     }
 }
 
 private fun RequestFailure.toEngineError(requestId: String): EngineError = when (this) {
     is RequestFailure.UnknownCapability -> EngineError(
-        requestId, EngineErrorCodes.UNKNOWN_CAPABILITY, false, "unknown capability: $capabilityId",
+        requestId, EngineErrorCodes.UNKNOWN_CAPABILITY, false, "unknown capability",
     )
     is RequestFailure.SchemaVersionMismatch -> EngineError(
         requestId,
         EngineErrorCodes.SCHEMA_VERSION_MISMATCH,
         false,
-        "capability $capabilityId speaks schema $supported; request used $requested",
+        "unsupported capability schema",
     )
     is RequestFailure.Cancelled -> if (superseded) {
         EngineError(requestId, EngineErrorCodes.SUPERSEDED, false, "superseded by a newer request")

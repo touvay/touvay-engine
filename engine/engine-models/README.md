@@ -1,6 +1,6 @@
-# engine-models — Task 3 Slices 1–4
+# engine-models — Task 3 Slices 1–4 + Milestone 5 boundary
 
-**Status:** Slices 1–4 approved; engine composition and inference remain gated.
+**Status:** Slices 1–4 approved; Milestone 5 execution acquisition boundary implemented.
 
 This pure-JVM, offline module owns the model-pack schema, bounded verification boundary,
 transactional local storage, immutable catalog/storage ownership, and the internal
@@ -33,12 +33,15 @@ signed envelope.
 - canonical execution profiles keyed by binding identity, thread count, and mmap mode;
 - exact-revision `ResolvedModelPack` projection under a storage lease;
 - single-flight `ModelInstance` loading, idempotent runtime leases, idle caching,
-  explicit release, shutdown, and cache consistency verification.
+  explicit release, shutdown, and cache consistency verification;
+- narrow public acquisition identity/profile/lease types used only by the
+  `engine-service` composition adapter. `engine-models` remains unpublished.
 
 There is no inference-session creation, tokenization/inference execution, scheduler,
-engine routing/composition, downloader, or network code. All
-hand-written declarations remain module-internal; generated protobuf classes are not
-exposed through a cross-module port, and `engine-models` is not a published API artifact.
+engine routing, downloader, or network code in this module. Milestone 5 performs those
+request-time operations in `engine-core` through an `engine-service` adapter. Manifest,
+catalog, storage, Registry, and generated protobuf details remain module-internal, and
+`engine-models` is not a published API artifact.
 
 ## Durable storage contract
 

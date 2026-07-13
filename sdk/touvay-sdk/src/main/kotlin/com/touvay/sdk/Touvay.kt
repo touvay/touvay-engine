@@ -84,9 +84,23 @@ public object Touvay {
             throw incompatibility
         }
 
-        return TouvayClientImpl(engine) {
-            runCatching { appContext.unbindService(awaiter) }
+        val transportFeatures = if (hello.contractVersion >= 2) {
+            try {
+                withContext(Dispatchers.IO) { engine.listTransportFeatures().toSet() }
+            } catch (e: RemoteException) {
+                runCatching { appContext.unbindService(awaiter) }
+                throw TouvayException.EngineDisconnected(e)
+            }
+        } else {
+            emptySet()
         }
+
+        return TouvayClientImpl(
+            engine = engine,
+            onClose = { runCatching { appContext.unbindService(awaiter) } },
+            supportsStreamingCredits =
+                TouvayContract.FEATURE_STREAM_CREDITS_V1 in transportFeatures,
+        )
     }
 
     /** Each side accepts the other iff the version windows overlap (ADR-009). */

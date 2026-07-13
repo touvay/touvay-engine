@@ -18,9 +18,10 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-internal class InstanceKey(
-    val revision: ModelRevisionIdentity,
-    val profile: ExecutionProfile,
+/** Exact revision plus canonical execution profile (ADR-015). */
+public class InstanceKey internal constructor(
+    public val revision: ModelRevisionIdentity,
+    public val profile: ExecutionProfile,
 ) {
     override fun equals(other: Any?): Boolean = other is InstanceKey &&
         revision == other.revision && profile == other.profile
@@ -49,9 +50,10 @@ internal class RuntimeCacheSnapshot(
     val entries: List<RuntimeCacheEntrySnapshot> = Collections.unmodifiableList(entries.toList())
 }
 
-internal class RuntimeModelLease internal constructor(
-    val key: InstanceKey,
-    val instance: ModelInstance,
+/** Idempotent borrow of one cached Runtime [ModelInstance]. */
+public class RuntimeModelLease internal constructor(
+    public val key: InstanceKey,
+    public val instance: ModelInstance,
     private val releaseAction: () -> Unit,
 ) : AutoCloseable {
     private val closed = AtomicBoolean(false)
@@ -61,7 +63,11 @@ internal class RuntimeModelLease internal constructor(
     }
 }
 
-internal class RuntimeInstanceManager(
+/**
+ * Runtime Registry-backed, single-flight loaded-instance owner. Construction remains in
+ * the model subsystem; the composition root receives this narrow acquisition boundary.
+ */
+public class RuntimeInstanceManager internal constructor(
     private val catalog: ModelCatalogManager,
     private val registry: RuntimeRegistry,
     private val loadDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -77,7 +83,8 @@ internal class RuntimeInstanceManager(
     private var managerState = ManagerState.OPEN
     private var shutdownCompletion: CompletableDeferred<Unit>? = null
 
-    suspend fun acquire(
+    /** Acquires an exact/selected revision and pins its instance and backing files. */
+    public suspend fun acquire(
         selection: VersionSelection,
         device: DeviceProfile,
         request: ExecutionProfileRequest,
@@ -140,7 +147,7 @@ internal class RuntimeInstanceManager(
         }
     }
 
-    suspend fun releaseIdle(key: InstanceKey): Boolean {
+    internal suspend fun releaseIdle(key: InstanceKey): Boolean {
         val entry: LoadedEntry
         val completion: CompletableDeferred<Unit>
         lock.withLock {
@@ -169,7 +176,7 @@ internal class RuntimeInstanceManager(
         return true
     }
 
-    suspend fun releaseAllIdle(): Int {
+    internal suspend fun releaseAllIdle(): Int {
         val keys = lock.withLock {
             ensureOpen()
             loaded.values.filter { it.referenceCount == 0 }.map { it.key }
@@ -181,12 +188,12 @@ internal class RuntimeInstanceManager(
         return released
     }
 
-    fun snapshot(): RuntimeCacheSnapshot = lock.withLock {
+    internal fun snapshot(): RuntimeCacheSnapshot = lock.withLock {
         verifyLocked()
         snapshotLocked()
     }
 
-    suspend fun shutdown() {
+    internal suspend fun shutdown() {
         val existing: CompletableDeferred<Unit>?
         val completion: CompletableDeferred<Unit>
         val first: Boolean

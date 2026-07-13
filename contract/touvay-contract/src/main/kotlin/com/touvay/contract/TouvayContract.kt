@@ -8,7 +8,7 @@ package com.touvay.contract
  */
 public object TouvayContract {
     /** Contract version implemented by this artifact. */
-    public const val CONTRACT_VERSION: Int = 1
+    public const val CONTRACT_VERSION: Int = 2
 
     /** Oldest contract version this artifact can interoperate with. */
     public const val MIN_SUPPORTED_CONTRACT_VERSION: Int = 1
@@ -18,6 +18,9 @@ public object TouvayContract {
      * this action within its own package; engine-app discovery is a future, additive step.
      */
     public const val ACTION_BIND_ENGINE: String = "com.touvay.engine.action.BIND"
+
+    /** Negotiated count-and-byte streaming credit protocol from ADR-018. */
+    public const val FEATURE_STREAM_CREDITS_V1: String = "transport.stream-credits.v1"
 
     /**
      * Permanent diagnostic capability: echoes text back, optionally chunked/delayed.
@@ -48,6 +51,11 @@ public object EngineErrorCodes {
     public const val BUSY: Int = 5
     public const val INPUT_TOO_LARGE: Int = 6
     public const val INTERNAL: Int = 7
+    public const val DEADLINE_EXCEEDED: Int = 8
+    public const val PREEMPTED: Int = 9
+    public const val BACKPRESSURE_EXCEEDED: Int = 10
+    public const val MODEL_UNAVAILABLE: Int = 11
+    public const val RUNTIME_FAILURE: Int = 12
 }
 
 /** Scheduling classes carried by [RequestEnvelope.priority] (ARCHITECTURE.md §14.1). */

@@ -65,12 +65,16 @@ internal class CatalogRebuildReport(
     val metadataCacheUsed: Boolean,
 )
 
-internal sealed interface VersionSelection {
-    class Active(val packId: String) : VersionSelection
+/** Version-selection vocabulary accepted by the Model Manager acquisition boundary. */
+public sealed interface VersionSelection {
+    /** Selects the currently active revision of [packId]. */
+    public class Active(public val packId: String) : VersionSelection
 
-    class Exact(val identity: ModelRevisionIdentity) : VersionSelection
+    /** Selects one exact content-addressed revision. */
+    public class Exact(public val identity: ModelRevisionIdentity) : VersionSelection
 
-    class HighestCompatible(val packId: String) : VersionSelection
+    /** Selects the highest installed compatible revision of [packId]. */
+    public class HighestCompatible(public val packId: String) : VersionSelection
 }
 
 internal enum class RemovalDisposition {

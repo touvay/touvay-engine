@@ -45,17 +45,19 @@ internal class RuntimeBinding(
     }
 }
 
-internal class ExecutionProfileRequest(
-    val threads: Int,
-    val useMmap: Boolean = true,
+/** Load-affecting request resolved and canonicalized through Runtime Registry. */
+public class ExecutionProfileRequest(
+    public val threads: Int,
+    public val useMmap: Boolean = true,
 )
 
-internal class ExecutionProfile(
-    val bindingIdentity: String,
-    val threads: Int,
-    val useMmap: Boolean,
+/** Canonical loaded-instance profile; part of ADR-015's process-local cache identity. */
+public class ExecutionProfile internal constructor(
+    public val bindingIdentity: String,
+    public val threads: Int,
+    public val useMmap: Boolean,
 ) {
-    fun loadConfig(): LoadConfig = LoadConfig(threads = threads, useMmap = useMmap)
+    internal fun loadConfig(): LoadConfig = LoadConfig(threads = threads, useMmap = useMmap)
 
     override fun equals(other: Any?): Boolean = other is ExecutionProfile &&
         bindingIdentity == other.bindingIdentity &&

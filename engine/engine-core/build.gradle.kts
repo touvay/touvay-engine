@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":runtime:runtime-api"))
     implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.junit4)

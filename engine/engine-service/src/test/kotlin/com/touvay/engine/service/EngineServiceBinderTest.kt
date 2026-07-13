@@ -12,6 +12,7 @@ import com.touvay.contract.RequestEnvelope
 import com.touvay.contract.RequestPriorities
 import com.touvay.contract.ResponseDelta
 import com.touvay.contract.ResponseFinal
+import com.touvay.contract.StreamCreditWindow
 import com.touvay.contract.TouvayContract
 import com.touvay.contract.proto.EchoDelta
 import com.touvay.contract.proto.EchoRequest
@@ -77,6 +78,13 @@ class EngineServiceBinderTest {
 
         assertEquals(1, echo.schemaVersion)
         assertEquals(CapabilityStatusCodes.READY, echo.statusCode)
+    }
+
+    @Test
+    fun transportFeatures_includeBoundedStreamCredits() {
+        assertTrue(
+            TouvayContract.FEATURE_STREAM_CREDITS_V1 in engine.listTransportFeatures(),
+        )
     }
 
     // -- request execution ---------------------------------------------------------------
@@ -157,7 +165,32 @@ class EngineServiceBinderTest {
 
         val error = assertNotNull(callback.error)
         assertEquals(EngineErrorCodes.INTERNAL, error.code)
-        assertTrue("malformed dev.echo payload" in error.message)
+        assertEquals("internal execution failure", error.message)
+    }
+
+    @Test
+    fun creditStream_rejectsOutOfOrderGrant_andResumesOnExpectedSequence() {
+        val callback = RecordingCallback()
+        engine.submitWithCredits(
+            echoEnvelope("req-credit", "abcdef", chunks = 3),
+            StreamCreditWindow(1, 1024, 1, 1024),
+            callback,
+        )
+        assertTrue(callback.firstDelta.await(5, TimeUnit.SECONDS))
+        Thread.sleep(100)
+        assertEquals(1, callback.deltas.size)
+
+        engine.grantCredits("req-credit", 2, 1, callback.deltas.single().payload.size.toLong())
+        Thread.sleep(100)
+        assertEquals(1, callback.deltas.size)
+
+        engine.grantCredits("req-credit", 1, 1, callback.deltas.single().payload.size.toLong())
+        awaitDeltaCount(callback, 2)
+        engine.grantCredits("req-credit", 2, 1, callback.deltas.last().payload.size.toLong())
+        callback.awaitTerminal()
+
+        assertEquals(3, callback.deltas.size)
+        assertNotNull(callback.completed)
     }
 
     @Test
@@ -208,6 +241,14 @@ class EngineServiceBinderTest {
             RequestPriorities.INTERACTIVE,
             null,
         )
+    }
+
+    private fun awaitDeltaCount(callback: RecordingCallback, count: Int) {
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
+        while (callback.deltas.size < count && System.nanoTime() < deadline) {
+            Thread.sleep(10)
+        }
+        assertTrue(callback.deltas.size >= count, "expected at least $count deltas")
     }
 
     private class RecordingCallback : ITouvayResponseCallback.Stub() {

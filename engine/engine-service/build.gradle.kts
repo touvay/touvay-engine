@@ -9,6 +9,8 @@ android {
 dependencies {
     implementation(project(":contract:touvay-contract"))
     implementation(project(":engine:engine-core"))
+    implementation(project(":engine:engine-models"))
+    implementation(project(":runtime:runtime-api"))
     implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit4)

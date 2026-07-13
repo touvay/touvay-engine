@@ -19,6 +19,18 @@ import kotlin.test.assertNull
 class ParcelRoundTripTest {
 
     @Test
+    fun streamCreditWindow_roundTrips() {
+        val original = StreamCreditWindow(4, 4096, 8, 8192)
+
+        val out = roundTrip(original)
+
+        assertEquals(4, out.initialDeltaCredits)
+        assertEquals(4096, out.initialByteCredits)
+        assertEquals(8, out.maxDeltaCredits)
+        assertEquals(8192, out.maxByteCredits)
+    }
+
+    @Test
     fun clientHello_roundTrips() {
         val out = roundTrip(ClientHello(contractVersion = 1, minContractVersion = 1, sdkVersionName = "0.1.0"))
         assertEquals(1, out.contractVersion)

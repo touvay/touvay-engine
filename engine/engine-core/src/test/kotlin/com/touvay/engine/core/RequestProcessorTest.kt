@@ -59,7 +59,7 @@ class RequestProcessorTest {
         override fun onAccepted(requestId: String) {
             events += Event.Accepted(requestId)
         }
-        override fun onDelta(requestId: String, sequence: Int, payload: ByteArray) {
+        override suspend fun onDelta(requestId: String, sequence: Int, payload: ByteArray) {
             events += Event.Delta(requestId, sequence)
         }
         override fun onCompleted(requestId: String, payload: ByteArray, stats: ExecutionStats) {
@@ -202,7 +202,7 @@ class RequestProcessorTest {
 
         val failed = assertIs<Event.Failed>(listener.terminalEvents().single())
         val internal = assertIs<RequestFailure.Internal>(failed.failure)
-        assertEquals("IllegalStateException: pipeline exploded", internal.message)
+        assertEquals("internal execution failure", internal.message)
     }
 
     // -- cancellation ----------------------------------------------------------------------
@@ -220,7 +220,7 @@ class RequestProcessorTest {
         runCurrent()
         assertTrue(listener.deltas().isNotEmpty())
 
-        assertTrue(processor.cancel("req-1"))
+        assertTrue(processor.cancel("client-a", "req-1"))
         advanceUntilIdle()
 
         val failed = assertIs<Event.Failed>(listener.terminalEvents().single())
@@ -238,7 +238,7 @@ class RequestProcessorTest {
 
         processor.submit(job(), listener)
         // No scheduler advance: the coroutine has not started when cancel arrives.
-        assertTrue(processor.cancel("req-1"))
+        assertTrue(processor.cancel("client-a", "req-1"))
         advanceUntilIdle()
 
         val failed = assertIs<Event.Failed>(listener.terminalEvents().single())
@@ -251,7 +251,7 @@ class RequestProcessorTest {
             CapabilityRegistry.of(ChunkingPipeline()),
             StandardTestDispatcher(testScheduler),
         )
-        assertFalse(processor.cancel("never-submitted"))
+        assertFalse(processor.cancel("client-a", "never-submitted"))
     }
 
     @Test
@@ -265,7 +265,7 @@ class RequestProcessorTest {
         processor.submit(job(), listener)
         advanceUntilIdle()
 
-        assertFalse(processor.cancel("req-1"))
+        assertFalse(processor.cancel("client-a", "req-1"))
         assertEquals(1, listener.terminalEvents().size)
     }
 

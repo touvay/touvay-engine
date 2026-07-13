@@ -37,6 +37,7 @@ class DependencyRulesPlugin : Plugin<Project> {
         ":engine:engine-service" to setOf(
             ":contract:touvay-contract",
             ":engine:engine-core",
+            ":engine:engine-models",
             ":runtime:runtime-api",
         ),
         // §8 rule 7: client apps depend only on the SDK (+ the engine host they embed).

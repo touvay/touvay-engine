@@ -13,6 +13,7 @@ import com.touvay.contract.RequestEnvelope
 import com.touvay.contract.RequestPriorities
 import com.touvay.contract.ResponseDelta
 import com.touvay.contract.ResponseFinal
+import com.touvay.contract.StreamCreditWindow
 import com.touvay.contract.TouvayContract
 import com.touvay.contract.proto.EchoDelta
 import com.touvay.contract.proto.EchoRequest
@@ -24,23 +25,24 @@ import com.touvay.sdk.TouvayDiagnostics
 import com.touvay.sdk.TouvayException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 internal class TouvayClientImpl(
     private val engine: ITouvayEngine,
     private val onClose: () -> Unit,
+    private val supportsStreamingCredits: Boolean = true,
 ) : TouvayClient {
 
     private val closed = AtomicBoolean(false)
@@ -95,56 +97,158 @@ internal class TouvayClientImpl(
         schemaVersion: Int,
         payload: ByteArray,
         coalesceKey: String? = null,
-    ): Flow<ResponseEvent> = callbackFlow {
+    ): Flow<ResponseEvent> = flow {
         ensureOpen()
         val requestId = UUID.randomUUID().toString()
+        val wireEvents = Channel<ResponseEvent>(STREAM_DELTA_CREDITS + 1)
+        val terminal = AtomicBoolean(false)
+        val outstandingDeltas = AtomicInteger(0)
+        val outstandingBytes = AtomicLong(0)
+        var expectedSequence = 0
 
         val callback = object : ITouvayResponseCallback.Stub() {
             override fun onAccepted(acceptedRequestId: String) = Unit
 
             override fun onDelta(delta: ResponseDelta) {
-                trySendBlocking(ResponseEvent.Delta(delta.sequence, delta.payload))
+                if (terminal.get()) return
+                val queued = synchronized(this) {
+                    if (terminal.get() || delta.requestId != requestId ||
+                        delta.sequence != expectedSequence ||
+                        delta.payload.size > STREAM_BYTE_CREDITS
+                    ) {
+                        false
+                    } else {
+                        val pendingCount = outstandingDeltas.incrementAndGet()
+                        val pendingBytes = outstandingBytes.addAndGet(delta.payload.size.toLong())
+                        val accepted = pendingCount <= STREAM_DELTA_CREDITS &&
+                            pendingBytes <= STREAM_BYTE_CREDITS &&
+                            wireEvents.trySend(
+                                ResponseEvent.Delta(delta.sequence, delta.payload.copyOf()),
+                            ).isSuccess
+                        if (accepted) {
+                            expectedSequence += 1
+                        } else {
+                            outstandingDeltas.decrementAndGet()
+                            outstandingBytes.addAndGet(-delta.payload.size.toLong())
+                        }
+                        accepted
+                    }
+                }
+                if (!queued) {
+                    terminal.set(true)
+                    wireEvents.close(
+                        TouvayException.EngineFailure(
+                            EngineErrorCodes.BACKPRESSURE_EXCEEDED,
+                            false,
+                            "invalid bounded response stream",
+                        ),
+                    )
+                }
             }
 
             override fun onCompleted(result: ResponseFinal) {
-                inFlight.remove(requestId)
-                trySendBlocking(ResponseEvent.Final(result.payload))
-                close()
+                synchronized(this) {
+                    if (terminal.compareAndSet(false, true)) {
+                        inFlight.remove(requestId)
+                        if (result.requestId != requestId ||
+                            wireEvents.trySend(ResponseEvent.Final(result.payload.copyOf())).isFailure
+                        ) {
+                            wireEvents.close(
+                                TouvayException.EngineFailure(
+                                    EngineErrorCodes.BACKPRESSURE_EXCEEDED,
+                                    false,
+                                    "bounded response stream overflow",
+                                ),
+                            )
+                        } else {
+                            wireEvents.close()
+                        }
+                    }
+                }
             }
 
             override fun onFailed(error: EngineError) {
-                inFlight.remove(requestId)
-                close(error.toException(capabilityId))
+                synchronized(this) {
+                    if (terminal.compareAndSet(false, true)) {
+                        inFlight.remove(requestId)
+                        val failure = if (error.requestId == requestId) {
+                            error.toException(capabilityId)
+                        } else {
+                            TouvayException.EngineFailure(
+                                EngineErrorCodes.BACKPRESSURE_EXCEEDED,
+                                false,
+                                "invalid bounded response stream",
+                            )
+                        }
+                        wireEvents.close(failure)
+                    }
+                }
             }
         }
 
-        inFlight[requestId] = { failure -> close(failure) }
+        inFlight[requestId] = { failure ->
+            terminal.set(true)
+            wireEvents.close(failure)
+        }
         try {
             translateBinderFailures {
-                engine.submit(
-                    RequestEnvelope(
-                        requestId = requestId,
-                        capabilityId = capabilityId,
-                        schemaVersion = schemaVersion,
-                        payload = payload,
-                        priority = RequestPriorities.INTERACTIVE,
-                        coalesceKey = coalesceKey,
-                    ),
-                    callback,
+                val envelope = RequestEnvelope(
+                    requestId = requestId,
+                    capabilityId = capabilityId,
+                    schemaVersion = schemaVersion,
+                    payload = payload,
+                    priority = RequestPriorities.INTERACTIVE,
+                    coalesceKey = coalesceKey,
                 )
+                if (supportsStreamingCredits) {
+                    engine.submitWithCredits(
+                        envelope,
+                        StreamCreditWindow(
+                            STREAM_DELTA_CREDITS,
+                            STREAM_BYTE_CREDITS.toLong(),
+                            STREAM_DELTA_CREDITS,
+                            STREAM_BYTE_CREDITS.toLong(),
+                        ),
+                        callback,
+                    )
+                } else {
+                    engine.submit(envelope, callback)
+                }
             }
         } catch (e: TouvayException) {
             inFlight.remove(requestId)
+            wireEvents.close(e)
             throw e
         }
 
-        awaitClose {
+        var grantSequence = 1L
+        try {
+            coroutineScope {
+                for (event in wireEvents) {
+                    emit(event)
+                    if (event is ResponseEvent.Delta && supportsStreamingCredits) {
+                        translateBinderFailures {
+                            engine.grantCredits(
+                                requestId,
+                                grantSequence++,
+                                1,
+                                event.payload.size.toLong(),
+                            )
+                        }
+                    }
+                    if (event is ResponseEvent.Delta) {
+                        outstandingDeltas.decrementAndGet()
+                        outstandingBytes.addAndGet(-event.payload.size.toLong())
+                    }
+                }
+            }
+        } finally {
             inFlight.remove(requestId)
+            wireEvents.close()
             // No-op for already-terminal requests; cancels abandoned ones.
             runCatching { engine.cancel(requestId) }
         }
     }
-        .buffer(Channel.UNLIMITED) // oneway binder callbacks must never block on the collector
         .flowOn(Dispatchers.IO)
 
     private fun ensureOpen() {
@@ -212,6 +316,8 @@ internal class TouvayClientImpl(
     private companion object {
         const val ECHO_SCHEMA_VERSION = 1
         const val MAX_DELAY_MILLIS = 10_000L
+        const val STREAM_DELTA_CREDITS = 8
+        const val STREAM_BYTE_CREDITS = 256 * 1024
     }
 }
 

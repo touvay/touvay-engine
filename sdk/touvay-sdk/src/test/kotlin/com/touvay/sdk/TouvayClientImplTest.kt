@@ -13,6 +13,7 @@ import com.touvay.contract.RequestEnvelope
 import com.touvay.contract.RequestStats
 import com.touvay.contract.ResponseDelta
 import com.touvay.contract.ResponseFinal
+import com.touvay.contract.StreamCreditWindow
 import com.touvay.contract.TouvayContract
 import com.touvay.contract.proto.EchoDelta
 import com.touvay.contract.proto.EchoRequest
@@ -29,6 +30,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 import kotlin.test.assertEquals
@@ -50,6 +52,9 @@ class TouvayClientImplTest {
     private class FakeEngine : ITouvayEngine.Stub() {
         val cancelledRequests: MutableSet<String> = ConcurrentHashMap.newKeySet()
         val cancelReceived = CountDownLatch(1)
+        val creditGrantSequences = CopyOnWriteArrayList<Long>()
+        var legacySubmits = 0
+        var creditSubmits = 0
         var failWith: ((String) -> EngineError)? = null
         var throwOnSubmit: Boolean = false
         var capabilities: List<CapabilityInfo> = listOf(
@@ -60,7 +65,11 @@ class TouvayClientImplTest {
 
         override fun listCapabilities(): List<CapabilityInfo> = capabilities
 
+        override fun listTransportFeatures(): List<String> =
+            listOf(TouvayContract.FEATURE_STREAM_CREDITS_V1)
+
         override fun submit(request: RequestEnvelope?, callback: ITouvayResponseCallback?) {
+            legacySubmits += 1
             if (throwOnSubmit) throw DeadObjectException()
             request!!
             callback!!
@@ -103,6 +112,24 @@ class TouvayClientImplTest {
             }
         }
 
+        override fun submitWithCredits(
+            request: RequestEnvelope?,
+            window: StreamCreditWindow?,
+            callback: ITouvayResponseCallback?,
+        ) {
+            creditSubmits += 1
+            submit(request, callback)
+        }
+
+        override fun grantCredits(
+            requestId: String?,
+            grantSequence: Long,
+            deltaCredits: Int,
+            byteCredits: Long,
+        ) {
+            creditGrantSequences += grantSequence
+        }
+
         override fun cancel(requestId: String?) {
             if (requestId != null) {
                 cancelledRequests += requestId
@@ -111,7 +138,10 @@ class TouvayClientImplTest {
         }
     }
 
-    private fun client(engine: ITouvayEngine = FakeEngine()) = TouvayClientImpl(engine) {}
+    private fun client(engine: ITouvayEngine = FakeEngine()) = TouvayClientImpl(
+        engine = engine,
+        onClose = {},
+    )
 
     // -- capabilities ---------------------------------------------------------------------
 
@@ -142,6 +172,27 @@ class TouvayClientImplTest {
     fun echoStream_deliversAllChunksInOrder() = runBlocking<Unit> {
         val chunks = client().diagnostics().echoStream("chunky", chunks = 3).toList()
         assertEquals(listOf("chunky", "chunky", "chunky"), chunks)
+    }
+
+    @Test
+    fun boundedStream_replenishesCreditsInConsumptionOrder() = runBlocking<Unit> {
+        val fake = FakeEngine()
+
+        client(fake).diagnostics().echoStream("credit", chunks = 3).toList()
+
+        assertEquals(listOf(1L, 2L, 3L), fake.creditGrantSequences)
+    }
+
+    @Test
+    fun v1Engine_usesLegacySubmitWithoutCallingCreditMethods() = runBlocking<Unit> {
+        val fake = FakeEngine()
+        val client = TouvayClientImpl(fake, onClose = {}, supportsStreamingCredits = false)
+
+        assertEquals("legacy", client.diagnostics().echo("legacy"))
+
+        assertEquals(1, fake.legacySubmits)
+        assertEquals(0, fake.creditSubmits)
+        assertTrue(fake.creditGrantSequences.isEmpty())
     }
 
     // -- error mapping ------------------------------------------------------------------------

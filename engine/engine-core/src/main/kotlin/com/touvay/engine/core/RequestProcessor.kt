@@ -2,6 +2,7 @@ package com.touvay.engine.core
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -32,8 +33,8 @@ public class RequestProcessor(
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
-    private val active = ConcurrentHashMap<String, ActiveRequest>()
-    private val coalesceIndex = ConcurrentHashMap<CoalesceKey, String>()
+    private val active = ConcurrentHashMap<RequestKey, ActiveRequest>()
+    private val coalesceIndex = ConcurrentHashMap<CoalesceKey, RequestKey>()
 
     /**
      * Accepts a job for execution. Always results in exactly one terminal callback on
@@ -54,29 +55,9 @@ public class RequestProcessor(
             return
         }
 
-        val request = ActiveRequest(job.requestId, listener)
-        if (active.putIfAbsent(job.requestId, request) != null) {
-            listener.onFailed(
-                job.requestId,
-                RequestFailure.Internal("duplicate requestId: ${job.requestId}"),
-            )
-            return
-        }
-
-        listener.onAccepted(job.requestId)
-
-        // Coalescing: registering before cancelling the predecessor closes the window in
-        // which a third submit could observe neither request.
-        val coalesceKey = job.coalesceKey?.let { CoalesceKey(job.clientId, it) }
-        if (coalesceKey != null) {
-            val previousId = coalesceIndex.put(coalesceKey, job.requestId)
-            if (previousId != null) {
-                cancelInternal(previousId, superseded = true)
-            }
-        }
-
-        val startedAt = clock()
-        request.job = scope.launch {
+        val requestKey = RequestKey(job.clientId, job.requestId)
+        lateinit var request: ActiveRequest
+        val coroutine = scope.launch(start = CoroutineStart.LAZY) {
             var firstDeltaAt = -1L
             var sequence = 0
             try {
@@ -91,8 +72,9 @@ public class RequestProcessor(
                         job.requestId,
                         result,
                         ExecutionStats(
-                            ttftMillis = (if (firstDeltaAt < 0) finishedAt else firstDeltaAt) - startedAt,
-                            totalMillis = finishedAt - startedAt,
+                            ttftMillis = (if (firstDeltaAt < 0) finishedAt else firstDeltaAt) -
+                                request.startedAt,
+                            totalMillis = finishedAt - request.startedAt,
                             deltaCount = sequence,
                         ),
                     )
@@ -102,16 +84,34 @@ public class RequestProcessor(
                     listener.onFailed(job.requestId, RequestFailure.Cancelled(request.superseded))
                 }
                 throw cancellation
-            } catch (failure: Throwable) {
-                // Never contains payload content: only exception type and message.
+            } catch (_: Throwable) {
                 request.deliverTerminal {
                     listener.onFailed(
                         job.requestId,
-                        RequestFailure.Internal(
-                            "${failure.javaClass.simpleName}: ${failure.message ?: "no message"}",
-                        ),
+                        RequestFailure.Internal(INTERNAL_FAILURE_MESSAGE),
                     )
                 }
+            }
+        }
+        request = ActiveRequest(job.requestId, listener, coroutine, clock())
+        if (active.putIfAbsent(requestKey, request) != null) {
+            coroutine.cancel()
+            listener.onFailed(
+                job.requestId,
+                RequestFailure.Internal(DUPLICATE_REQUEST_MESSAGE),
+            )
+            return
+        }
+
+        listener.onAccepted(job.requestId)
+
+        // Coalescing: registering before cancelling the predecessor closes the window in
+        // which a third submit could observe neither request.
+        val coalesceKey = job.coalesceKey?.let { CoalesceKey(job.clientId, it) }
+        if (coalesceKey != null) {
+            val previousKey = coalesceIndex.put(coalesceKey, requestKey)
+            if (previousKey != null) {
+                cancelInternal(previousKey, superseded = true)
             }
         }
 
@@ -124,11 +124,12 @@ public class RequestProcessor(
                     listener.onFailed(job.requestId, RequestFailure.Cancelled(request.superseded))
                 }
             }
-            active.remove(job.requestId, request)
+            active.remove(requestKey, request)
             if (coalesceKey != null) {
-                coalesceIndex.remove(coalesceKey, job.requestId)
+                coalesceIndex.remove(coalesceKey, requestKey)
             }
         }
+        coroutine.start()
     }
 
     /**
@@ -136,15 +137,16 @@ public class RequestProcessor(
      * already finished or never existed; distinguishing those is deliberately not
      * supported (the engine holds no history, ADR-012).
      */
-    public fun cancel(requestId: String): Boolean = cancelInternal(requestId, superseded = false)
+    public fun cancel(clientId: String, requestId: String): Boolean =
+        cancelInternal(RequestKey(clientId, requestId), superseded = false)
 
     /** Cancels everything in flight and stops accepting work. Idempotent. */
     public fun shutdown() {
         scope.cancel()
     }
 
-    private fun cancelInternal(requestId: String, superseded: Boolean): Boolean {
-        val request = active[requestId] ?: return false
+    private fun cancelInternal(requestKey: RequestKey, superseded: Boolean): Boolean {
+        val request = active[requestKey] ?: return false
         if (superseded) request.superseded = true
         request.job.cancel()
         return true
@@ -155,14 +157,11 @@ public class RequestProcessor(
     private class ActiveRequest(
         val requestId: String,
         val listener: RequestListener,
+        val job: Job,
+        val startedAt: Long,
     ) {
         @Volatile
         var superseded: Boolean = false
-
-        // Assigned during submit, before the coroutine can complete (invokeOnCompletion
-        // is registered after assignment) and before cancelInternal can observe this
-        // request needing it.
-        lateinit var job: Job
 
         private val terminalDelivered = AtomicBoolean(false)
 
@@ -172,5 +171,10 @@ public class RequestProcessor(
                 block()
             }
         }
+    }
+
+    private companion object {
+        const val INTERNAL_FAILURE_MESSAGE = "internal execution failure"
+        const val DUPLICATE_REQUEST_MESSAGE = "duplicate live request"
     }
 }

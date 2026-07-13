@@ -16,21 +16,23 @@ public class RequestJob(
     public val clientId: String,
     public val capabilityId: String,
     public val schemaVersion: Int,
-    public val payload: ByteArray,
+    payload: ByteArray,
     public val coalesceKey: String? = null,
-)
+) {
+    public val payload: ByteArray = payload.copyOf()
+}
 
 /**
  * Receives the results of one request. Exactly one terminal callback ([onCompleted] or
  * [onFailed]) fires per submitted job — guaranteed even when the job is cancelled before
- * it starts. [onAccepted] always fires first, synchronously during submit; [onDelta]
- * calls are sequential per request.
+ * it starts. [onAccepted] fires only after validation succeeds; pre-validation failures
+ * have no accepted callback. [onDelta] calls are sequential per request.
  *
  * Called on engine worker threads: implementations must be fast and must not block.
  */
 public interface RequestListener {
     public fun onAccepted(requestId: String)
-    public fun onDelta(requestId: String, sequence: Int, payload: ByteArray)
+    public suspend fun onDelta(requestId: String, sequence: Int, payload: ByteArray)
     public fun onCompleted(requestId: String, payload: ByteArray, stats: ExecutionStats)
     public fun onFailed(requestId: String, failure: RequestFailure)
 }
@@ -48,7 +50,7 @@ public sealed class RequestFailure {
     /** @property superseded true when a newer request with the same coalesce key won. */
     public data class Cancelled(val superseded: Boolean) : RequestFailure()
 
-    /** @property message developer-facing; must never contain payload content. */
+    /** @property message static and content-free; never derived from downstream exceptions. */
     public data class Internal(val message: String) : RequestFailure()
 }
 
