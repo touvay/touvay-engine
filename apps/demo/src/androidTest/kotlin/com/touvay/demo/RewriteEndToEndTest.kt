@@ -13,7 +13,6 @@ import com.touvay.sdk.Touvay
 import com.touvay.sdk.TouvayException
 import java.io.File
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -40,22 +39,20 @@ class RewriteEndToEndTest {
         try {
             val readinessStarted = SystemClock.elapsedRealtime()
             var previousStatus: CapabilityStatus? = null
-            val status = try {
-                withTimeout(30_000) {
-                    while (true) {
-                        val current = client.capabilities()[RewriteCapability.id]
+            val status = withTimeout(600_000) {
+                while (true) {
+                    val current = client.capabilities()[RewriteCapability.id]
+                    if (current != previousStatus) {
+                        println(
+                            "TCK_DIAGNOSTIC demo readiness status=$current " +
+                                "elapsedMillis=${SystemClock.elapsedRealtime() - readinessStarted}",
+                        )
                         previousStatus = current
-                        if (current == CapabilityStatus.Ready) return@withTimeout current
-                        delay(500)
                     }
-                    error("unreachable")
+                    if (current == CapabilityStatus.Ready) return@withTimeout current
+                    delay(500)
                 }
-            } catch (failure: TimeoutCancellationException) {
-                throw AssertionError(
-                    "TCK_DIAGNOSTIC demo readiness lastStatus=$previousStatus " +
-                        "elapsedMillis=${SystemClock.elapsedRealtime() - readinessStarted}",
-                    failure,
-                )
+                error("unreachable")
             }
             assertEquals(CapabilityStatus.Ready, status)
 

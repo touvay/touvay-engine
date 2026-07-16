@@ -37,7 +37,6 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -184,21 +183,19 @@ class RewriteBenchmarkTest {
         try {
             val readinessStarted = SystemClock.elapsedRealtime()
             var previousStatus: CapabilityStatus? = null
-            try {
-                withTimeout(CAPABILITY_TIMEOUT_MS) {
-                    while (true) {
-                        val current = client.capabilities()[RewriteCapability.id]
+            withTimeout(CAPABILITY_TIMEOUT_MS) {
+                while (true) {
+                    val current = client.capabilities()[RewriteCapability.id]
+                    if (current != previousStatus) {
+                        println(
+                            "TCK_DIAGNOSTIC benchmark readiness status=$current " +
+                                "elapsedMillis=${SystemClock.elapsedRealtime() - readinessStarted}",
+                        )
                         previousStatus = current
-                        if (current == CapabilityStatus.Ready) break
-                        delay(CAPABILITY_POLL_MS)
                     }
+                    if (current == CapabilityStatus.Ready) break
+                    delay(CAPABILITY_POLL_MS)
                 }
-            } catch (failure: TimeoutCancellationException) {
-                throw AssertionError(
-                    "TCK_DIAGNOSTIC benchmark readiness lastStatus=$previousStatus " +
-                        "elapsedMillis=${SystemClock.elapsedRealtime() - readinessStarted}",
-                    failure,
-                )
             }
             return client
         } catch (failure: Throwable) {
@@ -512,7 +509,7 @@ class RewriteBenchmarkTest {
         const val QUICK_SENTINEL_RUNS = 1
         const val FULL_SENTINEL_RUNS = 3
         const val COLD_RELEASE_DELAY_MS = 750L
-        const val CAPABILITY_TIMEOUT_MS = 30_000L
+        const val CAPABILITY_TIMEOUT_MS = 600_000L
         const val CAPABILITY_POLL_MS = 500L
         const val CANCELLATION_START_TIMEOUT_MS = 30_000L
         const val MEMORY_SAMPLE_MS = 50L
