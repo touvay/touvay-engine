@@ -90,7 +90,11 @@ Invoke-Adb @("shell", "am", "force-stop", "com.touvay.demo")
 Invoke-Adb @("shell", "am", "start", "-W", "-n", "com.touvay.benchmark/.MainActivity")
 Invoke-Adb @("shell", "am", "force-stop", "com.touvay.benchmark")
 $runtimeFiles = "/sdcard/Android/data/com.touvay.runtime.llamacpp.test/files"
-Invoke-Adb @("shell", "run-as", "com.touvay.runtime.llamacpp.test", "mkdir", "-p", $runtimeFiles)
+Invoke-Adb @(
+    "shell", "am", "start", "-W", "-n",
+    "com.touvay.runtime.llamacpp.test/com.touvay.runtime.llamacpp.FixtureProvisioningActivity"
+)
+Invoke-Adb @("shell", "am", "force-stop", "com.touvay.runtime.llamacpp.test")
 
 $demoRoot = "/sdcard/Android/data/com.touvay.demo/files/touvay-demo-pack"
 Push-VerifiedFile $manifest "$demoRoot/manifest.pb"

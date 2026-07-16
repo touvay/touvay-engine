@@ -25,6 +25,8 @@ The project follows milestone tags while the public API remains pre-1.0.
   and requires exact non-skipped test counts.
 - Added CI-only demo host trust composition for the CI Fixture Publisher while retaining
   Developer defaults and the existing Model Manager verification path.
+- Added a test-APK-only provisioning activity so Runtime TCK fixtures are copied into an
+  application-owned external directory without shell ownership or shared storage.
 - Kept Runtime, Model Manager, Execution, Capability, SDK, and architecture contracts
   unchanged.
 
