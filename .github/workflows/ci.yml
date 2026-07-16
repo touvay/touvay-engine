@@ -2,8 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "rc/**", "release/**"]
+    tags: ["v*", "rc-*"]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,13 +27,12 @@ jobs:
         shell: pwsh
         run: ./scripts/fetch-llamacpp.ps1
 
-      # `build` runs assembly, all JVM/Robolectric unit tests, Android lint, the
-      # ARCHITECTURE.md §8 dependency-rules check, and binary API compatibility
-      # (apiCheck) — all wired into `check`.
+      # `build` includes JVM/Robolectric tests, lint, dependency rules, and apiCheck.
       - name: Build, test, verify dependency rules and API compatibility
-        run: ./gradlew build
+        run: ./gradlew --dependency-verification=strict build
 
-  connected:
+  connected-core:
+    name: Connected Core
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -53,12 +54,82 @@ jobs:
         shell: pwsh
         run: ./scripts/fetch-llamacpp.ps1
 
-      # Cross-process binder tests (apps/demo androidTest): the one layer Robolectric
-      # cannot exercise.
-      - name: Run connected tests on emulator
+      # The explicit allowlist prevents model-backed tests from entering the PR gate.
+      - name: Run model-independent connected tests on emulator
         uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808 # v2
         with:
           api-level: 34
           arch: x86_64
           disable-animations: true
-          script: ./gradlew :apps:demo:connectedDebugAndroidTest
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
+          script: |
+            ./gradlew --dependency-verification=strict :apps:demo:connectedDebugAndroidTest "-Pandroid.testInstrumentationRunnerArguments.class=com.touvay.demo.EchoCrossProcessTest,com.touvay.demo.EngineResilienceCrossProcessTest"
+            pwsh -File ./scripts/ci/assert-connected-core-results.ps1 -LockPath ./ci/fixtures/rewrite-ci-fixture.lock.json -ResultDirectory ./apps/demo/build/outputs/androidTest-results/connected/debug
+
+  connected-model:
+    name: Connected Model-Backed
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Enable KVM for hardware-accelerated emulation
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4
+
+      - name: Fetch pinned llama.cpp source
+        shell: pwsh
+        run: ./scripts/fetch-llamacpp.ps1
+
+      - name: Authenticate read-only fixture transport
+        run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download and verify immutable CI fixture
+        id: fixture
+        shell: pwsh
+        run: >-
+          ./scripts/ci/verify-ci-fixture.ps1
+          -LockPath ./ci/fixtures/rewrite-ci-fixture.lock.json
+          -OutputDirectory "$env:RUNNER_TEMP/touvay-ci-fixture"
+
+      - name: Remove fixture transport credential
+        if: always()
+        run: docker logout ghcr.io
+
+      - name: Build model-backed test APKs with CI fixture trust
+        run: |
+          ./gradlew --dependency-verification=strict \
+            :apps:demo:assembleDebug \
+            :apps:demo:assembleDebugAndroidTest \
+            :apps:benchmark:assembleDebug \
+            :apps:benchmark:assembleDebugAndroidTest \
+            :runtime:runtime-llamacpp:assembleDebugAndroidTest \
+            "-Ptouvay.demo.packId=${{ steps.fixture.outputs.pack-id }}" \
+            "-Ptouvay.demo.keyId=${{ steps.fixture.outputs.key-id }}" \
+            "-Ptouvay.demo.publicKeyBase64=${{ steps.fixture.outputs.public-key-base64 }}"
+
+      - name: Run model-backed tests on emulator
+        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808 # v2
+        with:
+          api-level: 34
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
+          script: >-
+            pwsh -File ./scripts/ci/run-model-device-tests.ps1
+            -FixtureRoot '${{ steps.fixture.outputs.fixture-root }}'
+            -LockPath ./ci/fixtures/rewrite-ci-fixture.lock.json

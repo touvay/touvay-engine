@@ -36,9 +36,11 @@ Action pins, a checksum-pinned Gradle wrapper, dependency verification metadata,
 dependency locks. A dedicated CI Fixture Publisher identity now signs an immutable,
 private GHCR Rewrite fixture pinned by OCI, pack, and manifest digests. Developer, CI,
 and Production publisher trust domains are explicitly separated; CI receives no signing
-key. The platform architecture and runtime behavior are unchanged. Final Internal Alpha
-promotion remains owned by the Keyboard release gate and requires its production-signed
-Pixel 8 signed-pack evidence and archived artifact hashes.
+key. CI now separates the mandatory model-independent Connected Core gate from the
+trusted-push Model-Backed gate, which downloads and verifies the fixture by digest before
+running 31 device tests. The platform architecture and runtime behavior are unchanged.
+Final Internal Alpha promotion remains owned by the Keyboard release gate and requires
+its production-signed Pixel 8 signed-pack evidence and archived artifact hashes.
 
 ## Completed milestones
 
@@ -67,6 +69,7 @@ Pixel 8 signed-pack evidence and archived artifact hashes.
 | Rewrite Benchmark Suite v1 | Implemented; physical baseline pending | 105-case corpus, production Rewrite runner, Runtime throughput runner, scoring and regression policy |
 | Engine Developer Console | Implemented; device UX validation pending | Dashboard, Rewrite tester, signed model administration, benchmark, diagnostics, logs, developer settings |
 | CI Rewrite fixture trust | Published and locked | Private digest-pinned GHCR fixture, dedicated publisher key, three-domain custody and rotation policy |
+| CI device-test split | Implemented | Build and Connected Core on every PR; fail-closed Model-Backed gate on trusted main, RC, and release execution |
 
 ## Current milestone
 

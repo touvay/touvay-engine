@@ -11,13 +11,13 @@
             android:value="true" />
         <meta-data
             android:name="com.touvay.engine.demo.PACK_ID"
-            android:value="touvay.demo.qwen2.5-0.5b-rewrite" />
+            android:value="${touvayDemoPackId}" />
         <meta-data
             android:name="com.touvay.engine.demo.KEY_ID"
-            android:value="d086218cf3b91da80208646e6a4e0ded99da431e8848d74417d08fb09851edb6" />
+            android:value="${touvayDemoKeyId}" />
         <meta-data
             android:name="com.touvay.engine.demo.PUBLIC_KEY_BASE64"
-            android:value="2SmylYadUGTDCKocs5z03VH0J8jE9QBV2RTaux9pWW8=" />
+            android:value="${touvayDemoPublicKeyBase64}" />
         <meta-data
             android:name="com.touvay.engine.demo.SOURCE_DIRECTORY"
             android:value="touvay-demo-pack" />

@@ -72,6 +72,12 @@ before Gradle configures native compilation. CI performs the same step from a cl
 checkout. Gradle dependency checksums, dependency locks, the wrapper distribution
 checksum, and GitHub Action commit pins are versioned release inputs.
 
+Every pull request requires the full build and the three-test model-independent
+Connected Core gate. Trusted `main`, RC, and release executions additionally pull the
+private Rewrite fixture by immutable OCI digest and require all 31 model-backed device
+tests. The fixture verifier never signs content and Gradle remains in strict dependency
+verification mode.
+
 Device validation requires a locally provisioned GGUF model. Model weights and private
 signing material are deliberately excluded from Git. See the [model setup](models/README.md)
 and [demo pack workflow](docs/demo/demo-pack.md). Trusted model-backed CI uses a private

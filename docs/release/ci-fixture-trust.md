@@ -24,9 +24,10 @@ discovery label and must never be used as a CI input.
 | Publisher key ID | `0da7a9841f80d2970e70947891e484462f9501a3cfd4ff9dba6cd679a162c5a7` |
 
 The GHCR package is private. A credential-free token request returns `401`. Transport
-authorization is not part of fixture trust: a future trusted workflow may use only an
-ephemeral, repository-scoped `GITHUB_TOKEN` with `packages: read`. It must not receive a
-fixture private key, a production publisher key, or a long-lived package token.
+authorization is not part of fixture trust: the trusted model-backed job uses only its
+ephemeral, repository-scoped `GITHUB_TOKEN` with `packages: read`, then logs out before
+building or executing tests. It does not receive a fixture private key, a production
+publisher key, or a long-lived package token.
 
 ## Verification order
 
@@ -65,6 +66,27 @@ Model-independent jobs do not download the fixture. Model-dependent jobs are aut
 only for trusted `main`, RC, and release workflows. Missing fixture access, a digest
 mismatch, a key mismatch, signature failure, incomplete provisioning, or a test-count
 mismatch is a hard failure for those workflows.
+
+## Workflow split
+
+`.github/workflows/ci.yml` defines three independent gates:
+
+- `build` runs on every pull request and trusted push with Gradle dependency verification
+  explicitly set to `strict`.
+- `Connected Core` runs the explicit Echo and Engine Resilience class allowlist on every
+  pull request and trusted push. `scripts/ci/assert-connected-core-results.ps1` requires
+  exactly three tests with zero failures, errors, skips, or unexpected classes.
+- `Connected Model-Backed` runs only for trusted pushes and manual release execution. It
+  authenticates to private GHCR with `packages: read`, pulls by immutable digest, calls
+  `scripts/ci/verify-ci-fixture.ps1`, removes the transport credential, and then runs the
+  31 locked Runtime, Rewrite, and benchmark tests.
+
+The model-backed demo APK is composed with the committed CI pack ID, public key, and key
+ID. A complete externally provisioned signed pack is preserved; partial external
+metadata fails before trust domains can be mixed. The existing Model Manager remains the
+only component that authenticates and installs the pack for end-to-end Rewrite tests.
+Runtime TCK and benchmark consumers receive the weights only after the OCI archive,
+public key, pack digest, and manifest digest have been verified.
 
 ## Trust chain
 

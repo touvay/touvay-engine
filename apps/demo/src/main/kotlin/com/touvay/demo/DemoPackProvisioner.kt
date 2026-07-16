@@ -12,18 +12,31 @@ internal object DemoPackProvisioner {
     fun prepare(context: Context): DemoPackState {
         val external = requireNotNull(context.getExternalFilesDir(null))
         val root = File(external, DIRECTORY)
+        prepareMetadata(root) { asset, destination -> decodeAsset(context, asset, destination) }
         val files = File(root, "files")
-        val prompts = File(files, "prompts")
-        check(prompts.mkdirs() || prompts.isDirectory)
-        decodeAsset(context, "manifest.pb.b64", File(root, "manifest.pb"))
-        decodeAsset(context, "manifest.sig.b64", File(root, "manifest.sig"))
-        decodeAsset(context, "prompt.pb.b64", File(prompts, "text-rewrite-v1.pb"))
         val weights = File(files, "weights.gguf")
         return DemoPackState(
             sourceRoot = root,
             weightsPresent = weights.isFile,
             weightsBytes = weights.takeIf(File::isFile)?.length() ?: 0L,
         )
+    }
+
+    internal fun prepareMetadata(root: File, decode: (String, File) -> Unit) {
+        val prompts = File(root, "files/prompts")
+        check(prompts.mkdirs() || prompts.isDirectory)
+        val assets = linkedMapOf(
+            "manifest.pb.b64" to File(root, "manifest.pb"),
+            "manifest.sig.b64" to File(root, "manifest.sig"),
+            "prompt.pb.b64" to File(prompts, "text-rewrite-v1.pb"),
+        )
+        val existing = assets.values.count(File::isFile)
+        check(existing == 0 || existing == assets.size) {
+            "offline signed pack metadata is incomplete"
+        }
+        if (existing == 0) {
+            assets.forEach(decode)
+        }
     }
 
     private fun decodeAsset(context: Context, asset: String, destination: File) {

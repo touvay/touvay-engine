@@ -15,6 +15,15 @@ android {
         applicationId = "com.touvay.demo"
         versionCode = 1
         versionName = "0.1.0"
+        manifestPlaceholders["touvayDemoPackId"] = providers.gradleProperty(
+            "touvay.demo.packId",
+        ).getOrElse("touvay.demo.qwen2.5-0.5b-rewrite")
+        manifestPlaceholders["touvayDemoKeyId"] = providers.gradleProperty(
+            "touvay.demo.keyId",
+        ).getOrElse("d086218cf3b91da80208646e6a4e0ded99da431e8848d74417d08fb09851edb6")
+        manifestPlaceholders["touvayDemoPublicKeyBase64"] = providers.gradleProperty(
+            "touvay.demo.publicKeyBase64",
+        ).getOrElse("2SmylYadUGTDCKocs5z03VH0J8jE9QBV2RTaux9pWW8=")
     }
 }
 

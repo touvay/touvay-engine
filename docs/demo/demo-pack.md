@@ -25,6 +25,12 @@ The committed `.b64` files in `docs/demo/pack/` are transport-safe fixture asset
 `DemoPackProvisioner` decodes them to the app-specific external-files source. It does
 not generate, replace, or weaken signatures.
 
+When a release-controlled test host provisions a complete external `manifest.pb`,
+`manifest.sig`, and signed prompt before execution, the provisioner preserves that set
+instead of replacing it with Developer assets. A partial external metadata set fails
+closed. CI composes the non-production demo host with its independently committed CI
+Fixture Publisher public key; ordinary developer builds retain the defaults below.
+
 The demo key is the Developer Fixture Key trust domain. It is independent of the
 long-lived CI Fixture Publisher Key and the separately controlled Production Publisher
 Key described in `docs/release/key-management.md`.

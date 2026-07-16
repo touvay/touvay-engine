@@ -19,6 +19,12 @@ The project follows milestone tags while the public API remains pre-1.0.
 - Added the fixture lock, CI public verification key, expected model-backed test counts,
   three-domain key-custody policy, and publisher rotation procedure. CI holds no signing
   key and no model weights were committed.
+- Split device CI into the mandatory model-independent Connected Core gate and the
+  trusted-push Model-Backed gate. The latter pulls private GHCR only by immutable digest,
+  verifies the locked archive/public key/manifest, removes its transport credential,
+  and requires exact non-skipped test counts.
+- Added CI-only demo host trust composition for the CI Fixture Publisher while retaining
+  Developer defaults and the existing Model Manager verification path.
 - Kept Runtime, Model Manager, Execution, Capability, SDK, and architecture contracts
   unchanged.
 
