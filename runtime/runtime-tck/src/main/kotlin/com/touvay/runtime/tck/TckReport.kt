@@ -1,5 +1,6 @@
 package com.touvay.runtime.tck
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -32,7 +33,9 @@ internal object TckReport {
               }
             }
         """.trimIndent() + "\n"
-        Files.writeString(destination, json)
+        Files.newBufferedWriter(destination, StandardCharsets.UTF_8).use { writer ->
+            writer.write(json)
+        }
         return destination
     }
 
