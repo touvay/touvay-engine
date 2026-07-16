@@ -27,6 +27,8 @@ The project follows milestone tags while the public API remains pre-1.0.
   Developer defaults and the existing Model Manager verification path.
 - Added a test-APK-only provisioning activity so Runtime TCK fixtures are copied into an
   application-owned external directory without shell ownership or shared storage.
+- Added the equivalent debug-only benchmark provisioner; neither fixture activity is
+  included in production release packaging.
 - Kept Runtime, Model Manager, Execution, Capability, SDK, and architecture contracts
   unchanged.
 

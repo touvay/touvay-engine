@@ -87,7 +87,7 @@ Install-Apk (Join-Path $repo "runtime/runtime-llamacpp/build/outputs/apk/android
 
 Invoke-Adb @("shell", "am", "start", "-W", "-n", "com.touvay.demo/.MainActivity")
 Invoke-Adb @("shell", "am", "force-stop", "com.touvay.demo")
-Invoke-Adb @("shell", "am", "start", "-W", "-n", "com.touvay.benchmark/.MainActivity")
+Invoke-Adb @("shell", "am", "start", "-W", "-n", "com.touvay.benchmark/.FixtureProvisioningActivity")
 Invoke-Adb @("shell", "am", "force-stop", "com.touvay.benchmark")
 $runtimeFiles = "/sdcard/Android/data/com.touvay.runtime.llamacpp.test/files"
 Invoke-Adb @(
