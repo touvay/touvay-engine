@@ -114,6 +114,15 @@ if ($runtimeCount + $benchmarkCount + $demoCount -ne
 }
 
 Invoke-Instrumentation `
+    -Runner "com.touvay.runtime.llamacpp.test/androidx.test.runner.AndroidJUnitRunner" `
+    -Classes "com.touvay.runtime.llamacpp.LlamaCppTck" `
+    -ExpectedCount $runtimeCount
+Invoke-Instrumentation `
+    -Runner "com.touvay.benchmark.test/androidx.test.runner.AndroidJUnitRunner" `
+    -Classes "com.touvay.benchmark.BenchmarkSmokeTest" `
+    -ExpectedCount $benchmarkCount `
+    -AdditionalArguments @("-e", "quick", "true", "-e", "modelVariant", $lock.packId)
+Invoke-Instrumentation `
     -Runner "com.touvay.demo.test/androidx.test.runner.AndroidJUnitRunner" `
     -Classes "com.touvay.demo.RewriteEndToEndTest,com.touvay.demo.RewriteBenchmarkTest" `
     -ExpectedCount $demoCount `
@@ -125,4 +134,4 @@ Invoke-Instrumentation `
         "-e", "modelSha256", (Get-FileHash -LiteralPath $weights -Algorithm SHA256).Hash.ToLowerInvariant()
     )
 
-Write-Host "Temporary demo readiness diagnostic completed."
+Write-Host "Connected Model-Backed verified: $($lock.expectedTestCounts.modelDependent.total) tests."
