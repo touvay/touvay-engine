@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:label="Touvay Demo"
+        android:label="Touvay Engine Developer Console"
         android:theme="@android:style/Theme.Material.Light">
 
         <!-- Explicit demo-only trust configuration. Production hosts do not inherit it. -->

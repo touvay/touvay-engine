@@ -6,7 +6,79 @@ The project follows milestone tags while the public API remains pre-1.0.
 
 ## Unreleased
 
-No implementation milestone is currently authorized.
+### Release engineering — 2026-07-16
+
+- Made clean-checkout CI fetch and verify the commit-pinned llama.cpp source before
+  native configuration.
+- Pinned every GitHub Action to an immutable commit SHA and added the official Gradle
+  8.14.3 wrapper distribution checksum.
+- Added SHA-256 dependency verification metadata and dependency lock state for every
+  Engine project.
+- Kept Runtime, Model Manager, Execution, Capability, SDK, and architecture contracts
+  unchanged.
+
+### Embedded host provisioning — 2026-07-15
+
+- Added fail-closed production host metadata for one signed offline pack, including
+  pack identity, public verification key, key-ID binding, and an application-private
+  no-backup source directory.
+- Preserved the embedded, non-exported Engine service and per-host canonical Model
+  Store; no shared storage, cross-application IPC, SDK, Model Manager, Runtime,
+  Execution, or Capability contract changed.
+- Kept legacy demo trust isolated to the Developer Console and prevented invalid
+  production host configuration from falling back to demo trust.
+
+### Developer Experience — 2026-07-15
+
+- Expanded the engineering demo into the Touvay Engine Developer Console with Dashboard,
+  Capability Tester, Model Manager, Benchmark, Diagnostics, Logs, and Settings surfaces.
+- Added developer-tool projections for the Model Manager's existing signed install,
+  catalog snapshot, activation, rollback, and inactive-removal operations. Verification,
+  storage transactions, leases, and Runtime resolution semantics are unchanged.
+- Integrated production SDK Rewrite benchmarking and retained the companion Runtime host
+  for exact decoded tokens per second.
+- Added bounded content-free developer logging and stable human-readable diagnostics;
+  raw exception messages are never displayed.
+- Added a disabled Official Model Catalog acquisition source without downloader or
+  network implementation.
+
+### Rewrite product-quality baseline — 2026-07-15
+
+- Added a frozen 105-case Rewrite corpus balanced across grammar-shaped inputs,
+  formality, shortening, expansion, professional writing, social writing, and
+  multilingual writing.
+- Added production SDK/Binder corpus measurement for TTFT, end-to-end latency,
+  Engine PSS, battery counters, thermal state, output quality, cancellation latency,
+  and cold versus warm execution.
+- Extended the existing production Runtime benchmark with model-variant identity and
+  suite-level battery/thermal/resource measurements while retaining exact token
+  throughput measurement.
+- Added deterministic quality scoring, absolute acceptance thresholds, baseline
+  regression policy, a repeatable physical-device runner, and a result-comparison gate.
+- No production Engine, SDK, Runtime, capability contract, model routing, or
+  architecture was changed; no new capability was introduced.
+
+### External SDK integration handoff — 2026-07-15
+
+- Approved and marked Keyboard Architecture v1.0 Stable, merging it into the frozen
+  platform architecture by reference.
+- Finalized the Engine/SDK integration contract for the separate Touvay Keyboard
+  repository; no keyboard product code is included here.
+- Documented local composite-build consumption, embedded engine hosting, capability
+  discovery, lifecycle ownership, streaming, cancellation, error handling, and
+  validation requirements.
+- Clarified that the client connection owner performs bounded reconnection by calling
+  `Touvay.connect` again; the SDK never auto-resubmits generative work.
+
+### Platform Freeze — 2026-07-15
+
+- Published Platform Validation commit `1c4a490a405a5f6323173aeb57170666739d9d17`
+  and annotated tag `platform-v1-validated`.
+- Marked the approved Platform Foundation specifications Stable.
+- Established the rule that future semantic architectural changes require an accepted
+  ADR before implementation.
+- Added and approved Keyboard Architecture v1.0 as a Stable external-client contract.
+  No keyboard, Grammar, or Translation production code is included.
 
 ## Platform Foundation v0.5 — 2026-07-13
 

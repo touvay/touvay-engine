@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Touvay Demo</string>
-    <string name="title">Rewrite v1 — End-to-End Platform Validation</string>
+    <string name="app_name">Touvay Engine Developer Console</string>
+    <string name="title">Touvay Engine Developer Console</string>
     <string name="input_hint">Text to rewrite</string>
     <string name="input_default">we need to make this message a little more clear and professional</string>
     <string name="locale_hint">Optional output locale, for example en-US</string>

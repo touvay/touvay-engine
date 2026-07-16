@@ -3,6 +3,12 @@ plugins {
     alias(libs.plugins.binary.compatibility.validator)
 }
 
+allprojects {
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+}
+
 apiValidation {
     // Only published API surfaces are validated (ARCHITECTURE.md §9, ADR-009):
     // touvay-contract, touvay-sdk, runtime-api. Internal engine modules and apps evolve

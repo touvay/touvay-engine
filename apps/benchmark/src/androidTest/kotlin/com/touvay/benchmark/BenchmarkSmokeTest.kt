@@ -73,7 +73,9 @@ class BenchmarkSmokeTest {
                 }
             }
 
-            assertNotNull(runner).runSuite(model.absolutePath, quick, callback)
+            val modelVariant = InstrumentationRegistry.getArguments()
+                .getString("modelVariant", model.nameWithoutExtension)
+            assertNotNull(runner).runSuite(model.absolutePath, modelVariant, quick, callback)
             // Model load + short generations; generous bound for slow emulators.
             assertTrue(finished.await(15, TimeUnit.MINUTES), "quick suite did not finish")
             if (error != null) fail("suite failed: $error")

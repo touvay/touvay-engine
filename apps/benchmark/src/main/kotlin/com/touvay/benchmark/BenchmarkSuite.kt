@@ -36,6 +36,7 @@ import kotlin.concurrent.thread
 class BenchmarkSuite(
     private val context: Context,
     private val modelPath: String,
+    private val modelVariant: String,
     private val progress: (String) -> Unit,
 ) {
     private val runtime = LlamaCppRuntime()
@@ -53,6 +54,8 @@ class BenchmarkSuite(
     }
 
     fun run(quick: Boolean): JSONObject {
+        val suiteStarted = now()
+        val resourcesBefore = resourceSnapshot()
         val result = JSONObject()
         result.put("schema", 1)
         result.put("quick", quick)
@@ -61,6 +64,7 @@ class BenchmarkSuite(
         result.put("modelFile", JSONObject().apply {
             put("path", modelPath)
             put("bytes", File(modelPath).length())
+            put("variant", modelVariant)
         })
         result.put("memBaseline", memSnapshot())
 
@@ -142,6 +146,13 @@ class BenchmarkSuite(
             put("warmReloadMs", warmLoadMs)
         })
 
+        val resourcesAfter = resourceSnapshot()
+        result.put("resources", JSONObject().apply {
+            put("before", resourcesBefore)
+            put("after", resourcesAfter)
+            put("suiteElapsedMs", ms(suiteStarted, now()))
+            put("energyConsumedMWh", energyConsumedMWh(resourcesBefore, resourcesAfter))
+        })
         result.put("aborted", aborted)
         return result
     }
@@ -329,6 +340,27 @@ class BenchmarkSuite(
                 put("thermalHeadroom10s", pm.getThermalHeadroom(10))
             }
         }
+    }
+
+    private fun resourceSnapshot(): JSONObject {
+        val battery = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val energy = battery.getLongProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER)
+        val charge = battery.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
+        return JSONObject()
+            .put("elapsedRealtimeMs", SystemClock.elapsedRealtime())
+            .put("energyCounterNWh", energy.takeUnless { it == Long.MIN_VALUE } ?: JSONObject.NULL)
+            .put("chargeCounterUAh", charge.takeUnless { it == Long.MIN_VALUE } ?: JSONObject.NULL)
+            .put("currentAverageUa", battery.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE))
+            .put("memory", memSnapshot())
+            .put("thermal", thermalSnapshot())
+    }
+
+    private fun energyConsumedMWh(before: JSONObject, after: JSONObject): Any {
+        if (before.isNull("energyCounterNWh") || after.isNull("energyCounterNWh")) {
+            return JSONObject.NULL
+        }
+        val deltaNWh = before.getLong("energyCounterNWh") - after.getLong("energyCounterNWh")
+        return if (deltaNWh >= 0) deltaNWh / 1_000_000.0 else JSONObject.NULL
     }
 
     /**

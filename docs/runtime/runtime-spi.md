@@ -1,6 +1,6 @@
 # Runtime SPI Specification (v1)
 
-**Status:** Approved and implemented — Runtime v1.0 (Task 2.1, 2026-07-12)
+**Status:** Stable — Runtime v1.0 (implemented 2026-07-12; frozen 2026-07-15)
 **Normative for:** `runtime/runtime-api` and every runtime adapter.
 **Executable form:** `docs/runtime/runtime-tck.md` (each requirement here maps to TCK tests).
 **Evidence base:** llama.cpp spike, `docs/spikes/llamacpp-feasibility.md` (cited as *[spike]*).

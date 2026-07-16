@@ -1,0 +1,106 @@
+id	category	locale	tone	length	source	reference	required_terms	forbidden_terms
+grammar-001	grammar	en	NEUTRAL	PRESERVE	She don't have the updated schedule.	She doesn't have the updated schedule.	updated schedule	-
+grammar-002	grammar	en	NEUTRAL	PRESERVE	The reports was sent yesterday.	The reports were sent yesterday.	reports|yesterday	-
+grammar-003	grammar	en	NEUTRAL	PRESERVE	We has completed the first review.	We have completed the first review.	first review|completed	-
+grammar-004	grammar	en	NEUTRAL	PRESERVE	Please send the files when you will arrive.	Please send the files when you arrive.	files|arrive	-
+grammar-005	grammar	en	NEUTRAL	PRESERVE	Each of the options have a different cost.	Each of the options has a different cost.	options|different cost	-
+grammar-006	grammar	en	NEUTRAL	PRESERVE	I seen the message this morning.	I saw the message this morning.	message|this morning	-
+grammar-007	grammar	en	NEUTRAL	PRESERVE	The team discussed about the launch plan.	The team discussed the launch plan.	team|launch plan	-
+grammar-008	grammar	en	NEUTRAL	PRESERVE	There is three items left to verify.	There are three items left to verify.	three items|verify	-
+grammar-009	grammar	en	NEUTRAL	PRESERVE	Neither proposal meet the security requirement.	Neither proposal meets the security requirement.	proposal|security requirement	-
+grammar-010	grammar	en	NEUTRAL	PRESERVE	The update includes fixes, improvements and it reduces memory use.	The update includes fixes and improvements and reduces memory use.	fixes|improvements|memory use	-
+grammar-011	grammar	en	NEUTRAL	PRESERVE	Can you explain me how the retry works?	Can you explain to me how the retry works?	retry|works	-
+grammar-012	grammar	en	NEUTRAL	PRESERVE	The device lost it's connection during testing.	The device lost its connection during testing.	device|connection|testing	-
+grammar-013	grammar	en	NEUTRAL	PRESERVE	If I would know earlier, I would have changed it.	If I had known earlier, I would have changed it.	earlier|changed	-
+grammar-014	grammar	en	NEUTRAL	PRESERVE	This result is more better than the previous one.	This result is better than the previous one.	result|previous	-
+grammar-015	grammar	en	NEUTRAL	PRESERVE	The logs shows that the request finish successfully.	The logs show that the request finished successfully.	logs|request|successfully	-
+formality-001	formality	en	FORMAL	PRESERVE	Can you get back to me when you have a sec?	Please respond when you have a moment.	respond|moment	sec
+formality-002	formality	en	FORMAL	PRESERVE	Hey, I need those numbers ASAP.	Please provide those figures as soon as possible.	figures|as soon as possible	hey|ASAP
+formality-003	formality	en	FORMAL	PRESERVE	Just wanted to check if we're still good for Friday.	I would like to confirm that we are still scheduled for Friday.	confirm|Friday	just wanted|good
+formality-004	formality	en	FORMAL	PRESERVE	Thanks a ton for sorting this out.	Thank you for resolving this matter.	thank you|resolving	ton|sorting this out
+formality-005	formality	en	FORMAL	PRESERVE	Sorry, but I can't make the call today.	I apologize, but I am unable to attend the call today.	apologize|call today	sorry|can't
+formality-006	formality	en	FORMAL	PRESERVE	Could you give me a heads-up before the change?	Please notify me before implementing the change.	notify|change	heads-up
+formality-007	formality	en	FORMAL	PRESERVE	We're looking into it and will let you know.	We are investigating the matter and will provide an update.	investigating|update	looking into it|let you know
+formality-008	formality	en	FORMAL	PRESERVE	I think this plan is pretty solid.	I believe this plan is well founded.	plan|well founded	pretty solid
+formality-009	formality	en	FORMAL	PRESERVE	Let's talk about this after lunch.	Let us discuss this matter after lunch.	discuss|after lunch	talk about
+formality-010	formality	en	FORMAL	PRESERVE	We messed up the estimate and need another day.	We made an error in the estimate and require an additional day.	error|estimate|additional day	messed up
+formality-011	formality	en	FORMAL	PRESERVE	Do you mind sending over the contract?	Would you please send the contract?	please|contract	sending over
+formality-012	formality	en	FORMAL	PRESERVE	I don't have enough info to decide yet.	I do not yet have sufficient information to decide.	sufficient information|decide	info|don't
+formality-013	formality	en	FORMAL	PRESERVE	The new flow is way easier to use.	The new workflow is considerably easier to use.	workflow|easier	way
+formality-014	formality	en	FORMAL	PRESERVE	Can we push the deadline back a bit?	Could we extend the deadline slightly?	extend|deadline	push|a bit
+formality-015	formality	en	FORMAL	PRESERVE	I'll ping you once the build is ready.	I will notify you when the build is ready.	notify|build|ready	ping
+shortening-001	shortening	en	NEUTRAL	SHORTER	I wanted to let you know that the meeting scheduled for tomorrow morning has been moved to tomorrow afternoon.	Tomorrow's morning meeting has moved to the afternoon.	meeting|tomorrow|afternoon	-
+shortening-002	shortening	en	NEUTRAL	SHORTER	Due to the fact that the server was unavailable, we were unable to complete the deployment on time.	The server outage delayed the deployment.	server|deployment|delayed	-
+shortening-003	shortening	en	NEUTRAL	SHORTER	Please be advised that all employees are required to complete the security training before the end of Friday.	Complete the required security training by Friday.	security training|Friday|required	-
+shortening-004	shortening	en	NEUTRAL	SHORTER	At this point in time, we do not have any additional information about the cause of the incident.	We have no further information about the incident's cause.	information|incident|cause	-
+shortening-005	shortening	en	NEUTRAL	SHORTER	The purpose of this message is to confirm that we received your application and are currently reviewing it.	We received your application and are reviewing it.	application|reviewing	-
+shortening-006	shortening	en	NEUTRAL	SHORTER	In order to improve performance, the team made a number of changes to how images are loaded and cached.	The team improved image loading and caching performance.	team|images|caching|performance	-
+shortening-007	shortening	en	NEUTRAL	SHORTER	I am writing to ask whether you would be available to meet at some point during the coming week.	Are you available to meet next week?	available|meet|next week	-
+shortening-008	shortening	en	NEUTRAL	SHORTER	The test results indicate that there is a possibility that memory usage may increase during extended sessions.	Tests show memory may increase during long sessions.	tests|memory|long sessions	-
+shortening-009	shortening	en	NEUTRAL	SHORTER	We have made the decision to postpone the launch until we have completed the remaining accessibility checks.	We postponed the launch pending accessibility checks.	postponed|launch|accessibility checks	-
+shortening-010	shortening	en	NEUTRAL	SHORTER	For your information, the latest version of the document is now available in the shared project folder.	The latest document is in the shared project folder.	latest document|shared project folder	-
+shortening-011	shortening	en	NEUTRAL	SHORTER	The reason I am contacting you is that I need clarification regarding the payment terms in the agreement.	I need clarification on the agreement's payment terms.	clarification|payment terms|agreement	-
+shortening-012	shortening	en	NEUTRAL	SHORTER	There are several different factors that could potentially affect the final delivery date of the project.	Several factors may affect the project's delivery date.	factors|delivery date|project	-
+shortening-013	shortening	en	NEUTRAL	SHORTER	It is important to note that changing this setting will require the application to be restarted before it takes effect.	Changing this setting requires an app restart.	setting|app restart	-
+shortening-014	shortening	en	NEUTRAL	SHORTER	We would like to take this opportunity to thank everyone who contributed their time and feedback to the release.	Thank you to everyone who contributed time and feedback.	thank you|contributed|feedback	-
+shortening-015	shortening	en	NEUTRAL	SHORTER	The team is currently in the process of investigating the issue and will provide another update when more details are available.	The team is investigating and will share more details.	team|investigating|details	-
+expansion-001	expansion	en	NEUTRAL	LONGER	The build passed.	The build completed successfully, and all configured validation checks passed.	build|successfully|validation checks	-
+expansion-002	expansion	en	NEUTRAL	LONGER	Let's meet Tuesday.	Let us meet on Tuesday to review the open items and agree on the next steps.	Tuesday|open items|next steps	-
+expansion-003	expansion	en	NEUTRAL	LONGER	The update is ready.	The update is ready for review and includes the changes discussed during our last meeting.	update|ready|review|changes	-
+expansion-004	expansion	en	NEUTRAL	LONGER	I need more time.	I need additional time to complete the work carefully and verify the final result.	additional time|complete|verify	-
+expansion-005	expansion	en	NEUTRAL	LONGER	The issue is fixed.	The issue has been resolved, and the fix has been verified against the original failure case.	issue|resolved|verified|failure case	-
+expansion-006	expansion	en	NEUTRAL	LONGER	Please review this.	Please review this document and share any corrections or concerns before the deadline.	review|corrections|concerns|deadline	-
+expansion-007	expansion	en	NEUTRAL	LONGER	The test was cancelled.	The test was cancelled before completion, and no final result was recorded.	test|cancelled|final result	-
+expansion-008	expansion	en	NEUTRAL	LONGER	We chose option B.	We selected option B because it offers the best balance of cost, reliability, and implementation effort.	option B|cost|reliability|implementation effort	-
+expansion-009	expansion	en	NEUTRAL	LONGER	The device became warm.	The device temperature increased during sustained testing, so the workload was paused to allow it to cool.	device|temperature|testing|cool	-
+expansion-010	expansion	en	NEUTRAL	LONGER	Your request was received.	We received your request and will review the details before providing a complete response.	request|review|response	-
+expansion-011	expansion	en	NEUTRAL	LONGER	The data looks correct.	The data appears correct based on the current checks, although a final verification is still required.	data|checks|final verification	-
+expansion-012	expansion	en	NEUTRAL	LONGER	The launch moved.	The launch date has moved to next Thursday to provide enough time for the remaining quality checks.	launch date|next Thursday|quality checks	-
+expansion-013	expansion	en	NEUTRAL	LONGER	We need a decision.	We need a decision by tomorrow so the team can proceed without delaying the schedule.	decision|tomorrow|team|schedule	-
+expansion-014	expansion	en	NEUTRAL	LONGER	The call went well.	The call was productive, and everyone agreed on the priorities and immediate follow-up actions.	call|productive|priorities|follow-up actions	-
+expansion-015	expansion	en	NEUTRAL	LONGER	The file is missing.	The required file is missing from the shared folder, so the next processing step cannot begin.	file|shared folder|processing step	-
+professional-001	professional	en	FORMAL	PRESERVE	hey, the client wants the draft today, can you finish it?	The client has requested the draft today. Could you please complete it?	client|draft|today|complete	hey
+professional-002	professional	en	FORMAL	PRESERVE	we hit a problem with payments and are checking it now	We encountered a payment issue and are currently investigating it.	payment issue|investigating	problem|checking it
+professional-003	professional	en	FORMAL	PRESERVE	I need everyone to send their updates before lunch	Please submit your updates before lunch.	updates|before lunch	-
+professional-004	professional	en	FORMAL	PRESERVE	The vendor still hasn't replied so the date might slip	The vendor has not yet responded, which may affect the delivery date.	vendor|delivery date|affect	slip
+professional-005	professional	en	FORMAL	PRESERVE	This proposal costs too much for what we get	The proposal's cost is not justified by the expected value.	proposal|cost|expected value	too much
+professional-006	professional	en	FORMAL	PRESERVE	Tell me if anything in the contract looks weird	Please let me know if you identify any unusual terms in the contract.	contract|unusual terms	weird
+professional-007	professional	en	FORMAL	PRESERVE	We should probably test this again before shipping	I recommend conducting another test before release.	recommend|test|before release	probably|shipping
+professional-008	professional	en	FORMAL	PRESERVE	The numbers from finance don't match our spreadsheet	The figures provided by Finance do not match our spreadsheet.	Finance|figures|spreadsheet	numbers
+professional-009	professional	en	FORMAL	PRESERVE	Can you move my review to later this week?	Could you reschedule my review for later this week?	reschedule|review|later this week	move
+professional-010	professional	en	FORMAL	PRESERVE	We need to fix the onboarding because people keep getting stuck	We need to improve onboarding because users continue to encounter difficulties.	improve|onboarding|users|difficulties	getting stuck
+professional-011	professional	en	FORMAL	PRESERVE	I'm sending the slides we talked about yesterday	I am sending the presentation discussed yesterday.	presentation|yesterday	slides we talked about
+professional-012	professional	en	FORMAL	PRESERVE	The rollout went fine and we didn't see any big errors	The rollout completed successfully, with no significant errors observed.	rollout|successfully|significant errors	fine|big errors
+professional-013	professional	en	FORMAL	PRESERVE	Please make sure legal sees this before we publish	Please ensure that the Legal team reviews this before publication.	Legal team|reviews|publication	sees this
+professional-014	professional	en	FORMAL	PRESERVE	I don't think the current plan can work with our budget	I do not believe the current plan is feasible within our budget.	current plan|feasible|budget	can work
+professional-015	professional	en	FORMAL	PRESERVE	Thanks for jumping on this so quickly	Thank you for addressing this matter promptly.	thank you|addressing|promptly	jumping on
+social-001	social	en	CASUAL	PRESERVE	I will arrive at the restaurant at approximately seven o'clock.	I'll get to the restaurant around seven.	restaurant|seven	approximately
+social-002	social	en	CASUAL	PRESERVE	Would you be interested in watching a movie this evening?	Want to watch a movie tonight?	movie|tonight	would you be interested
+social-003	social	en	CASUAL	PRESERVE	Thank you for sharing the photographs from the trip.	Thanks for sending the trip photos!	thanks|trip photos	photographs
+social-004	social	en	CASUAL	PRESERVE	I apologize for not responding to your message earlier.	Sorry I didn't reply earlier!	sorry|reply|earlier	apologize
+social-005	social	en	CASUAL	PRESERVE	I am very pleased that you enjoyed the event.	I'm so glad you enjoyed the event!	glad|enjoyed|event	very pleased
+social-006	social	en	CASUAL	PRESERVE	Please inform me when you have returned home safely.	Let me know when you're home safe.	let me know|home safe	inform
+social-007	social	en	CASUAL	PRESERVE	I hope that your examination went successfully today.	Hope your exam went well today!	exam|well|today	examination
+social-008	social	en	CASUAL	PRESERVE	It would be enjoyable to meet for coffee this weekend.	It'd be fun to grab coffee this weekend!	coffee|weekend|fun	enjoyable
+social-009	social	en	CASUAL	PRESERVE	Congratulations on completing your first marathon.	Congrats on finishing your first marathon!	congrats|first marathon	congratulations
+social-010	social	en	CASUAL	PRESERVE	I am unable to attend tonight, but I hope everyone has a pleasant time.	I can't make it tonight, but hope you all have fun!	tonight|have fun	unable|pleasant time
+social-011	social	en	CASUAL	PRESERVE	That meal was exceptionally delicious.	That food was seriously delicious!	food|delicious	exceptionally
+social-012	social	en	CASUAL	PRESERVE	Please send me the location when it is convenient.	Send me the location when you get a chance.	location|chance	convenient
+social-013	social	en	CASUAL	PRESERVE	I was surprised to encounter you at the concert.	So funny running into you at the concert!	concert|running into you	encounter
+social-014	social	en	CASUAL	PRESERVE	We should arrange another gathering in the near future.	We should hang out again soon!	hang out|again|soon	arrange|gathering
+social-015	social	en	CASUAL	PRESERVE	I appreciate your assistance with moving the furniture.	Thanks for helping me move the furniture!	thanks|helping|furniture	assistance
+multilingual-001	multilingual	es	NEUTRAL	PRESERVE	La reunión fue movida para mañana por la tarde.	La reunión se trasladó a mañana por la tarde.	reunión|mañana|tarde	-
+multilingual-002	multilingual	fr	FORMAL	PRESERVE	Envoie-moi le rapport dès que tu peux.	Veuillez m'envoyer le rapport dès que possible.	rapport|dès que possible	tu peux
+multilingual-003	multilingual	de	NEUTRAL	SHORTER	Aufgrund eines technischen Problems konnten wir die Aktualisierung nicht wie geplant abschließen.	Ein technisches Problem verzögerte die Aktualisierung.	technisches Problem|Aktualisierung|verzögerte	-
+multilingual-004	multilingual	hi	NEUTRAL	PRESERVE	कृपया मीटिंग का नया समय मुझे बता देना।	कृपया मुझे बैठक का नया समय बता दें।	बैठक|नया समय	-
+multilingual-005	multilingual	ml	NEUTRAL	PRESERVE	റിപ്പോർട്ട് തയ്യാറായാൽ എനിക്ക് അയച്ചു തരൂ.	റിപ്പോർട്ട് തയ്യാറാകുമ്പോൾ ദയവായി എനിക്ക് അയയ്ക്കുക.	റിപ്പോർട്ട്|തയ്യാറാകുമ്പോൾ|അയയ്ക്കുക	-
+multilingual-006	multilingual	ta	FORMAL	PRESERVE	நாளைக்குள் இந்த கோப்பை அனுப்ப முடியுமா?	தயவுசெய்து இந்தக் கோப்பை நாளைக்குள் அனுப்ப முடியுமா?	கோப்பை|நாளைக்குள்|தயவுசெய்து	-
+multilingual-007	multilingual	pt	CASUAL	PRESERVE	Gostaria de saber se você está disponível para conversar hoje.	Você pode conversar hoje?	conversar|hoje	gostaria de saber
+multilingual-008	multilingual	it	NEUTRAL	LONGER	Il test è riuscito.	Il test è stato completato con successo e tutti i controlli previsti sono stati superati.	test|successo|controlli	-
+multilingual-009	multilingual	ja	NEUTRAL	PRESERVE	明日の会議の時間が変更になりました。	明日の会議時間が変更されました。	明日|会議|変更	-
+multilingual-010	multilingual	ko	FORMAL	PRESERVE	자료 준비되면 바로 보내 줘.	자료가 준비되는 대로 보내 주시기 바랍니다.	자료|준비|보내	바로 보내 줘
+multilingual-011	multilingual	ar	NEUTRAL	PRESERVE	تم تغيير موعد الاجتماع إلى يوم الخميس.	تم نقل موعد الاجتماع إلى يوم الخميس.	الاجتماع|الخميس	-
+multilingual-012	multilingual	nl	NEUTRAL	SHORTER	Ik wil je laten weten dat de afspraak van morgenochtend is verplaatst naar de middag.	De afspraak van morgen is verplaatst naar de middag.	afspraak|morgen|middag	-
+multilingual-013	multilingual	pl	FORMAL	PRESERVE	Wyślij mi proszę umowę, jak będziesz mieć chwilę.	Proszę przesłać mi umowę, gdy będzie to możliwe.	umowę|proszę|możliwe	mieć chwilę
+multilingual-014	multilingual	tr	NEUTRAL	LONGER	Güncelleme hazır.	Güncelleme incelemeye hazır ve üzerinde anlaştığımız tüm değişiklikleri içeriyor.	Güncelleme|incelemeye hazır|değişiklikleri	-
+multilingual-015	multilingual	id	CASUAL	PRESERVE	Saya sangat senang mendengar kabar baik itu.	Senang banget dengar kabar baik itu!	senang|kabar baik	sangat senang

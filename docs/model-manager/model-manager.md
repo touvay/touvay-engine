@@ -1,6 +1,6 @@
 # Model Manager Architecture v1.0
 
-**Status:** Frozen architecture — Slices 1–4 approved
+**Status:** Stable — Model Manager Architecture v1.0, Slices 1–4 (frozen 2026-07-15)
 **Checkpoint baseline:** `runtime-v1.0-foundation` (`7a68daa`)
 **Decisions:** [ADR-015](../adr/ADR-015-model-manager-resolution-and-instance-identity.md)
 and [ADR-016](../adr/ADR-016-model-pack-manifest-and-signature-envelope.md)

@@ -1,6 +1,6 @@
 # Rewrite Capability v1
 
-**Status:** Implemented; engineering review complete
+**Status:** Stable — implemented `text.rewrite@1` contract (frozen 2026-07-15)
 
 **Capability key:** `text.rewrite@1`
 

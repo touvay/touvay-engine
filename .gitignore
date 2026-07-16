@@ -26,6 +26,7 @@ captures/
 *.swp
 *.trace
 *.perfetto-trace
+benchmarks/results/
 .DS_Store
 Thumbs.db
 

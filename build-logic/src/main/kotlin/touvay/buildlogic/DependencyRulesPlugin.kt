@@ -52,10 +52,15 @@ class DependencyRulesPlugin : Plugin<Project> {
             ":runtime:runtime-api",
             ":runtime:runtime-llamacpp",
         ),
-        // §8 rule 7: client apps depend only on the SDK (+ the engine host they embed).
+        // The demo is the non-production Developer Console. Capability execution still
+        // uses the SDK; direct Model Manager/Runtime edges exist only for signed-pack
+        // administration and exact benchmark diagnostics while the Engine is offline.
         ":apps:demo" to setOf(
             ":sdk:touvay-sdk",
             ":engine:engine-service",
+            ":engine:engine-models",
+            ":runtime:runtime-api",
+            ":runtime:runtime-llamacpp",
         ),
         // Conformance kit: executable form of docs/runtime/runtime-spi.md.
         ":runtime:runtime-tck" to setOf(":runtime:runtime-api"),

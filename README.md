@@ -13,9 +13,10 @@ llama.cpp adapter. Streaming, cancellation, structured results, and diagnostics 
 exercised by the engineering demo and integration tests.
 
 Runtime v1.0, Model Manager Slices 1–4, the Execution Engine, Capability Framework v1,
-Context Architecture v1, and Rewrite v1 are complete. Keyboard integration, production
-UI, networking, retrieval, memory, and additional capabilities are not part of this
-release.
+Context Architecture v1, and Rewrite v1 are complete. Touvay Keyboard is maintained in a
+separate sibling repository and consumes this repository's validated SDK. Keyboard
+product code, networking, retrieval, memory, and additional capabilities are not part of
+this release.
 
 AI coding agents should read [AGENTS.md](AGENTS.md) before making changes.
 
@@ -25,6 +26,8 @@ AI coding agents should read [AGENTS.md](AGENTS.md) before making changes.
 - [Canonical specification index](docs/specs/README.md)
 - [Project status](PROJECT_STATUS.md)
 - [Changelog](CHANGELOG.md)
+- [Rewrite Benchmark Suite](docs/benchmarks/rewrite-benchmark-suite.md)
+- [Developer Console](docs/developer-console.md)
 
 The SDK remains capability-driven: applications do not see runtimes, model files,
 prompts, the scheduler, or Model Manager internals.
@@ -43,7 +46,7 @@ prompts, the scheduler, or Model Manager internals.
 | `runtime/runtime-api` | Runtime SPI |
 | `runtime/runtime-tck` | Runtime v1.0 conformance kit |
 | `runtime/runtime-llamacpp` | Production llama.cpp adapter, pinned to b5199 |
-| `apps/demo` | Engineering validation client and cross-process tests |
+| `apps/demo` | Non-production Developer Console and cross-process tests |
 | `apps/benchmark` | Production-adapter benchmark host |
 
 Module dependency rules are enforced by `checkDependencyRules` and run as part of the
@@ -54,6 +57,7 @@ build.
 Requirements: JDK 17, Android SDK platform 35, NDK 27.2.12479018, and CMake 3.22.1.
 
 ```shell
+pwsh ./scripts/fetch-llamacpp.ps1
 ./gradlew build
 ./gradlew apiCheck checkDependencyRules
 ./gradlew :runtime:runtime-tck:test
@@ -61,12 +65,22 @@ Requirements: JDK 17, Android SDK platform 35, NDK 27.2.12479018, and CMake 3.22
 ./gradlew :capabilities:capability-rewrite:testDebugUnitTest
 ```
 
+The bootstrap script fetches the exact reviewed llama.cpp tag and verifies its commit
+before Gradle configures native compilation. CI performs the same step from a clean
+checkout. Gradle dependency checksums, dependency locks, the wrapper distribution
+checksum, and GitHub Action commit pins are versioned release inputs.
+
 Device validation requires a locally provisioned GGUF model. Model weights and private
 signing material are deliberately excluded from Git. See the [model setup](models/README.md)
 and [demo pack workflow](docs/demo/demo-pack.md).
 
 For the public Rewrite API and a compact Android example, see the
-[SDK quick start](sdk/touvay-sdk/README.md).
+[SDK quick start](sdk/touvay-sdk/README.md). External repositories should also follow the
+[SDK consumer integration guide](docs/integration/SDK_CONSUMER_INTEGRATION.md).
+
+Product-quality and physical-device regression runs use the versioned
+[Rewrite Benchmark Suite](docs/benchmarks/rewrite-benchmark-suite.md), including the
+105-case synthetic corpus under `benchmarks/rewrite/`.
 
 ## Privacy and security
 

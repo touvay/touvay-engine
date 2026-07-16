@@ -1,6 +1,6 @@
 # Capability TCK v1
 
-**Status:** Executable conformance contract
+**Status:** Stable — Capability TCK v1 executable contract (frozen 2026-07-15)
 
 **Normative architecture:** `CAPABILITY_SPEC.md`, ADR-020, ADR-021
 

@@ -1,6 +1,6 @@
 # Task 3 Slice 4 — Runtime lifecycle design note
 
-**Status:** Approved architecture applied to authorized Slice 4 implementation
+**Status:** Stable — approved runtime lifecycle design (frozen 2026-07-15)
 
 This slice implements ADR-015 inside `engine-models`. It does not change the Runtime
 SPI, create inference sessions, execute inference, or add scheduler/routing policy.

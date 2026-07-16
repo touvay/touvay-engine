@@ -1,6 +1,6 @@
 # Runtime TCK — Technology Compatibility Kit Design
 
-**Status:** Approved and implemented — Runtime v1.0 (Task 2.1, 2026-07-12)
+**Status:** Stable — Runtime TCK v1.0 (implemented 2026-07-12; frozen 2026-07-15)
 **Implements:** `docs/runtime/runtime-spi.md` as executable tests.
 **Goal:** any runtime — llama.cpp, LiteRT-LM, ExecuTorch, an AICore delegate, a fork's
 adapter — passes the same kit **without engine changes**. "Conformant" has exactly one

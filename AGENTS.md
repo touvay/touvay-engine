@@ -18,11 +18,13 @@ prompts, or hardware.
 **Status:** Platform Foundation v0.5 is tagged and build-green. Runtime v1.0, Model
 Manager Slices 1–4, Execution Engine, Capability Framework v1, Context Architecture,
 and Rewrite v1 are complete; Rewrite is committed as `53cb87d`. Platform Validation is
-approved: the real signed offline Rewrite pack, Runtime Registry, llama.cpp, Execution
-Coordinator, Binder, typed SDK, and demo are green end to end. The repository is at its
-public release-readiness checkpoint. General Context Provider implementation, keyboard
-integration, production UI, networking, retrieval, memory, and additional capabilities
-remain out of scope.
+approved and published at `platform-v1-validated`: the real signed offline Rewrite pack,
+Runtime Registry, llama.cpp, Execution Coordinator, Binder, typed SDK, and demo are green
+end to end. The platform specifications and Keyboard Architecture v1.0 are Stable;
+semantic changes require an ADR. The keyboard is maintained in a separate sibling
+repository and must integrate only through the validated SDK; no keyboard product code
+belongs in this repository. General Context Provider implementation, networking,
+retrieval, memory, and additional capabilities remain out of scope.
 
 ## Non-negotiable rules
 
@@ -135,9 +137,10 @@ Gradle 8.14.3 wrapper; AGP 8.7.3; Kotlin 2.1.0; AVD `Medium_Phone_API_36.1`
 ## Open items / approval gates
 
 - Representative 4 GB arm64 calibration remains required before a model capability ships.
-- **Gate:** Signed-pack Platform Validation is approved. Additional capabilities, Router
-  policy changes, keyboard integration, networking, and follow-on milestones remain
-  unauthorized.
+- **Gate:** Signed-pack Platform Validation is approved and published. Keyboard
+  Architecture v1.0 is Stable; implementation belongs to the separate Touvay Keyboard
+  repository. Additional capabilities, Router policy changes, networking, and follow-on
+  engine milestones remain unauthorized.
 - Measure Tink 1.23.0's shrunk APK contribution before a user-facing engine release;
   Slice 1 uses one pure-Java verifier path across API 29+.
 - Deferred (additive): public logical-session facade; convention-plugin guard for

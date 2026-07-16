@@ -13,6 +13,7 @@ import kotlin.io.path.createTempDirectory
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertTrue
 
 class ModelManagerPlatformTest {
     @Test
@@ -63,6 +64,36 @@ class ModelManagerPlatformTest {
         }
     }
 
+    @Test
+    fun developerOperations_preserveCatalogActivationRollbackAndDeletion(): Unit = runBlocking {
+        val first = createTempDirectory("platform-first")
+        val second = createTempDirectory("platform-second")
+        val store = createTempDirectory("platform-operations-store")
+        writePack(first, "first prompt".toByteArray(), "first weights".toByteArray())
+        writePack(second, "second prompt".toByteArray(), "second weights".toByteArray(), "1.0.1")
+        val platform = platform(store, FakeRuntime())
+        try {
+            val firstIdentity = platform.install(first)
+            platform.activate(firstIdentity)
+            val secondIdentity = platform.install(second)
+            platform.activate(secondIdentity)
+
+            assertEquals(
+                ModelManagerRevisionState.ACTIVE,
+                platform.revisions().single { it.identity == secondIdentity }.state,
+            )
+            platform.rollback(firstIdentity)
+            assertEquals(
+                ModelManagerRevisionState.ACTIVE,
+                platform.revisions().single { it.identity == firstIdentity }.state,
+            )
+            assertEquals(ModelManagerRemovalResult.REMOVED, platform.deleteInactive(secondIdentity))
+            assertTrue(platform.revisions().none { it.identity == secondIdentity })
+        } finally {
+            platform.shutdown()
+        }
+    }
+
     private fun platform(root: Path, runtime: FakeRuntime): ModelManagerPlatform =
         ModelManagerPlatform(
             root,
@@ -85,10 +116,16 @@ class ModelManagerPlatformTest {
             TestStorageDurability,
         )
 
-    private fun writePack(root: Path, prompt: ByteArray, weights: ByteArray) {
+    private fun writePack(
+        root: Path,
+        prompt: ByteArray,
+        weights: ByteArray,
+        packVersion: String = "1.0.0",
+    ) {
         val promptPath = "prompts/text-rewrite-v1.pb"
         val manifest = TestFixtures.manifest().toBuilder()
             .setEngineMinVersion("1.0.0")
+            .setPackVersion(packVersion)
             .clearFiles()
             .clearCapabilities()
             .addCapabilities(

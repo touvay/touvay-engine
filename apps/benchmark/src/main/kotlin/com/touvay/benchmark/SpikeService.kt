@@ -22,11 +22,16 @@ class SpikeService : Service() {
     private val binder = object : ISpikeRunner.Stub() {
         override fun getPid(): Int = Process.myPid()
 
-        override fun runSuite(modelPath: String?, quick: Boolean, callback: ISpikeCallback?) {
-            if (modelPath == null || callback == null) return
+        override fun runSuite(
+            modelPath: String?,
+            modelVariant: String?,
+            quick: Boolean,
+            callback: ISpikeCallback?,
+        ) {
+            if (modelPath == null || modelVariant == null || callback == null) return
             executor.execute {
                 try {
-                    val suite = BenchmarkSuite(applicationContext, modelPath) { line ->
+                    val suite = BenchmarkSuite(applicationContext, modelPath, modelVariant) { line ->
                         runCatching { callback.onProgress(line) }
                     }
                     activeSuite = suite

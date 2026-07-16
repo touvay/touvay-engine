@@ -84,6 +84,35 @@ public class ModelCapabilityRoute(
     public val promptAsset: ModelCapabilityAsset,
 )
 
+/** Developer-tool projection of a verified installed model revision. */
+public class ModelManagerRevisionInfo(
+    public val identity: ModelRevisionIdentity,
+    public val state: ModelManagerRevisionState,
+    public val compatibility: ModelManagerRevisionCompatibility,
+    public val installBytes: Long,
+    public val signingKeyId: String,
+    public val fullyVerifiedAtEpochMillis: Long,
+)
+
+/** Durable revision state already owned by the Model Manager catalog. */
+public enum class ModelManagerRevisionState {
+    ACTIVE,
+    INSTALLED_INACTIVE,
+    PENDING_REMOVAL,
+}
+
+/** Compatibility result for an installed, signed revision. */
+public enum class ModelManagerRevisionCompatibility {
+    COMPATIBLE,
+    INCOMPATIBLE,
+}
+
+/** Result of deleting an inactive revision. */
+public enum class ModelManagerRemovalResult {
+    REMOVED,
+    DEFERRED_UNTIL_RELEASE,
+}
+
 /**
  * Unpublished composition facade over the approved Model Manager internals.
  *
@@ -183,6 +212,50 @@ public class ModelManagerPlatform private constructor(
         catalog.activate(installed.identity)
         return installed.identity
     }
+
+    /** Verifies and transactionally installs one offline directory pack without activating it. */
+    public fun install(sourceRoot: Path): ModelRevisionIdentity =
+        catalog.install(DirectoryModelPackSource(sourceRoot)).identity
+
+    /** Returns a content-free immutable snapshot for first-party developer tooling. */
+    public fun revisions(): List<ModelManagerRevisionInfo> =
+        catalog.snapshot().revisions.map { revision ->
+            ModelManagerRevisionInfo(
+                identity = revision.resolved.identity,
+                state = when (revision.state) {
+                    CatalogRevisionState.ACTIVE -> ModelManagerRevisionState.ACTIVE
+                    CatalogRevisionState.INSTALLED_INACTIVE ->
+                        ModelManagerRevisionState.INSTALLED_INACTIVE
+                    CatalogRevisionState.PENDING_REMOVAL ->
+                        ModelManagerRevisionState.PENDING_REMOVAL
+                },
+                compatibility = when (revision.compatibility) {
+                    CatalogCompatibility.COMPATIBLE ->
+                        ModelManagerRevisionCompatibility.COMPATIBLE
+                    CatalogCompatibility.INCOMPATIBLE ->
+                        ModelManagerRevisionCompatibility.INCOMPATIBLE
+                },
+                installBytes = revision.resolved.installBytes,
+                signingKeyId = revision.resolved.manifest.signingKeyId,
+                fullyVerifiedAtEpochMillis = revision.fullyVerifiedAtEpochMillis,
+            )
+        }
+
+    /** Atomically activates an exact compatible installed revision. */
+    public fun activate(identity: ModelRevisionIdentity): Unit {
+        catalog.activate(identity)
+    }
+
+    /** Rolls back by atomically activating an exact earlier installed revision. */
+    public fun rollback(identity: ModelRevisionIdentity): Unit = catalog.rollback(identity)
+
+    /** Deletes only an inactive revision, preserving catalog lease semantics. */
+    public fun deleteInactive(identity: ModelRevisionIdentity): ModelManagerRemovalResult =
+        when (catalog.requestRemoval(identity)) {
+            RemovalDisposition.REMOVED -> ModelManagerRemovalResult.REMOVED
+            RemovalDisposition.DEFERRED_UNTIL_RELEASE ->
+                ModelManagerRemovalResult.DEFERRED_UNTIL_RELEASE
+        }
 
     /** Returns deterministic active routes advertising the exact capability schema. */
     public fun activeRoutes(capabilityId: String, schemaVersion: Int): List<ModelCapabilityRoute> {

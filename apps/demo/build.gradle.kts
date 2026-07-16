@@ -5,7 +5,11 @@ plugins {
 android {
     namespace = "com.touvay.demo"
 
-    sourceSets.getByName("main").assets.srcDir("../../docs/demo/pack")
+    sourceSets.getByName("main").assets.srcDirs(
+        "../../docs/demo/pack",
+        "../../benchmarks/rewrite",
+    )
+    sourceSets.getByName("test").resources.srcDir("../../benchmarks/rewrite")
 
     defaultConfig {
         applicationId = "com.touvay.demo"
@@ -18,6 +22,11 @@ dependencies {
     implementation(project(":sdk:touvay-sdk"))
     // Hosts the embedded engine (service manifest merges in; runs in :touvay process).
     implementation(project(":engine:engine-service"))
+    // Developer Console only: drives the existing signed-pack lifecycle while the
+    // embedded Engine client is disconnected. These are not production-client edges.
+    implementation(project(":engine:engine-models"))
+    implementation(project(":runtime:runtime-api"))
+    implementation(project(":runtime:runtime-llamacpp"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity)
     implementation(libs.kotlinx.coroutines.android)

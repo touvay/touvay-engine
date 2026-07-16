@@ -1,17 +1,41 @@
 # Touvay Engine Project Status
 
-**Last updated:** 2026-07-13
+**Last updated:** 2026-07-16
 
 ## Current summary
 
-The platform foundation is complete and tagged `foundation-v0.5`. Capability 1 Rewrite
-is approved and committed as `53cb87d`. The Platform Validation milestone composes the
-approved Model Manager, Runtime Registry, llama.cpp adapter, Execution Coordinator,
-Binder, typed SDK, and engineering demo around a real signed offline model pack. It is
-build-green, 28/28 Runtime device-TCK green, and real cross-process Rewrite validation
-green. The project is at its public release-readiness checkpoint. Keyboard integration,
-production UI, downloader, networking, retrieval, memory, and additional capabilities
-remain unauthorized.
+The Platform Foundation is complete, validated, and published at commit `1c4a490a` with
+the annotated tag `platform-v1-validated`. Runtime v1.0, Model Manager, Runtime Registry,
+Execution Engine, Capability Framework, Context Architecture, typed Rewrite SDK, and the
+real signed offline llama.cpp path are green end to end. The approved platform contracts
+are now Stable; Keyboard Architecture v1.0 is approved and merged into the frozen
+platform. Future semantic architectural changes require an accepted ADR before
+implementation. Touvay Keyboard is a separate sibling repository and will consume the
+validated SDK; this Engine repository contains no keyboard implementation. Grammar,
+Translation, networking, retrieval, and memory remain unauthorized.
+
+Rewrite product-quality work is now authorized as measurement infrastructure around
+the frozen platform. Benchmark Suite v1 provides a 105-case synthetic corpus,
+production-path quality/latency/resource measurement, exact Runtime token throughput,
+model-variant labeling, cancellation and cold/warm evidence, and versioned acceptance
+and regression policy. It changes no production platform architecture or capability.
+
+Developer Experience tooling is now implemented through the non-production `apps/demo`
+Developer Console. It consumes the existing SDK, signed-pack pipeline, Model Manager
+operations, and Rewrite benchmark assets without changing Engine architecture, Runtime
+SPI, model storage semantics, Capability Framework, or production routing.
+
+Embedded production hosts can now provide one fail-closed signed-pack configuration
+using a pinned public key and an application-private no-backup source. The canonical
+Model Store remains private to each host. Demo trust remains Console-only; no shared
+store, exported service, cross-application administration, or standalone Engine phase
+was introduced.
+
+Milestone 6 release controls now cover clean-checkout native bootstrap, immutable CI
+Action pins, a checksum-pinned Gradle wrapper, dependency verification metadata, and
+dependency locks. The platform architecture and runtime behavior are unchanged. Final
+Internal Alpha promotion remains owned by the Keyboard release gate and requires its
+production-signed Pixel 8 signed-pack evidence and archived artifact hashes.
 
 ## Completed milestones
 
@@ -33,31 +57,39 @@ remain unauthorized.
 | Context Architecture v1.0 | Complete | `docs/context/CONTEXT_SPEC.md`, ADR-022/023 |
 | Capability 1 Rewrite | Complete | Commit `53cb87d`; `text.rewrite@1`, golden/streaming/cancellation/Coordinator integration tests |
 | End-to-End Platform Validation | Complete and approved | Signed pack, typed SDK, demo, real llama.cpp Rewrite, 28/28 device TCK |
+| Platform Validation publication | Complete | Commit `1c4a490a405a5f6323173aeb57170666739d9d17`, tag `platform-v1-validated`, published `main` |
+| Platform Freeze | Complete | Approved platform specifications marked Stable; ADR gate recorded |
+| Keyboard Architecture v1.0 | Approved and Stable | `docs/keyboard/KEYBOARD_ARCHITECTURE.md`; merged into frozen platform by reference |
+| External SDK integration handoff | Complete | Composite-build consumer smoke test; SDK lifecycle and validation guide |
+| Rewrite Benchmark Suite v1 | Implemented; physical baseline pending | 105-case corpus, production Rewrite runner, Runtime throughput runner, scoring and regression policy |
+| Engine Developer Console | Implemented; device UX validation pending | Dashboard, Rewrite tester, signed model administration, benchmark, diagnostics, logs, developer settings |
 
 ## Current milestone
 
-**Platform Validation release-readiness checkpoint**
+**Milestone 6 Release Engineering — repository controls complete; product signing gate pending**
 
-The engine now has a fixed production Rewrite route backed by an active, verified
-catalog revision and the real llama.cpp Runtime registration. The SDK exposes only a
-stable typed Rewrite API. The demo carries a demo-only public key and signed metadata,
-while the pinned GGUF remains a local offline input. The engineering screen exercises
-discovery, streaming, structured completion, cancellation, timing, and diagnostics.
+`docs/benchmarks/rewrite-benchmark-suite.md` defines the controlled device procedure,
+scoring, acceptance floors, and baseline comparison policy. The first three full Pixel
+8 runs remain required to promote the initial model baseline. No Runtime, Model Manager,
+Execution, Capability Framework, SDK, Binder API, or capability behavior is changed.
 
-No approved architecture or SPI was changed. Keyboard, production UI, networking,
-retrieval, memory, and additional capabilities remain excluded.
+`docs/developer-console.md` defines the engineering-only Console and its single-owner
+model-administration procedure. Physical-device validation still requires signed Rewrite
+weights; the three-run Rewrite quality baseline also remains pending.
 
 ## Upcoming milestones
 
 These are sequencing candidates, not implementation authorization:
 
-1. Representative 4 GB arm64 calibration before any model capability ships.
-2. Keyboard integration only after a separate authorization and design review.
-3. Additional capabilities only after their own scoped approval.
+1. Run and approve three full Rewrite Benchmark Suite repetitions on Pixel 8.
+2. Run representative 4 GB arm64 calibration before any model capability ships.
+3. Additional keyboard product work only after separate authorization.
+4. Additional capabilities only after their own scoped approval.
 
 ## Active ADRs
 
-All ADR-001 through ADR-023 are accepted and active. The decisions most directly
+All ADR-001 through ADR-023 are accepted and active. Any future semantic architectural
+change requires a new accepted ADR before implementation. The decisions most directly
 governing current work are:
 
 - ADR-004: structured capability APIs, never prompt tunnels;
@@ -102,5 +134,7 @@ The canonical ADR list is maintained in `docs/specs/README.md`.
   release.
 - Multi-step execution is structurally represented but not executable in the initial
   framework slice; the Coordinator initially accepts exactly one prompt step.
-- Public logical conversations, multimodal bulk handles, and keyboard integration remain
-  future additive work behind separate architecture gates.
+- Public logical conversations and multimodal bulk handles remain future additive work
+  behind separate architecture gates.
+- Keyboard implementation and validation belong to the separate Touvay Keyboard
+  repository; this repository owns only Engine, SDK, and integration contracts.

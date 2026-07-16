@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
         val path = modelPath() ?: return
         val active = runner ?: run { appendLine("service not connected yet"); return }
         appendLine(if (quick) "running QUICK suite…" else "running FULL suite…")
-        active.runSuite(path, quick, callback)
+        active.runSuite(path, File(path).nameWithoutExtension, quick, callback)
     }
 
     /**

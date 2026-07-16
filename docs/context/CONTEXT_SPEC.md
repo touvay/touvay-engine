@@ -1,6 +1,6 @@
 # Context Architecture Specification v1.0
 
-**Status:** Approved implementation contract
+**Status:** Stable — Context Architecture v1.0 (frozen 2026-07-15)
 
 **Date:** 2026-07-13
 

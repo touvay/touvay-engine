@@ -1,8 +1,8 @@
 # Touvay Engine Specification Index
 
-**Status:** Canonical specification index
+**Status:** Stable — canonical specification index
 
-**Last updated:** 2026-07-13
+**Last updated:** 2026-07-15
 
 This index is the entry point for normative Touvay Engine architecture and implementation
 contracts. `docs/ARCHITECTURE.md` defines the platform-wide source of truth. Accepted
@@ -22,20 +22,32 @@ When documents disagree, use this order:
 Conflicts are never resolved silently. Record the conflict, proposed trade-offs, and
 recommended correction for architecture review.
 
+## Platform freeze policy
+
+The Platform Foundation specifications listed as Stable are frozen at
+`platform-v1-validated`. Every future semantic architectural change requires an ADR
+that is reviewed and accepted before implementation. This includes changes to behavior,
+ownership, lifecycle, public contracts, security/privacy guarantees, dependency rules,
+or cross-module responsibilities. Additive implementation within an existing contract
+does not require an ADR unless it changes one of those decisions. Editorial fixes may
+land without an ADR but must not alter meaning.
+
 ## Normative specifications
 
 | Area | Specification | Status |
 |---|---|---|
-| Platform | [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) | Approved v1.0, amended through ADR-023 |
-| Runtime SPI | [`docs/runtime/runtime-spi.md`](../runtime/runtime-spi.md) | Runtime v1.0 normative |
-| Runtime TCK | [`docs/runtime/runtime-tck.md`](../runtime/runtime-tck.md) | Runtime v1.0 executable contract |
-| llama.cpp adapter | [`docs/runtime/runtime-llamacpp-design.md`](../runtime/runtime-llamacpp-design.md) | Approved production adapter design |
-| Model Manager | [`docs/model-manager/model-manager.md`](../model-manager/model-manager.md) | Approved v1.0 implementation contract |
-| Execution | [`docs/execution/execution-architecture.md`](../execution/execution-architecture.md) | Approved v1.0 implementation contract |
-| Capability Framework | [`docs/capabilities/CAPABILITY_SPEC.md`](../capabilities/CAPABILITY_SPEC.md) | Approved v1.0 implementation contract |
-| Capability TCK | [`docs/capabilities/capability-tck.md`](../capabilities/capability-tck.md) | Executable v1 conformance contract |
-| Context | [`docs/context/CONTEXT_SPEC.md`](../context/CONTEXT_SPEC.md) | Approved v1.0 implementation contract |
-| Rewrite Capability | [`docs/capabilities/rewrite-v1.md`](../capabilities/rewrite-v1.md) | Implemented `text.rewrite@1` contract |
+| Platform | [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) | Stable v1.0, amended through ADR-023 |
+| Runtime SPI | [`docs/runtime/runtime-spi.md`](../runtime/runtime-spi.md) | Stable Runtime v1.0 normative contract |
+| Runtime TCK | [`docs/runtime/runtime-tck.md`](../runtime/runtime-tck.md) | Stable Runtime v1.0 executable contract |
+| llama.cpp adapter | [`docs/runtime/runtime-llamacpp-design.md`](../runtime/runtime-llamacpp-design.md) | Stable production adapter design |
+| Model Manager | [`docs/model-manager/model-manager.md`](../model-manager/model-manager.md) | Stable v1.0 implementation contract |
+| Execution | [`docs/execution/execution-architecture.md`](../execution/execution-architecture.md) | Stable v1.0 implementation contract |
+| Capability Framework | [`docs/capabilities/CAPABILITY_SPEC.md`](../capabilities/CAPABILITY_SPEC.md) | Stable v1.0 implementation contract |
+| Capability TCK | [`docs/capabilities/capability-tck.md`](../capabilities/capability-tck.md) | Stable v1 executable contract |
+| Context | [`docs/context/CONTEXT_SPEC.md`](../context/CONTEXT_SPEC.md) | Stable v1.0 implementation contract |
+| Rewrite Capability | [`docs/capabilities/rewrite-v1.md`](../capabilities/rewrite-v1.md) | Stable `text.rewrite@1` contract |
+| Keyboard | [`docs/keyboard/KEYBOARD_ARCHITECTURE.md`](../keyboard/KEYBOARD_ARCHITECTURE.md) | Stable v1.0; approved 2026-07-15 |
+| SDK consumer integration | [`docs/integration/SDK_CONSUMER_INTEGRATION.md`](../integration/SDK_CONSUMER_INTEGRATION.md) | External-client integration handoff |
 | Signed demo pack | [`docs/demo/demo-pack.md`](../demo/demo-pack.md) | Offline validation trust workflow |
 | Android SDK | [`sdk/touvay-sdk/README.md`](../../sdk/touvay-sdk/README.md) | Typed capability quick start |
 

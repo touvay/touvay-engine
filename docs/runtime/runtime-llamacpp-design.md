@@ -1,6 +1,6 @@
 # Production llama.cpp Adapter — Design
 
-**Status:** Implemented and production-hardened — Runtime v1.0 (Task 2.1, 2026-07-12).
+**Status:** Stable — production llama.cpp adapter for Runtime v1.0 (frozen 2026-07-15).
 **Conforms to:** `runtime-spi.md` (all SPI-* requirements) and `runtime-tck.md`.
 **Evidence base:** the historical Task 1 spike (removed after productionization;
 `docs/spikes/llamacpp-feasibility.md`). The spike validated the shape; this design

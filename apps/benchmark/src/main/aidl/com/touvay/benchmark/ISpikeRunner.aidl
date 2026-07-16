@@ -9,6 +9,6 @@ import com.touvay.benchmark.ISpikeCallback;
  */
 interface ISpikeRunner {
     int getPid();
-    oneway void runSuite(String modelPath, boolean quick, ISpikeCallback callback);
+    oneway void runSuite(String modelPath, String modelVariant, boolean quick, ISpikeCallback callback);
     oneway void cancelActive();
 }

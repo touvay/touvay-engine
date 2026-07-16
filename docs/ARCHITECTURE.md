@@ -1,6 +1,7 @@
 # Touvay Engine — Architecture Design Document
 
-**Status:** Approved — v1.0 (2026-07-11), amended at review: ADR-013 (local-only diagnostics).
+**Status:** Stable — Platform Architecture v1.0 (approved 2026-07-11; frozen 2026-07-15).
+Amended at review: ADR-013 (local-only diagnostics).
 Amended 2026-07-12: ADR-014 (schema ownership); Runtime v1 tokenization surface and
 spike-evidence refinements in §12/§14.3;
 normative runtime specs split out to `docs/runtime/` (runtime-spi.md, runtime-tck.md).
@@ -16,8 +17,18 @@ normative Capability Framework contract in `docs/capabilities/CAPABILITY_SPEC.md
 Amended 2026-07-13: ADR-022 (explicit request-scoped context providers and internal
 provenance) and ADR-023 (deterministic context merge and exact token budgeting);
 normative Context Architecture contract in `docs/context/CONTEXT_SPEC.md`.
+Merged 2026-07-15: approved Stable Keyboard Architecture v1.0; normative keyboard
+client contract in `docs/keyboard/KEYBOARD_ARCHITECTURE.md`.
 **Audience:** Engine maintainers, SDK consumers, contributors
 **Scope:** Architecture only. No production code until this document is approved.
+
+**Freeze rule:** A semantic change to this document or any Stable normative
+specification requires an accepted ADR before implementation. Editorial corrections
+that do not change behavior, ownership, public contracts, security, or dependency
+boundaries may be applied directly and recorded in the changelog.
+
+The Stable Keyboard Architecture is incorporated into the frozen platform by reference.
+It instantiates the SDK/process contracts without widening any platform surface.
 
 ---
 
@@ -348,7 +359,8 @@ Key structural facts:
 | `runtime-<impl>` | One adapter per runtime; owns its native libs (16 KB-page-aligned — a hard Play requirement for API 35+ targets since Nov 2025), JNI bridge, cancellation plumbing | `runtime-api` |
 | `runtime-tck` | Conformance test kit every runtime adapter must pass | `runtime-api` |
 | `sdk-fakes` | `FakeTouvay` in-memory engine for app developers' tests | `touvay-sdk` |
-| `apps/keyboard`, `apps/demo`, `apps/engine-app` | Clients and the future standalone engine host | `touvay-sdk` (+ engine modules only in hosts) |
+| Touvay Keyboard (separate repository) | Stable first-client architecture; IME shell, editor lifecycle, deferred SDK connection, explicit Rewrite preview/apply, diagnostics, cancellation, and error UX | `touvay-sdk` (+ packaged `engine-service` artifact only as the embedded runtime host) |
+| `apps/demo`, `apps/engine-app` | In-repository engineering reference client and future standalone engine host | `touvay-sdk` (+ engine modules only in hosts) |
 
 ---
 
@@ -367,7 +379,9 @@ Enforced in CI (Gradle module graph check / Konsist):
 6. Only the future, separate `engine-downloader` module may declare network dependencies;
    `engine-models` and inference-path modules are checked (StrictMode `detectNetwork` in
    instrumentation, dependency lint) to be socket-free.
-7. Client apps depend only on `touvay-sdk` (+ `sdk-fakes` in tests).
+7. External client product code depends only on `touvay-sdk` (+ `sdk-fakes` in tests).
+   An embedded host packages `engine-service` as a runtime artifact; client source may
+   not import engine implementation APIs. Touvay Keyboard remains a separate repository.
 8. All cross-boundary types are owned by the lower layer (`runtime-api` owns SPI types;
    `touvay-contract` owns wire types); no leaking runtime types up through the router.
 
@@ -382,7 +396,7 @@ all).
 ```kotlin
 // Connection & discovery ------------------------------------------------
 val touvay: TouvayClient = Touvay.connect(context)   // suspend: binds, negotiates versions
-// TouvayClient is AutoCloseable; SDK auto-reconnects on binder death (see §11.4)
+// TouvayClient is AutoCloseable; the client owner reconnects explicitly after binder death.
 
 interface TouvayClient : AutoCloseable {
     suspend fun capabilities(): Map<CapabilityId, CapabilityStatus>
@@ -534,10 +548,11 @@ this hot-path: a newer rewrite supersedes an in-flight one constantly.
 
 ### 11.4 Failure paths
 
-- **Engine process death mid-request:** client's `DeathRecipient` fires; SDK fails in-flight
-  requests with `EngineDisconnected` (retryable) and reconnects with backoff. The SDK **never
-  auto-resubmits generative requests** (duplicate side effects, changed context); retry is the
-  app's decision.
+- **Engine process death mid-request:** client's `DeathRecipient` fires and the SDK fails
+  in-flight requests with `EngineDisconnected` (retryable). The client connection owner may
+  call `Touvay.connect` again with bounded backoff while its eligible UI remains visible. The
+  SDK **never auto-resubmits generative requests** (duplicate side effects, changed context);
+  retry is the app's decision.
 - **Sessions survive by reconstruction:** the client SDK retains the session transcript; on
   reconnect it recreates the session and the engine re-prefills (prefix caching mitigates cost).
   The engine holds no durable per-session state — design-for-death (§4.5).
@@ -827,7 +842,6 @@ touvay-engine/
 │   ├── runtime-executorch/        (post-v1)
 │   └── runtime-aicore/
 ├── apps/
-│   ├── keyboard/                  (first client; may move to its own repo at 1.0)
 │   ├── demo/                      (SDK reference client)
 │   └── engine-app/                (standalone shared engine; promotion phase)
 ├── packs/                         (manifest schema, signing tools, sample tiny packs for tests)
@@ -1010,6 +1024,10 @@ control remains structurally separate from untrusted data. Full record:
 New capabilities that "don't exist today" arrive as: new capability id + proto schema + pipeline
 module + packs that claim it — no changes to the SDK connection layer, contract envelope,
 scheduler, or SPI. That is the 10-year test this architecture is built to pass.
+
+Touvay Keyboard is maintained in a separate sibling repository. Its Stable architecture
+contract remains in `docs/keyboard/KEYBOARD_ARCHITECTURE.md`; the Engine repository owns
+the SDK and embedded-host integration contract, not keyboard product code.
 
 ---
 
