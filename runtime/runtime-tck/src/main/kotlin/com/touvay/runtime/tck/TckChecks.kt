@@ -206,11 +206,18 @@ public class TckChecks(private val subject: RuntimeTckSubject) {
     /** SPI-LC-7: tokenize is safe concurrently with an active decode. */
     public fun lc06TokenizeConcurrentWithDecode() {
         withSession { instance, session ->
+            val cancel = AtomicCancelSignal()
             val failure = AtomicReference<Throwable>()
             val decodeStarted = CountDownLatch(1)
             val decoder = thread(name = "tck-lc06-decode") {
                 try {
-                    generate(instance, session, maxTokens = 24, onEachToken = { decodeStarted.countDown() })
+                    generate(
+                        instance,
+                        session,
+                        maxTokens = 24,
+                        cancel = cancel,
+                        onEachToken = { decodeStarted.countDown() },
+                    )
                 } catch (t: Throwable) {
                     failure.set(t)
                     decodeStarted.countDown()
@@ -220,7 +227,11 @@ public class TckChecks(private val subject: RuntimeTckSubject) {
             repeat(20) {
                 assertTrue("tokenize returned nothing", instance.tokenize(subject.shortPrompt).ids.isNotEmpty())
             }
-            decoder.join(60_000)
+            awaitCancellableThreadTermination(
+                worker = decoder,
+                operation = "LC06 decode",
+                cancel = cancel::cancel,
+            )
             failure.get()?.let { throw AssertionError("decode failed alongside tokenize", it) }
         }
     }
