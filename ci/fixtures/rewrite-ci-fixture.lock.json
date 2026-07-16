@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "engineCommit": "1e22deddbc682b10d5739304250d1acb4a7cd281",
+  "runtimeVersion": "llamacpp@1.0.0",
+  "packId": "touvay.ci.qwen2.5-0.5b-rewrite",
+  "packVersion": "1.0.0",
+  "ociReference": "ghcr.io/touvay/touvay-engine-ci-rewrite-fixture@sha256:085ac31370c072ab3bf1099a1469c09c654bd282eb06a366ea6bc041e5286716",
+  "ociDigest": "sha256:085ac31370c072ab3bf1099a1469c09c654bd282eb06a366ea6bc041e5286716",
+  "packDigest": "sha256:5f818d38dfc0a68e21752decf1b53420839334b413312c29ab4614993cc5b0cb",
+  "manifestDigest": "sha256:4bffa628baadf0ae7c3f943ead0b3e43e691b0e94d679f2a0b98a7b87c5811f4",
+  "keyId": "0da7a9841f80d2970e70947891e484462f9501a3cfd4ff9dba6cd679a162c5a7",
+  "publicKeyFile": "ci-fixture-publisher-public-key.b64",
+  "expectedTestCounts": {
+    "modelIndependent": {
+      "echoCrossProcess": 1,
+      "engineResilienceCrossProcess": 2,
+      "total": 3
+    },
+    "modelDependent": {
+      "runtimeTck": 28,
+      "rewriteEndToEnd": 1,
+      "benchmarkSmoke": 1,
+      "rewriteBenchmark": 1,
+      "total": 31
+    },
+    "totalDeviceTests": 34
+  }
+}

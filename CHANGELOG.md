@@ -14,6 +14,11 @@ The project follows milestone tags while the public API remains pre-1.0.
   8.14.3 wrapper distribution checksum.
 - Added SHA-256 dependency verification metadata and dependency lock state for every
   Engine project.
+- Added a dedicated Ed25519 CI Fixture Publisher trust domain and published the signed
+  Rewrite fixture to private GHCR with immutable OCI, pack, and manifest digests.
+- Added the fixture lock, CI public verification key, expected model-backed test counts,
+  three-domain key-custody policy, and publisher rotation procedure. CI holds no signing
+  key and no model weights were committed.
 - Kept Runtime, Model Manager, Execution, Capability, SDK, and architecture contracts
   unchanged.
 

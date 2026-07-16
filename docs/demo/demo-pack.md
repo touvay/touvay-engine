@@ -2,7 +2,7 @@
 
 **Status:** Offline engineering-validation fixture
 
-**Trust classification:** Demo only; never production trust
+**Trust classification:** Developer Fixture Key only; never CI or production trust
 
 The demo validates the production path without a network or verification bypass. The
 APK carries a demo public key, a detached signature envelope, the signed manifest, and
@@ -24,6 +24,10 @@ is copied into the app-specific pack source before validation.
 The committed `.b64` files in `docs/demo/pack/` are transport-safe fixture assets.
 `DemoPackProvisioner` decodes them to the app-specific external-files source. It does
 not generate, replace, or weaken signatures.
+
+The demo key is the Developer Fixture Key trust domain. It is independent of the
+long-lived CI Fixture Publisher Key and the separately controlled Production Publisher
+Key described in `docs/release/key-management.md`.
 
 ## Demo signing workflow
 
@@ -105,8 +109,9 @@ Demo key replacement is an atomic fixture update, not an in-place trust expansio
 6. Destroy the replacement private key after signing unless a separately controlled
    demo release process has an explicit retention policy.
 
-Production trust must use independently generated keys and a production composition
-source. Copying this demo public key into a production host is prohibited.
+CI and production trust must use independently generated keys in their own custody and
+composition sources. Copying this Developer Fixture public key into CI or a production
+host is prohibited.
 
 ## Security considerations
 

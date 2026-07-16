@@ -28,6 +28,8 @@ AI coding agents should read [AGENTS.md](AGENTS.md) before making changes.
 - [Changelog](CHANGELOG.md)
 - [Rewrite Benchmark Suite](docs/benchmarks/rewrite-benchmark-suite.md)
 - [Developer Console](docs/developer-console.md)
+- [CI fixture trust chain](docs/release/ci-fixture-trust.md)
+- [Release key-management policy](docs/release/key-management.md)
 
 The SDK remains capability-driven: applications do not see runtimes, model files,
 prompts, the scheduler, or Model Manager internals.
@@ -72,7 +74,9 @@ checksum, and GitHub Action commit pins are versioned release inputs.
 
 Device validation requires a locally provisioned GGUF model. Model weights and private
 signing material are deliberately excluded from Git. See the [model setup](models/README.md)
-and [demo pack workflow](docs/demo/demo-pack.md).
+and [demo pack workflow](docs/demo/demo-pack.md). Trusted model-backed CI uses a private
+fixture pinned only by immutable digest in the
+[fixture lock](ci/fixtures/rewrite-ci-fixture.lock.json); CI never signs model packs.
 
 For the public Rewrite API and a compact Android example, see the
 [SDK quick start](sdk/touvay-sdk/README.md). External repositories should also follow the
@@ -87,8 +91,9 @@ Product-quality and physical-device regression runs use the versioned
 - Offline by default; there is no telemetry.
 - User content is never logged or persisted.
 - Model packs and prompt assets are authenticated before activation.
-- The repository contains only the demo public trust key and signed public metadata;
-  private signing keys and model weights are never versioned.
+- The repository contains only public verification keys and signed public metadata for
+  explicitly separated Developer and CI fixture domains; private signing keys and model
+  weights are never versioned.
 - Networking is not implemented in this milestone.
 
 Licensed under the [Apache License 2.0](LICENSE).
