@@ -19,6 +19,6 @@ if (Test-Path (Join-Path $Dest "CMakeLists.txt")) {
 git clone --depth 1 --branch $Tag https://github.com/ggml-org/llama.cpp.git $Dest
 $actual = git -C $Dest rev-parse HEAD
 if ($actual -ne $Commit) {
-    throw "Pinned tag $Tag resolved to $actual, expected $Commit — investigate before building."
+    throw "Pinned tag $Tag resolved to $actual, expected $Commit - investigate before building."
 }
 Write-Host "llama.cpp fetched at $Tag ($Commit)"
