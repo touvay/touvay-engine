@@ -263,27 +263,37 @@ public class TckChecks(private val subject: RuntimeTckSubject) {
     public fun th01CallsFromDifferentThreads() {
         withSession { instance, session ->
             val failure = AtomicReference<Throwable>()
+            val prefillCancel = AtomicCancelSignal()
             val prefiller = thread(name = "tck-th01-prefill") {
                 try {
-                    session.prefill(instance.tokenize(subject.shortPrompt), CancelSignal.NONE)
+                    session.prefill(instance.tokenize(subject.shortPrompt), prefillCancel)
                 } catch (t: Throwable) {
                     failure.set(t)
                 }
             }
-            prefiller.join(60_000)
+            awaitCancellableThreadTermination(
+                worker = prefiller,
+                operation = "TH01 prefill",
+                cancel = prefillCancel::cancel,
+            )
             failure.get()?.let { throw AssertionError("prefill on foreign thread failed", it) }
 
             val pieces = mutableListOf<String>()
+            val decodeCancel = AtomicCancelSignal()
             val decoder = thread(name = "tck-th01-decode") {
                 try {
-                    session.decode(DecodeParams(8), CancelSignal.NONE) { _, piece ->
+                    session.decode(DecodeParams(8), decodeCancel) { _, piece ->
                         pieces += piece
                     }
                 } catch (t: Throwable) {
                     failure.set(t)
                 }
             }
-            decoder.join(60_000)
+            awaitCancellableThreadTermination(
+                worker = decoder,
+                operation = "TH01 decode",
+                cancel = decodeCancel::cancel,
+            )
             failure.get()?.let { throw AssertionError("decode on foreign thread failed", it) }
             assertTrue("no tokens decoded across threads", pieces.isNotEmpty())
         }
@@ -436,9 +446,12 @@ public class TckChecks(private val subject: RuntimeTckSubject) {
                     Thread.sleep((iteration % 10 * 10).toLong())
                     cancel.cancel()
                 }
-                decoder.join(60_000)
+                awaitCancellableThreadTermination(
+                    worker = decoder,
+                    operation = "CX04 decode iteration $iteration",
+                    cancel = cancel::cancel,
+                )
                 racer.join(10_000)
-                assertTrue("decode hung while racing cancellation", !decoder.isAlive)
                 assertTrue("cancel racer did not terminate", !racer.isAlive)
                 failure.get()?.let { throw AssertionError("cancel/completion race threw", it) }
             }
