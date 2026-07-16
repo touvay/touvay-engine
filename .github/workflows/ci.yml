@@ -128,7 +128,7 @@ jobs:
           api-level: 34
           arch: x86_64
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -memory 4096
           script: >-
             pwsh -File ./scripts/ci/run-model-device-tests.ps1
             -FixtureRoot '${{ steps.fixture.outputs.fixture-root }}'
