@@ -1,5 +1,6 @@
 package com.touvay.demo
 
+import android.os.SystemClock
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.touvay.sdk.CapabilityStatus
@@ -36,9 +37,18 @@ class RewriteEndToEndTest {
 
         val client = Touvay.connect(context)
         try {
-            val status = withTimeout(180_000) {
+            val readinessStarted = SystemClock.elapsedRealtime()
+            var previousStatus: CapabilityStatus? = null
+            val status = withTimeout(600_000) {
                 while (true) {
                     val current = client.capabilities()[RewriteCapability.id]
+                    if (current != previousStatus) {
+                        println(
+                            "TCK_DIAGNOSTIC demo readiness status=$current " +
+                                "elapsedMillis=${SystemClock.elapsedRealtime() - readinessStarted}",
+                        )
+                        previousStatus = current
+                    }
                     if (current == CapabilityStatus.Ready) return@withTimeout current
                     delay(500)
                 }

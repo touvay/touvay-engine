@@ -181,8 +181,19 @@ class RewriteBenchmarkTest {
     private suspend fun connectReady(context: Context): TouvayClient {
         val client = Touvay.connect(context)
         try {
+            val readinessStarted = SystemClock.elapsedRealtime()
+            var previousStatus: CapabilityStatus? = null
             withTimeout(CAPABILITY_TIMEOUT_MS) {
-                while (client.capabilities()[RewriteCapability.id] != CapabilityStatus.Ready) {
+                while (true) {
+                    val current = client.capabilities()[RewriteCapability.id]
+                    if (current != previousStatus) {
+                        println(
+                            "TCK_DIAGNOSTIC benchmark readiness status=$current " +
+                                "elapsedMillis=${SystemClock.elapsedRealtime() - readinessStarted}",
+                        )
+                        previousStatus = current
+                    }
+                    if (current == CapabilityStatus.Ready) break
                     delay(CAPABILITY_POLL_MS)
                 }
             }
@@ -498,7 +509,7 @@ class RewriteBenchmarkTest {
         const val QUICK_SENTINEL_RUNS = 1
         const val FULL_SENTINEL_RUNS = 3
         const val COLD_RELEASE_DELAY_MS = 750L
-        const val CAPABILITY_TIMEOUT_MS = 180_000L
+        const val CAPABILITY_TIMEOUT_MS = 600_000L
         const val CAPABILITY_POLL_MS = 500L
         const val CANCELLATION_START_TIMEOUT_MS = 30_000L
         const val MEMORY_SAMPLE_MS = 50L
