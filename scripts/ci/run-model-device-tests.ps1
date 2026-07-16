@@ -48,89 +48,6 @@ function Push-VerifiedFile([string]$Source, [string]$Destination) {
     }
 }
 
-function Write-DiagnosticCommand {
-    param(
-        [Parameter(Mandatory = $true)][string]$Title,
-        [Parameter(Mandatory = $true)][string[]]$Arguments
-    )
-    Write-Host "::group::$Title"
-    try {
-        $diagnosticOutput = @(& adb @Arguments 2>&1)
-        $diagnosticExitCode = $LASTEXITCODE
-        $diagnosticOutput | ForEach-Object { Write-Host $_ }
-        Write-Host "diagnostic adb exit code: $diagnosticExitCode"
-    } catch {
-        Write-Host "diagnostic command threw: $($_.Exception.GetType().FullName)"
-    } finally {
-        Write-Host "::endgroup::"
-    }
-}
-
-function Write-RootCrashFiles {
-    param(
-        [Parameter(Mandatory = $true)][string]$Directory,
-        [Parameter(Mandatory = $true)][string]$NamePattern,
-        [Parameter(Mandatory = $true)][string]$TitlePrefix
-    )
-    $entries = @(& adb shell ls -1 $Directory 2>&1)
-    $listExitCode = $LASTEXITCODE
-    Write-Host "$TitlePrefix directory listing exit code: $listExitCode"
-    $entries | ForEach-Object { Write-Host $_ }
-    if ($listExitCode -ne 0) {
-        return
-    }
-    foreach ($entry in $entries) {
-        $name = "$entry".Trim()
-        if ($name -match $NamePattern) {
-            Write-DiagnosticCommand `
-                -Title "$TitlePrefix $name" `
-                -Arguments @("shell", "cat", "$Directory/$name")
-        }
-    }
-}
-
-function Write-InstrumentationCrashDiagnostics {
-    param(
-        [Parameter(Mandatory = $true)][string]$Runner,
-        [Parameter(Mandatory = $true)][int]$InstrumentationExitCode
-    )
-    Write-Host "instrumentation runner: $Runner"
-    Write-Host "instrumentation adb exit code: $InstrumentationExitCode"
-    Write-DiagnosticCommand -Title "crash logcat" `
-        -Arguments @("logcat", "-b", "crash", "-d", "-v", "threadtime")
-    Write-DiagnosticCommand -Title "full logcat" `
-        -Arguments @("logcat", "-b", "all", "-d", "-v", "threadtime")
-    Write-DiagnosticCommand -Title "application exit info" `
-        -Arguments @("shell", "dumpsys", "activity", "exit-info", "com.touvay.runtime.llamacpp.test")
-    foreach ($tag in @(
-        "data_app_crash",
-        "data_app_native_crash",
-        "data_app_anr",
-        "SYSTEM_TOMBSTONE"
-    )) {
-        Write-DiagnosticCommand -Title "DropBox $tag" `
-            -Arguments @("shell", "dumpsys", "dropbox", "--print", $tag)
-    }
-
-    Write-Host "::group::adb root"
-    $rootOutput = @(& adb root 2>&1)
-    $rootExitCode = $LASTEXITCODE
-    $rootOutput | ForEach-Object { Write-Host $_ }
-    Write-Host "adb root exit code: $rootExitCode"
-    Write-Host "::endgroup::"
-    if ($rootExitCode -eq 0) {
-        Write-DiagnosticCommand -Title "wait for rooted adb" -Arguments @("wait-for-device")
-        Write-RootCrashFiles `
-            -Directory "/data/tombstones" `
-            -NamePattern '^tombstone_[0-9]+$' `
-            -TitlePrefix "tombstone"
-        Write-RootCrashFiles `
-            -Directory "/data/anr" `
-            -NamePattern '^(anr_|traces).*' `
-            -TitlePrefix "ANR trace"
-    }
-}
-
 function Invoke-Instrumentation {
     param(
         [Parameter(Mandatory = $true)][string]$Runner,
@@ -141,10 +58,6 @@ function Invoke-Instrumentation {
     $arguments = @("shell", "am", "instrument", "-w", "-r", "-e", "class", $Classes)
     $arguments += $AdditionalArguments
     $arguments += $Runner
-    & adb logcat -G 16M 2>&1 | ForEach-Object { Write-Host $_ }
-    Write-Host "logcat resize exit code: $LASTEXITCODE"
-    & adb logcat -c 2>&1 | ForEach-Object { Write-Host $_ }
-    Write-Host "logcat clear exit code: $LASTEXITCODE"
     $output = @(& adb @arguments 2>&1)
     $exitCode = $LASTEXITCODE
     $output | ForEach-Object { Write-Host $_ }
@@ -152,9 +65,6 @@ function Invoke-Instrumentation {
     $expectedPattern = "OK \($ExpectedCount tests?\)"
     if ($exitCode -ne 0 -or $text -match 'FAILURES!!!|INSTRUMENTATION_FAILED|INSTRUMENTATION_ABORTED' -or
         $text -notmatch $expectedPattern) {
-        Write-InstrumentationCrashDiagnostics `
-            -Runner $Runner `
-            -InstrumentationExitCode $exitCode
         throw "instrumentation did not complete exactly $ExpectedCount tests"
     }
 }
