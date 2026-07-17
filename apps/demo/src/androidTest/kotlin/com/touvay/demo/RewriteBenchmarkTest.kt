@@ -451,9 +451,12 @@ class RewriteBenchmarkTest {
 
     private fun thermalSnapshot(context: Context): JSONObject {
         val power = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val headroom = runCatching { power.getThermalHeadroom(10) }
+            .getOrNull()
+            ?.takeIf(Float::isFinite)
         return JSONObject()
             .put("status", power.currentThermalStatus)
-            .put("headroom10s", runCatching { power.getThermalHeadroom(10) }.getOrNull() ?: JSONObject.NULL)
+            .put("headroom10s", headroom ?: JSONObject.NULL)
     }
 
     @Suppress("DEPRECATION")
